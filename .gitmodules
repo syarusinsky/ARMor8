@@ -1,3 +1,6 @@
 [submodule "lib/STM32f302x8-HAL"]
 	path = lib/STM32f302x8-HAL
 	url = https://github.com/syarusinsky/STM32f302x8-HAL.git
+[submodule "lib/SAL"]
+	path = lib/SAL
+	url = https://github.com/syarusinsky/SAL
