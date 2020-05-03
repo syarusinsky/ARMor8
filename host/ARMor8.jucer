@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerVersion="5.4.4">
+  <MAINGROUP id="Nwhz3w" name="FMSynth">
+    <GROUP id="{98D80E54-6CF9-BEAB-7DA1-8D820991FECF}" name="Source">
+      <FILE id="UzOnvO" name="ADSREnvelopeGenerator.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/ADSREnvelopeGenerator.cpp"/>
+      <FILE id="qbrrWM" name="AudioBuffer.cpp" compile="1" resource="0" file="../lib/SAL/src/AudioBuffer.cpp"/>
+      <FILE id="tLruld" name="CPPFile.cpp" compile="1" resource="0" file="../lib/SAL/src/CPPFile.cpp"/>
+      <FILE id="SOibfh" name="ExponentialResponse.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/ExponentialResponse.cpp"/>
+      <FILE id="eBj3AH" name="IKeyEventListener.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/IKeyEventListener.cpp"/>
+      <FILE id="oQ7rnu" name="IMidiEventListener.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/IMidiEventListener.cpp"/>
+      <FILE id="s87v13" name="IPitchEventListener.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/IPitchEventListener.cpp"/>
+      <FILE id="carZm0" name="KeyEventServer.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/KeyEventServer.cpp"/>
+      <FILE id="EvbwxQ" name="LinearResponse.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/LinearResponse.cpp"/>
+      <FILE id="ZwVCIz" name="MidiHandler.cpp" compile="1" resource="0" file="../lib/SAL/src/MidiHandler.cpp"/>
+      <FILE id="hyho6d" name="MidiMsg.cpp" compile="1" resource="0" file="../lib/SAL/src/MidiMsg.cpp"/>
+      <FILE id="zgG80y" name="OnePoleFilter.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/OnePoleFilter.cpp"/>
+      <FILE id="vqK3RC" name="Operator.cpp" compile="1" resource="0" file="../lib/SAL/src/Operator.cpp"/>
+      <FILE id="P9VnS0" name="PolyBLEPOsc.cpp" compile="1" resource="0" file="../lib/SAL/src/PolyBLEPOsc.cpp"/>
+      <FILE id="BwTIAf" name="SawtoothWaveBuffer.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/SawtoothWaveBuffer.cpp"/>
+      <FILE id="O16vWS" name="SineWaveBuffer.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/SineWaveBuffer.cpp"/>
+      <FILE id="gfuhcv" name="SquareWaveBuffer.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/SquareWaveBuffer.cpp"/>
+      <FILE id="O8CvG1" name="TriangleWaveBuffer.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/TriangleWaveBuffer.cpp"/>
+      <FILE id="QAOCmO" name="ADSREnvelopeGenerator.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/ADSREnvelopeGenerator.hpp"/>
+      <FILE id="tEwTz9" name="AudioBuffer.hpp" compile="0" resource="0" file="../lib/SAL/include/AudioBuffer.hpp"/>
+      <FILE id="MoUbH8" name="AudioConstants.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/AudioConstants.hpp"/>
+      <FILE id="kOX25H" name="CPPFile.hpp" compile="0" resource="0" file="../lib/SAL/include/CPPFile.hpp"/>
+      <FILE id="WgTcZj" name="ExponentialResponse.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/ExponentialResponse.hpp"/>
+      <FILE id="qxccIN" name="IBufferCallback.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IBufferCallback.hpp"/>
+      <FILE id="TH58wo" name="IEnvelopeGenerator.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IEnvelopeGenerator.hpp"/>
+      <FILE id="ewtIL6" name="IEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IEventListener.hpp"/>
+      <FILE id="NxmFQx" name="IFilter.hpp" compile="0" resource="0" file="../lib/SAL/include/IFilter.hpp"/>
+      <FILE id="PonV8B" name="IKeyEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IKeyEventListener.hpp"/>
+      <FILE id="vM6riO" name="IMidiEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IMidiEventListener.hpp"/>
+      <FILE id="SivnNq" name="IModulationSource.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IModulationSource.hpp"/>
+      <FILE id="Zlxcpj" name="IOscillator.hpp" compile="0" resource="0" file="../lib/SAL/include/IOscillator.hpp"/>
+      <FILE id="lVtf42" name="IPitchEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IPitchEventListener.hpp"/>
+      <FILE id="RpCg3r" name="IResponse.hpp" compile="0" resource="0" file="../lib/SAL/include/IResponse.hpp"/>
+      <FILE id="Fa9kZw" name="IStorageMedia.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IStorageMedia.hpp"/>
+      <FILE id="f8zJkT" name="KeyEventServer.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/KeyEventServer.hpp"/>
+      <FILE id="Os98yK" name="LinearResponse.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/LinearResponse.hpp"/>
+      <FILE id="Jqsyx9" name="MidiConstants.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/MidiConstants.hpp"/>
+      <FILE id="J3AaOm" name="MidiHandler.hpp" compile="0" resource="0" file="../lib/SAL/include/MidiHandler.hpp"/>
+      <FILE id="ZTboth" name="MidiMsg.hpp" compile="0" resource="0" file="../lib/SAL/include/MidiMsg.hpp"/>
+      <FILE id="Cf1RgN" name="OnePoleFilter.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/OnePoleFilter.hpp"/>
+      <FILE id="OlQsWp" name="Operator.hpp" compile="0" resource="0" file="../lib/SAL/include/Operator.hpp"/>
+      <FILE id="fuh0sM" name="PolyBLEPOsc.hpp" compile="0" resource="0" file="../lib/SAL/include/PolyBLEPOsc.hpp"/>
+      <FILE id="ROANdd" name="PresetManager.cpp" compile="1" resource="0"
+            file="../lib/SAL/include/PresetManager.cpp"/>
+      <FILE id="qeuWpH" name="PresetManager.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/PresetManager.hpp"/>
+      <FILE id="syxOrk" name="SawtoothWaveBuffer.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/SawtoothWaveBuffer.hpp"/>
+      <FILE id="jsptE5" name="SineWaveBuffer.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/SineWaveBuffer.hpp"/>
+      <FILE id="D9vbUF" name="SquareWaveBuffer.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/SquareWaveBuffer.hpp"/>
+      <FILE id="NetClG" name="TriangleWaveBuffer.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/TriangleWaveBuffer.hpp"/>
+      <FILE id="CUpz8d" name="Variant.hpp" compile="0" resource="0" file="../lib/SAL/include/Variant.hpp"/>
+      <FILE id="nMSf1M" name="WaveBuffer.hpp" compile="0" resource="0" file="../lib/SAL/include/WaveBuffer.hpp"/>
+      <FILE id="wPWgYh" name="ARMor8VoiceManager.cpp" compile="1" resource="0"
+            file="../src/ARMor8VoiceManager.cpp"/>
+      <FILE id="OkAx1i" name="ARMor8Voice.cpp" compile="1" resource="0" file="../src/ARMor8Voice.cpp"/>
+      <FILE id="xxpzs5" name="ARMor8PresetUpgrader.cpp" compile="1" resource="0"
+            file="../src/ARMor8PresetUpgrader.cpp"/>
+      <FILE id="IoltR8" name="ARMor8Filter.cpp" compile="1" resource="0"
+            file="../src/ARMor8Filter.cpp"/>
+      <FILE id="hefVOZ" name="ARMor8VoiceManager.hpp" compile="0" resource="0"
+            file="../include/ARMor8VoiceManager.hpp"/>
+      <FILE id="eyez39" name="ARMor8Voice.hpp" compile="0" resource="0" file="../include/ARMor8Voice.hpp"/>
+      <FILE id="yevoCd" name="ARMor8PresetUpgrader.hpp" compile="0" resource="0"
+            file="../include/ARMor8PresetUpgrader.hpp"/>
+      <FILE id="IPesLA" name="ARMor8Filter.hpp" compile="0" resource="0"
+            file="../include/ARMor8Filter.hpp"/>
+      <FILE id="WyOxZs" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="iOXFFj" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="UwgOe8" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraCompilerFlags="-I../../../lib/SAL/include -I../../../include">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../../../opt/JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../../opt/JUCE/modules/juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../../opt/JUCE/modules/juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../../../opt/JUCE/modules/juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../../opt/JUCE/modules/juce_audio_utils"/>
+        <MODULEPATH id="juce_core" path="../../../../../opt/JUCE/modules/juce_core"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../opt/JUCE/modules/juce_cryptography"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../opt/JUCE/modules/juce_data_structures"/>
+        <MODULEPATH id="juce_events" path="../../../../../opt/JUCE/modules/juce_events"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../opt/JUCE/modules/juce_graphics"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../opt/JUCE/modules/juce_gui_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../opt/JUCE/modules/juce_gui_extra"/>
+        <MODULEPATH id="juce_opengl" path="../../../../../opt/JUCE/modules/juce_opengl"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <LINUX/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+</JUCERPROJECT>
