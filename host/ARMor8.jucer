@@ -6,6 +6,8 @@
       <FILE id="UzOnvO" name="ADSREnvelopeGenerator.cpp" compile="1" resource="0"
             file="../lib/SAL/src/ADSREnvelopeGenerator.cpp"/>
       <FILE id="qbrrWM" name="AudioBuffer.cpp" compile="1" resource="0" file="../lib/SAL/src/AudioBuffer.cpp"/>
+      <FILE id="qbrrWM" name="PresetManager.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/PresetManager.cpp"/>
       <FILE id="tLruld" name="CPPFile.cpp" compile="1" resource="0" file="../lib/SAL/src/CPPFile.cpp"/>
       <FILE id="SOibfh" name="ExponentialResponse.cpp" compile="1" resource="0"
             file="../lib/SAL/src/ExponentialResponse.cpp"/>
@@ -72,8 +74,6 @@
             file="../lib/SAL/include/OnePoleFilter.hpp"/>
       <FILE id="OlQsWp" name="Operator.hpp" compile="0" resource="0" file="../lib/SAL/include/Operator.hpp"/>
       <FILE id="fuh0sM" name="PolyBLEPOsc.hpp" compile="0" resource="0" file="../lib/SAL/include/PolyBLEPOsc.hpp"/>
-      <FILE id="ROANdd" name="PresetManager.cpp" compile="1" resource="0"
-            file="../lib/SAL/include/PresetManager.cpp"/>
       <FILE id="qeuWpH" name="PresetManager.hpp" compile="0" resource="0"
             file="../lib/SAL/include/PresetManager.hpp"/>
       <FILE id="syxOrk" name="SawtoothWaveBuffer.hpp" compile="0" resource="0"

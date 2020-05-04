@@ -70,6 +70,7 @@ endif
 OBJECTS_APP := \
   $(JUCE_OBJDIR)/ADSREnvelopeGenerator_4d071a01.o \
   $(JUCE_OBJDIR)/AudioBuffer_ebf7f996.o \
+  $(JUCE_OBJDIR)/PresetManager_515686ee.o \
   $(JUCE_OBJDIR)/CPPFile_c74b949f.o \
   $(JUCE_OBJDIR)/ExponentialResponse_40f8f86.o \
   $(JUCE_OBJDIR)/IKeyEventListener_d8980078.o \
@@ -86,7 +87,6 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/SineWaveBuffer_29b930b0.o \
   $(JUCE_OBJDIR)/SquareWaveBuffer_2be04600.o \
   $(JUCE_OBJDIR)/TriangleWaveBuffer_b318266b.o \
-  $(JUCE_OBJDIR)/PresetManager_564f09b2.o \
   $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o \
   $(JUCE_OBJDIR)/ARMor8Voice_45068494.o \
   $(JUCE_OBJDIR)/ARMor8PresetUpgrader_7d7d8afd.o \
@@ -128,6 +128,11 @@ $(JUCE_OBJDIR)/ADSREnvelopeGenerator_4d071a01.o: ../../../lib/SAL/src/ADSREnvelo
 $(JUCE_OBJDIR)/AudioBuffer_ebf7f996.o: ../../../lib/SAL/src/AudioBuffer.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling AudioBuffer.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/PresetManager_515686ee.o: ../../../lib/SAL/src/PresetManager.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling PresetManager.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/CPPFile_c74b949f.o: ../../../lib/SAL/src/CPPFile.cpp
@@ -208,11 +213,6 @@ $(JUCE_OBJDIR)/SquareWaveBuffer_2be04600.o: ../../../lib/SAL/src/SquareWaveBuffe
 $(JUCE_OBJDIR)/TriangleWaveBuffer_b318266b.o: ../../../lib/SAL/src/TriangleWaveBuffer.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling TriangleWaveBuffer.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/PresetManager_564f09b2.o: ../../../lib/SAL/include/PresetManager.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling PresetManager.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o: ../../../src/ARMor8VoiceManager.cpp

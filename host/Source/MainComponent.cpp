@@ -16,7 +16,7 @@ const int WaveRadioId = 1002;
 
 //==============================================================================
 MainComponent::MainComponent() :
-	presetManager(sizeof(ARMor8PresetHeader), 30, new CPPFile("ARMor8Presets.spf")),
+	presetManager(sizeof(ARMor8PresetHeader), 20, new CPPFile("ARMor8Presets.spf")),
 	midiHandler(),
 	lastInputIndex(0),
 	sAudioBuffer(),
@@ -76,7 +76,7 @@ MainComponent::MainComponent() :
 	midiInputListLbl(),
 	monoBtn("Global: Monophonic"),
 	prevPresetBtn("Prev Preset"),
-	presetNumLbl("Preset Number", "0"),
+	presetNumLbl("Preset Number", "1"),
 	nextPresetBtn("Next Preset"),
 	writePresetBtn("Write Preset")
 {
@@ -700,7 +700,7 @@ void MainComponent::buttonClicked (Button* button)
 		if (button == &prevPresetBtn)
 		{
 			ARMor8VoiceState preset = presetManager.prevPreset<ARMor8VoiceState>();
-			String presetNumStr( presetManager.getCurrentPresetNum() );
+			String presetNumStr( presetManager.getCurrentPresetNum() + 1 );
 			presetNumLbl.setText( presetNumStr, dontSendNotification );
 			armor8VoiceManager.setState( preset );
 			op1Btn.triggerClick();
@@ -708,7 +708,7 @@ void MainComponent::buttonClicked (Button* button)
 		else if (button == &nextPresetBtn)
 		{
 			ARMor8VoiceState preset = presetManager.nextPreset<ARMor8VoiceState>();
-			String presetNumStr( presetManager.getCurrentPresetNum() );
+			String presetNumStr( presetManager.getCurrentPresetNum() + 1 );
 			presetNumLbl.setText( presetNumStr, dontSendNotification );
 			armor8VoiceManager.setState( preset );
 			op1Btn.triggerClick();

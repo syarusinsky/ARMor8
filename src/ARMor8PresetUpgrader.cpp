@@ -502,7 +502,6 @@ void ARMor8PresetUpgrader::upgradeFrom0_1_0To1_0_0()
 
 void ARMor8PresetUpgrader::upgradeFrom1_0_0To1_1_0()
 {
-	std::cout << "UPDATING PRESET VERSION FROM 1.0.0 TO 1.1.0" << std::endl;
 	// write header
 	ARMor8PresetHeader presetHeader = { 1, 1, 0, true };
 	m_PresetManager->writeHeader<ARMor8PresetHeader>( presetHeader );
