@@ -61,6 +61,8 @@ private:
     AudioFormatWriter* writer;
     Slider freqSldr;
     Label freqLbl;
+    Slider detuneSldr;
+    Label detuneLbl;
     ToggleButton ratioBtn;
 
     Label editLbl;

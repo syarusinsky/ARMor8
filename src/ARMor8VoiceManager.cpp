@@ -17,7 +17,7 @@ ARMor8VoiceManager::ARMor8VoiceManager() :
 	m_Voices { &m_Voice1, &m_Voice2, &m_Voice3, &m_Voice4, &m_Voice5, &m_Voice6 },
 	m_ActiveKeyEventIndex (0),
 	m_PitchBendSemitones (1),
-	m_PresetHeader ({1, 0, 0, true})
+	m_PresetHeader ({1, 1, 0, true})
 {
 }
 
@@ -30,6 +30,14 @@ void ARMor8VoiceManager::setOperatorFreq (unsigned int opNum, float freq)
 	for (unsigned int voice = 0; voice < numVoices; voice++)
 	{
 		m_Voices[voice]->setOperatorFreq(opNum, freq);
+	}
+}
+
+void ARMor8VoiceManager::setOperatorDetune (unsigned int opNum, int cents)
+{
+	for (unsigned int voice = 0; voice < numVoices; voice++)
+	{
+		m_Voices[voice]->setOperatorDetune(opNum, cents);
 	}
 }
 

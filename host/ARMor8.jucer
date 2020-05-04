@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerVersion="5.4.4">
+<JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerVersion="5.4.7">
   <MAINGROUP id="Nwhz3w" name="FMSynth">
     <GROUP id="{98D80E54-6CF9-BEAB-7DA1-8D820991FECF}" name="Source">
       <FILE id="UzOnvO" name="ADSREnvelopeGenerator.cpp" compile="1" resource="0"

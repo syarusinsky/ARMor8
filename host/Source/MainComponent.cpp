@@ -26,6 +26,8 @@ MainComponent::MainComponent() :
 	writer(),
 	freqSldr(),
 	freqLbl(),
+	detuneSldr(),
+	detuneLbl(),
 	ratioBtn("Ratio"),
 	editLbl(),
 	op1Btn("Op 1"),
@@ -133,6 +135,14 @@ MainComponent::MainComponent() :
     freqLbl.setText("Frequency", dontSendNotification);
     freqLbl.attachToComponent(&freqSldr, true);
 
+    addAndMakeVisible(detuneSldr);
+    detuneSldr.setRange(-1200, 1200, 1);
+    detuneSldr.setTextValueSuffix("Cents");
+    detuneSldr.addListener(this);
+    addAndMakeVisible(detuneLbl);
+    detuneLbl.setText("Detune", dontSendNotification);
+    detuneLbl.attachToComponent(&detuneSldr, true);
+
     addAndMakeVisible(ratioBtn);
     ratioBtn.onClick = [this] { updateToggleState(&ratioBtn); };
     ratioBtn.addListener(this);
@@ -170,7 +180,7 @@ MainComponent::MainComponent() :
     sawBtn.onClick = [this] { updateToggleState(&sawBtn); };
 
     addAndMakeVisible(attackSldr);
-    attackSldr.setRange(0.0f, 2.0f);
+    attackSldr.setRange(0.002f, 2.0f);
     attackSldr.setTextValueSuffix("Seconds");
     attackSldr.addListener(this);
     addAndMakeVisible(attackLbl);
@@ -210,7 +220,7 @@ MainComponent::MainComponent() :
     sustainLbl.attachToComponent(&sustainSldr, true);
 
     addAndMakeVisible(releaseSldr);
-    releaseSldr.setRange(0.0f, 3.0f);
+    releaseSldr.setRange(0.002f, 3.0f);
     releaseSldr.setTextValueSuffix("Seconds");
     releaseSldr.addListener(this);
     addAndMakeVisible(releaseLbl);
@@ -379,6 +389,7 @@ MainComponent::MainComponent() :
 	0.0f,
 	0.0f,
 	0.0f,
+	0,
 
 	// operator 2
 	1000.0f,
@@ -403,6 +414,7 @@ MainComponent::MainComponent() :
 	0.0f,
 	0.0f,
 	0.0f,
+	0,
 
 	// operator 3
 	1000.0f,
@@ -427,6 +439,7 @@ MainComponent::MainComponent() :
 	0.0f,
 	0.0f,
 	0.0f,
+	0,
 
 	// operator 4
 	1000.0f,
@@ -451,6 +464,7 @@ MainComponent::MainComponent() :
 	0.0f,
 	0.0f,
 	0.0f,
+	0,
 
 	// global
 	false,
@@ -541,46 +555,47 @@ void MainComponent::resized()
     // update their positions.
     int sliderLeft = 120;
     freqSldr.setBounds        (sliderLeft, 20, getWidth() - sliderLeft - 10, 20);
-    ratioBtn.setBounds        (sliderLeft, 60, getWidth() - sliderLeft - 10, 20);
-    editLbl.setBounds         (sliderLeft, 90, (getWidth() / 3) - sliderLeft, 20);
-    waveLbl.setBounds         ((getWidth() / 3) * 2, 90, (getWidth() / 3) - sliderLeft, 20);
-    op1Btn.setBounds          (sliderLeft, 120, (getWidth() / 2) - sliderLeft, 20);
-    sineBtn.setBounds         ((getWidth() / 3) * 2, 120, (getWidth() / 3) - sliderLeft, 20);
-    op2Btn.setBounds          (sliderLeft, 150, (getWidth() / 2) - sliderLeft, 20);
-    triangleBtn.setBounds     ((getWidth() / 3) * 2, 150, (getWidth() / 3) - sliderLeft, 20);
-    op3Btn.setBounds          (sliderLeft, 180, (getWidth() / 2) - sliderLeft, 20);
-    squareBtn.setBounds       ((getWidth() / 3) * 2, 180, (getWidth() / 3) - sliderLeft, 20);
-    op4Btn.setBounds          (sliderLeft, 210, (getWidth() / 2) - sliderLeft, 20);
-    sawBtn.setBounds          ((getWidth() / 3) * 2, 210, (getWidth() / 3) - sliderLeft, 20);
-    attackSldr.setBounds      (sliderLeft, 250, getWidth() - sliderLeft - 10, 20);
-    attackExpoSldr.setBounds  (sliderLeft, 280, getWidth() - sliderLeft - 10, 20);
-    decaySldr.setBounds       (sliderLeft, 310, getWidth() - sliderLeft - 10, 20);
-    decayExpoSldr.setBounds   (sliderLeft, 340, getWidth() - sliderLeft - 10, 20);
-    sustainSldr.setBounds     (sliderLeft, 370, getWidth() - sliderLeft - 10, 20);
-    releaseSldr.setBounds     (sliderLeft, 400, getWidth() - sliderLeft - 10, 20);
-    releaseExpoSldr.setBounds (sliderLeft, 430, getWidth() - sliderLeft - 10, 20);
-    egDestLbl.setBounds       (sliderLeft, 460, getWidth() - sliderLeft - 10, 20);
-    amplitudeDestBtn.setBounds(sliderLeft, 490, getWidth() - sliderLeft - 10, 20);
-    frequencyDestBtn.setBounds(sliderLeft, 520, getWidth() - sliderLeft - 10, 20);
-    filterDestBtn.setBounds   (sliderLeft, 550, getWidth() - sliderLeft - 10, 20);
-    op1ModAmountSldr.setBounds(sliderLeft, 590, getWidth() - sliderLeft - 10, 20);
-    op2ModAmountSldr.setBounds(sliderLeft, 620, getWidth() - sliderLeft - 10, 20);
-    op3ModAmountSldr.setBounds(sliderLeft, 650, getWidth() - sliderLeft - 10, 20);
-    op4ModAmountSldr.setBounds(sliderLeft, 680, getWidth() - sliderLeft - 10, 20);
-    amplitudeSldr.setBounds   (sliderLeft, 710, getWidth() - sliderLeft - 10, 20);
-    filterFreqSldr.setBounds  (sliderLeft, 740, getWidth() - sliderLeft - 10, 20);
-    filterResSldr.setBounds   (sliderLeft, 770, getWidth() - sliderLeft - 10, 20);
-    ampVelSldr.setBounds      (sliderLeft, 800, getWidth() - sliderLeft - 10, 20);
-    filtVelSldr.setBounds     (sliderLeft, 830, getWidth() - sliderLeft - 10, 20);
-    pitchBendSldr.setBounds   (sliderLeft, 860, getWidth() - sliderLeft - 10, 20);
-    glideSldr.setBounds       (sliderLeft + (getWidth() / 5) * 0, 890, (getWidth() / 5) * 4 - sliderLeft - 10, 20);
-    egRetriggerBtn.setBounds  (sliderLeft + (getWidth() / 5) * 4, 890, (getWidth() / 5) * 1 - sliderLeft - 10, 20);
-    midiInputList.setBounds   (sliderLeft, 940, getWidth() - sliderLeft - 10, 20);
-    monoBtn.setBounds         (sliderLeft + (getWidth() / 5) * 0, 970, ((getWidth() - sliderLeft - 10) / 5), 20);
-    prevPresetBtn.setBounds   (sliderLeft + (getWidth() / 5) * 1, 970, ((getWidth() - sliderLeft - 10) / 5), 20);
-    presetNumLbl.setBounds    (sliderLeft + (getWidth() / 5) * 2, 970, ((getWidth() - sliderLeft - 10) / 5), 20);
-    nextPresetBtn.setBounds   ((getWidth() / 5) * 3, 970, ((getWidth() - sliderLeft - 10) / 5), 20);
-    writePresetBtn.setBounds  ((getWidth() / 5) * 4, 970, ((getWidth() - sliderLeft - 10) / 5), 20);
+    detuneSldr.setBounds      (sliderLeft, 60, getWidth() - sliderLeft - 10, 20);
+    ratioBtn.setBounds        (sliderLeft, 90, getWidth() - sliderLeft - 10, 20);
+    editLbl.setBounds         (sliderLeft, 120, (getWidth() / 3) - sliderLeft, 20);
+    waveLbl.setBounds         ((getWidth() / 3) * 2, 120, (getWidth() / 3) - sliderLeft, 20);
+    op1Btn.setBounds          (sliderLeft, 150, (getWidth() / 2) - sliderLeft, 20);
+    sineBtn.setBounds         ((getWidth() / 3) * 2, 150, (getWidth() / 3) - sliderLeft, 20);
+    op2Btn.setBounds          (sliderLeft, 180, (getWidth() / 2) - sliderLeft, 20);
+    triangleBtn.setBounds     ((getWidth() / 3) * 2, 180, (getWidth() / 3) - sliderLeft, 20);
+    op3Btn.setBounds          (sliderLeft, 210, (getWidth() / 2) - sliderLeft, 20);
+    squareBtn.setBounds       ((getWidth() / 3) * 2, 210, (getWidth() / 3) - sliderLeft, 20);
+    op4Btn.setBounds          (sliderLeft, 240, (getWidth() / 2) - sliderLeft, 20);
+    sawBtn.setBounds          ((getWidth() / 3) * 2, 240, (getWidth() / 3) - sliderLeft, 20);
+    attackSldr.setBounds      (sliderLeft, 280, getWidth() - sliderLeft - 10, 20);
+    attackExpoSldr.setBounds  (sliderLeft, 310, getWidth() - sliderLeft - 10, 20);
+    decaySldr.setBounds       (sliderLeft, 340, getWidth() - sliderLeft - 10, 20);
+    decayExpoSldr.setBounds   (sliderLeft, 370, getWidth() - sliderLeft - 10, 20);
+    sustainSldr.setBounds     (sliderLeft, 400, getWidth() - sliderLeft - 10, 20);
+    releaseSldr.setBounds     (sliderLeft, 430, getWidth() - sliderLeft - 10, 20);
+    releaseExpoSldr.setBounds (sliderLeft, 460, getWidth() - sliderLeft - 10, 20);
+    egDestLbl.setBounds       (sliderLeft, 490, getWidth() - sliderLeft - 10, 20);
+    amplitudeDestBtn.setBounds(sliderLeft, 520, getWidth() - sliderLeft - 10, 20);
+    frequencyDestBtn.setBounds(sliderLeft, 550, getWidth() - sliderLeft - 10, 20);
+    filterDestBtn.setBounds   (sliderLeft, 580, getWidth() - sliderLeft - 10, 20);
+    op1ModAmountSldr.setBounds(sliderLeft, 620, getWidth() - sliderLeft - 10, 20);
+    op2ModAmountSldr.setBounds(sliderLeft, 650, getWidth() - sliderLeft - 10, 20);
+    op3ModAmountSldr.setBounds(sliderLeft, 680, getWidth() - sliderLeft - 10, 20);
+    op4ModAmountSldr.setBounds(sliderLeft, 710, getWidth() - sliderLeft - 10, 20);
+    amplitudeSldr.setBounds   (sliderLeft, 740, getWidth() - sliderLeft - 10, 20);
+    filterFreqSldr.setBounds  (sliderLeft, 770, getWidth() - sliderLeft - 10, 20);
+    filterResSldr.setBounds   (sliderLeft, 800, getWidth() - sliderLeft - 10, 20);
+    ampVelSldr.setBounds      (sliderLeft, 830, getWidth() - sliderLeft - 10, 20);
+    filtVelSldr.setBounds     (sliderLeft, 860, getWidth() - sliderLeft - 10, 20);
+    pitchBendSldr.setBounds   (sliderLeft, 890, getWidth() - sliderLeft - 10, 20);
+    glideSldr.setBounds       (sliderLeft + (getWidth() / 5) * 0, 920, (getWidth() / 5) * 4 - sliderLeft - 10, 20);
+    egRetriggerBtn.setBounds  (sliderLeft + (getWidth() / 5) * 4, 920, (getWidth() / 5) * 1 - sliderLeft - 10, 20);
+    midiInputList.setBounds   (sliderLeft, 970, getWidth() - sliderLeft - 10, 20);
+    monoBtn.setBounds         (sliderLeft + (getWidth() / 5) * 0, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
+    prevPresetBtn.setBounds   (sliderLeft + (getWidth() / 5) * 1, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
+    presetNumLbl.setBounds    (sliderLeft + (getWidth() / 5) * 2, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
+    nextPresetBtn.setBounds   ((getWidth() / 5) * 3, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
+    writePresetBtn.setBounds  ((getWidth() / 5) * 4, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
 }
 
 void MainComponent::sliderValueChanged (Slider* slider)
@@ -592,6 +607,10 @@ void MainComponent::sliderValueChanged (Slider* slider)
 	if (slider == &freqSldr)
 	{
 		armor8VoiceManager.setOperatorFreq(opToEdit, val);
+	}
+	else if (slider == &detuneSldr)
+	{
+		armor8VoiceManager.setOperatorDetune(opToEdit, val);
 	}
 	else if (slider == &attackSldr)
 	{
@@ -979,6 +998,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state)
 			filterResSldr.setValue(state.filterRes1);
 			ampVelSldr.setValue(state.ampVelSens1);
 			filtVelSldr.setValue(state.filtVelSens1);
+			detuneSldr.setValue(state.detune1);
 
 			break;
 		case 1:
@@ -1073,6 +1093,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state)
 			filterResSldr.setValue(state.filterRes2);
 			ampVelSldr.setValue(state.ampVelSens2);
 			filtVelSldr.setValue(state.filtVelSens2);
+			detuneSldr.setValue(state.detune2);
 
 			break;
 		case 2:
@@ -1167,6 +1188,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state)
 			filterResSldr.setValue(state.filterRes3);
 			ampVelSldr.setValue(state.ampVelSens3);
 			filtVelSldr.setValue(state.filtVelSens3);
+			detuneSldr.setValue(state.detune3);
 
 			break;
 		case 3:
@@ -1261,6 +1283,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state)
 			filterResSldr.setValue(state.filterRes4);
 			ampVelSldr.setValue(state.ampVelSens4);
 			filtVelSldr.setValue(state.filtVelSens4);
+			detuneSldr.setValue(state.detune4);
 
 			break;
 		default:

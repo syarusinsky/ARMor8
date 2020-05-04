@@ -42,6 +42,7 @@ struct ARMor8VoiceState
 	float filterRes1;
 	float ampVelSens1;
 	float filtVelSens1;
+	int detune1;
 
 	// operator 2
 	float frequency2;
@@ -66,6 +67,7 @@ struct ARMor8VoiceState
 	float filterRes2;
 	float ampVelSens2;
 	float filtVelSens2;
+	int detune2;
 
 	// operator 3
 	float frequency3;
@@ -90,6 +92,7 @@ struct ARMor8VoiceState
 	float filterRes3;
 	float ampVelSens3;
 	float filtVelSens3;
+	int detune3;
 
 	// operator 4
 	float frequency4;
@@ -114,6 +117,7 @@ struct ARMor8VoiceState
 	float filterRes4;
 	float ampVelSens4;
 	float filtVelSens4;
+	int detune4;
 
 	// global
 	bool         monophonic;
@@ -149,6 +153,7 @@ class ARMor8Voice
 		~ARMor8Voice();
 
 		void setOperatorFreq (unsigned int opNum, float freq);
+		void setOperatorDetune (unsigned int opNum, int cents);
 		void setOperatorWave (unsigned int opNum, const OscillatorMode& wave);
 		void setOperatorEG (unsigned int opNum, IEnvelopeGenerator* eg);
 		void setOperatorEGAttack (unsigned int opNum, float seconds, float expo);

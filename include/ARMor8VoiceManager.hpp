@@ -24,6 +24,7 @@ class ARMor8VoiceManager : public siike92::IBufferCallback, public IKeyEventList
 		void setMonophonic (bool on);
 
 		void setOperatorFreq (unsigned int opNum, float freq);
+		void setOperatorDetune (unsigned int opNum, int cents);
 		void setOperatorWave (unsigned int opNum, const OscillatorMode& wave);
 		void setOperatorEG (unsigned int opNum, IEnvelopeGenerator* eg);
 		void setOperatorEGAttack (unsigned int opNum, float seconds, float expo);

@@ -56,6 +56,14 @@ void ARMor8Voice::setOperatorFreq (unsigned int opNum, float freq)
 	}
 }
 
+void ARMor8Voice::setOperatorDetune (unsigned int opNum, int cents)
+{
+	if (opNum < numOps)
+	{
+		m_Operators[opNum]->setDetune(cents);
+	}
+}
+
 void ARMor8Voice::setOperatorWave (unsigned int opNum, const OscillatorMode& wave)
 {
 	if (opNum < numOps)
@@ -289,6 +297,7 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.filterRes1 = m_Op1.getFilterRes();
 	state.ampVelSens1 = m_Op1.getAmpVelSens();
 	state.filtVelSens1 = m_Op1.getFiltVelSens();
+	state.detune1 = m_Op1.getDetune();
 
 	// operator 2 state
 	state.frequency2 = m_Op2.getFrequency();
@@ -313,6 +322,7 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.filterRes2 = m_Op2.getFilterRes();
 	state.ampVelSens2 = m_Op2.getAmpVelSens();
 	state.filtVelSens2 = m_Op2.getFiltVelSens();
+	state.detune2 = m_Op2.getDetune();
 
 	// operator 3 state
 	state.frequency3 = m_Op3.getFrequency();
@@ -337,6 +347,7 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.filterRes3 = m_Op3.getFilterRes();
 	state.ampVelSens3 = m_Op3.getAmpVelSens();
 	state.filtVelSens3 = m_Op3.getFiltVelSens();
+	state.detune3 = m_Op3.getDetune();
 
 	// operator 4 state
 	state.frequency4 = m_Op4.getFrequency();
@@ -361,6 +372,7 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.filterRes4 = m_Op4.getFilterRes();
 	state.ampVelSens4 = m_Op4.getAmpVelSens();
 	state.filtVelSens4 = m_Op4.getFiltVelSens();
+	state.detune4 = m_Op4.getDetune();
 
 	// global states
 	state.glideTime = m_Op1.getGlideTime();
@@ -412,6 +424,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op1.setFilterRes( state.filterRes1 );
 	m_Op1.setAmpVelSens( state.ampVelSens1 );
 	m_Op1.setFiltVelSens( state.filtVelSens1 );
+	m_Op1.setDetune( state.detune1 );
 
 	// operator 2 state
 	m_Op2.setFrequency( state.frequency2 );
@@ -454,6 +467,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op2.setFilterRes( state.filterRes2 );
 	m_Op2.setAmpVelSens( state.ampVelSens2 );
 	m_Op2.setFiltVelSens( state.filtVelSens2 );
+	m_Op2.setDetune( state.detune2 );
 
 	// operator 3 state
 	m_Op3.setFrequency( state.frequency3 );
@@ -496,6 +510,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op3.setFilterRes( state.filterRes3 );
 	m_Op3.setAmpVelSens( state.ampVelSens3 );
 	m_Op3.setFiltVelSens( state.filtVelSens3 );
+	m_Op3.setDetune( state.detune3 );
 
 	// operator 4 state
 	m_Op4.setFrequency( state.frequency4 );
@@ -538,6 +553,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op4.setFilterRes( state.filterRes4 );
 	m_Op4.setAmpVelSens( state.ampVelSens4 );
 	m_Op4.setFiltVelSens( state.filtVelSens4 );
+	m_Op4.setDetune( state.detune4 );
 
 	// global states
 	for (unsigned int op = 0; op < numOps; op++)
