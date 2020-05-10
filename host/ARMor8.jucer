@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerVersion="5.4.7">
+<JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerVersion="5.4.7"
+              cppLanguageStandard="11">
   <MAINGROUP id="Nwhz3w" name="FMSynth">
     <GROUP id="{98D80E54-6CF9-BEAB-7DA1-8D820991FECF}" name="Source">
       <FILE id="UzOnvO" name="ADSREnvelopeGenerator.cpp" compile="1" resource="0"
@@ -11,6 +12,10 @@
       <FILE id="tLruld" name="CPPFile.cpp" compile="1" resource="0" file="../lib/SAL/src/CPPFile.cpp"/>
       <FILE id="SOibfh" name="ExponentialResponse.cpp" compile="1" resource="0"
             file="../lib/SAL/src/ExponentialResponse.cpp"/>
+      <FILE id="SOibfh" name="IPotEventListener.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/IPotEventListener.cpp"/>
+      <FILE id="SOibfh" name="IButtonEventListener.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/IButtonEventListener.cpp"/>
       <FILE id="eBj3AH" name="IKeyEventListener.cpp" compile="1" resource="0"
             file="../lib/SAL/src/IKeyEventListener.cpp"/>
       <FILE id="oQ7rnu" name="IMidiEventListener.cpp" compile="1" resource="0"
@@ -22,19 +27,10 @@
       <FILE id="EvbwxQ" name="LinearResponse.cpp" compile="1" resource="0"
             file="../lib/SAL/src/LinearResponse.cpp"/>
       <FILE id="ZwVCIz" name="MidiHandler.cpp" compile="1" resource="0" file="../lib/SAL/src/MidiHandler.cpp"/>
-      <FILE id="hyho6d" name="MidiMsg.cpp" compile="1" resource="0" file="../lib/SAL/src/MidiMsg.cpp"/>
       <FILE id="zgG80y" name="OnePoleFilter.cpp" compile="1" resource="0"
             file="../lib/SAL/src/OnePoleFilter.cpp"/>
       <FILE id="vqK3RC" name="Operator.cpp" compile="1" resource="0" file="../lib/SAL/src/Operator.cpp"/>
       <FILE id="P9VnS0" name="PolyBLEPOsc.cpp" compile="1" resource="0" file="../lib/SAL/src/PolyBLEPOsc.cpp"/>
-      <FILE id="BwTIAf" name="SawtoothWaveBuffer.cpp" compile="1" resource="0"
-            file="../lib/SAL/src/SawtoothWaveBuffer.cpp"/>
-      <FILE id="O16vWS" name="SineWaveBuffer.cpp" compile="1" resource="0"
-            file="../lib/SAL/src/SineWaveBuffer.cpp"/>
-      <FILE id="gfuhcv" name="SquareWaveBuffer.cpp" compile="1" resource="0"
-            file="../lib/SAL/src/SquareWaveBuffer.cpp"/>
-      <FILE id="O8CvG1" name="TriangleWaveBuffer.cpp" compile="1" resource="0"
-            file="../lib/SAL/src/TriangleWaveBuffer.cpp"/>
       <FILE id="QAOCmO" name="ADSREnvelopeGenerator.hpp" compile="0" resource="0"
             file="../lib/SAL/include/ADSREnvelopeGenerator.hpp"/>
       <FILE id="tEwTz9" name="AudioBuffer.hpp" compile="0" resource="0" file="../lib/SAL/include/AudioBuffer.hpp"/>
@@ -62,6 +58,10 @@
       <FILE id="RpCg3r" name="IResponse.hpp" compile="0" resource="0" file="../lib/SAL/include/IResponse.hpp"/>
       <FILE id="Fa9kZw" name="IStorageMedia.hpp" compile="0" resource="0"
             file="../lib/SAL/include/IStorageMedia.hpp"/>
+      <FILE id="Fa9kZw" name="IPotEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IPotEventListener.hpp"/>
+      <FILE id="Fa9kZw" name="IButtonEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/IButtonEventListener.hpp"/>
       <FILE id="f8zJkT" name="KeyEventServer.hpp" compile="0" resource="0"
             file="../lib/SAL/include/KeyEventServer.hpp"/>
       <FILE id="Os98yK" name="LinearResponse.hpp" compile="0" resource="0"
@@ -69,23 +69,13 @@
       <FILE id="Jqsyx9" name="MidiConstants.hpp" compile="0" resource="0"
             file="../lib/SAL/include/MidiConstants.hpp"/>
       <FILE id="J3AaOm" name="MidiHandler.hpp" compile="0" resource="0" file="../lib/SAL/include/MidiHandler.hpp"/>
-      <FILE id="ZTboth" name="MidiMsg.hpp" compile="0" resource="0" file="../lib/SAL/include/MidiMsg.hpp"/>
       <FILE id="Cf1RgN" name="OnePoleFilter.hpp" compile="0" resource="0"
             file="../lib/SAL/include/OnePoleFilter.hpp"/>
       <FILE id="OlQsWp" name="Operator.hpp" compile="0" resource="0" file="../lib/SAL/include/Operator.hpp"/>
       <FILE id="fuh0sM" name="PolyBLEPOsc.hpp" compile="0" resource="0" file="../lib/SAL/include/PolyBLEPOsc.hpp"/>
       <FILE id="qeuWpH" name="PresetManager.hpp" compile="0" resource="0"
             file="../lib/SAL/include/PresetManager.hpp"/>
-      <FILE id="syxOrk" name="SawtoothWaveBuffer.hpp" compile="0" resource="0"
-            file="../lib/SAL/include/SawtoothWaveBuffer.hpp"/>
-      <FILE id="jsptE5" name="SineWaveBuffer.hpp" compile="0" resource="0"
-            file="../lib/SAL/include/SineWaveBuffer.hpp"/>
-      <FILE id="D9vbUF" name="SquareWaveBuffer.hpp" compile="0" resource="0"
-            file="../lib/SAL/include/SquareWaveBuffer.hpp"/>
-      <FILE id="NetClG" name="TriangleWaveBuffer.hpp" compile="0" resource="0"
-            file="../lib/SAL/include/TriangleWaveBuffer.hpp"/>
       <FILE id="CUpz8d" name="Variant.hpp" compile="0" resource="0" file="../lib/SAL/include/Variant.hpp"/>
-      <FILE id="nMSf1M" name="WaveBuffer.hpp" compile="0" resource="0" file="../lib/SAL/include/WaveBuffer.hpp"/>
       <FILE id="wPWgYh" name="ARMor8VoiceManager.cpp" compile="1" resource="0"
             file="../src/ARMor8VoiceManager.cpp"/>
       <FILE id="OkAx1i" name="ARMor8Voice.cpp" compile="1" resource="0" file="../src/ARMor8Voice.cpp"/>

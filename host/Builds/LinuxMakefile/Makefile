@@ -40,7 +40,7 @@ ifeq ($(CONFIG),Debug)
   JUCE_TARGET_APP := FMSynth
 
   JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -g -ggdb -O0 -I../../../lib/SAL/include -I../../../include $(CFLAGS)
-  JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++14 $(CXXFLAGS)
+  JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++11 $(CXXFLAGS)
   JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa x11 xinerama xext freetype2 webkit2gtk-4.0 gtk+-x11-3.0 libcurl zlib libjpeg libpng flac vorbis vorbisfile vorbisenc ogg jack) -lrt -ldl -lpthread -lGL $(LDFLAGS)
 
   CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
@@ -61,7 +61,7 @@ ifeq ($(CONFIG),Release)
   JUCE_TARGET_APP := FMSynth
 
   JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -O3 -I../../../lib/SAL/include -I../../../include $(CFLAGS)
-  JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++14 $(CXXFLAGS)
+  JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++11 $(CXXFLAGS)
   JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) $(shell pkg-config --libs alsa x11 xinerama xext freetype2 webkit2gtk-4.0 gtk+-x11-3.0 libcurl zlib libjpeg libpng flac vorbis vorbisfile vorbisenc ogg jack) -fvisibility=hidden -lrt -ldl -lpthread -lGL $(LDFLAGS)
 
   CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
@@ -73,20 +73,17 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/PresetManager_515686ee.o \
   $(JUCE_OBJDIR)/CPPFile_c74b949f.o \
   $(JUCE_OBJDIR)/ExponentialResponse_40f8f86.o \
+  $(JUCE_OBJDIR)/IPotEventListener_908f9742.o \
+  $(JUCE_OBJDIR)/IButtonEventListener_206dc39d.o \
   $(JUCE_OBJDIR)/IKeyEventListener_d8980078.o \
   $(JUCE_OBJDIR)/IMidiEventListener_40b5b68e.o \
   $(JUCE_OBJDIR)/IPitchEventListener_7aadecb7.o \
   $(JUCE_OBJDIR)/KeyEventServer_e9a61c48.o \
   $(JUCE_OBJDIR)/LinearResponse_a01fa030.o \
   $(JUCE_OBJDIR)/MidiHandler_d1acf949.o \
-  $(JUCE_OBJDIR)/MidiMsg_7f680b00.o \
   $(JUCE_OBJDIR)/OnePoleFilter_1f5d4f76.o \
   $(JUCE_OBJDIR)/Operator_1db9530e.o \
   $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o \
-  $(JUCE_OBJDIR)/SawtoothWaveBuffer_a8eb18a2.o \
-  $(JUCE_OBJDIR)/SineWaveBuffer_29b930b0.o \
-  $(JUCE_OBJDIR)/SquareWaveBuffer_2be04600.o \
-  $(JUCE_OBJDIR)/TriangleWaveBuffer_b318266b.o \
   $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o \
   $(JUCE_OBJDIR)/ARMor8Voice_45068494.o \
   $(JUCE_OBJDIR)/ARMor8PresetUpgrader_7d7d8afd.o \
@@ -145,6 +142,16 @@ $(JUCE_OBJDIR)/ExponentialResponse_40f8f86.o: ../../../lib/SAL/src/ExponentialRe
 	@echo "Compiling ExponentialResponse.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
+$(JUCE_OBJDIR)/IPotEventListener_908f9742.o: ../../../lib/SAL/src/IPotEventListener.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling IPotEventListener.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/IButtonEventListener_206dc39d.o: ../../../lib/SAL/src/IButtonEventListener.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling IButtonEventListener.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
 $(JUCE_OBJDIR)/IKeyEventListener_d8980078.o: ../../../lib/SAL/src/IKeyEventListener.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling IKeyEventListener.cpp"
@@ -175,11 +182,6 @@ $(JUCE_OBJDIR)/MidiHandler_d1acf949.o: ../../../lib/SAL/src/MidiHandler.cpp
 	@echo "Compiling MidiHandler.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
-$(JUCE_OBJDIR)/MidiMsg_7f680b00.o: ../../../lib/SAL/src/MidiMsg.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling MidiMsg.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
-
 $(JUCE_OBJDIR)/OnePoleFilter_1f5d4f76.o: ../../../lib/SAL/src/OnePoleFilter.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling OnePoleFilter.cpp"
@@ -193,26 +195,6 @@ $(JUCE_OBJDIR)/Operator_1db9530e.o: ../../../lib/SAL/src/Operator.cpp
 $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o: ../../../lib/SAL/src/PolyBLEPOsc.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling PolyBLEPOsc.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/SawtoothWaveBuffer_a8eb18a2.o: ../../../lib/SAL/src/SawtoothWaveBuffer.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling SawtoothWaveBuffer.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/SineWaveBuffer_29b930b0.o: ../../../lib/SAL/src/SineWaveBuffer.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling SineWaveBuffer.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/SquareWaveBuffer_2be04600.o: ../../../lib/SAL/src/SquareWaveBuffer.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling SquareWaveBuffer.cpp"
-	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/TriangleWaveBuffer_b318266b.o: ../../../lib/SAL/src/TriangleWaveBuffer.cpp
-	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling TriangleWaveBuffer.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o: ../../../src/ARMor8VoiceManager.cpp

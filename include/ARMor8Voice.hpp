@@ -172,7 +172,19 @@ class ARMor8Voice
 
 		void setGlideTime (const float glideTime);
 		void setGlideRetrigger (const bool useRetrigger);
+		bool getGlideRetrigger();
 		void setUseGlide (const bool useGlide);
+		bool getUseGlide();
+
+		bool getOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest);
+
+		float getOperatorAttack (unsigned int opNum);
+		float getOperatorDecay (unsigned int opNum);
+		float getOperatorRelease (unsigned int opNum);
+
+		float getOperatorAttackExpo (unsigned int opNum);
+		float getOperatorDecayExpo (unsigned int opNum);
+		float getOperatorReleaseExpo (unsigned int opNum);
 
 		float getOperatorRatioFrequency (unsigned int opNum);
 		bool getOperatorUseRatio (unsigned int opNum);

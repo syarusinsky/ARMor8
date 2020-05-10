@@ -1,6 +1,5 @@
 #include "ARMor8Voice.hpp"
 
-#include "WaveBuffer.hpp"
 #include "IEnvelopeGenerator.hpp"
 
 const unsigned int numOps = 4;
@@ -243,11 +242,162 @@ void ARMor8Voice::setGlideRetrigger (const bool useRetrigger)
 	}
 }
 
+bool ARMor8Voice::getGlideRetrigger()
+{
+	return m_Operators[0]->getGlideRetrigger();
+}
+
 void ARMor8Voice::setUseGlide (const bool useGlide)
 {
 	for (unsigned int op = 0; op < numOps; op++)
 	{
 		m_Operators[op]->setUseGlide( useGlide );
+	}
+}
+
+bool ARMor8Voice::getUseGlide()
+{
+	return m_Operators[0]->getUseGlide();
+}
+
+bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest)
+{
+	Operator* op = nullptr;
+
+	switch (opNum)
+	{
+		case 0:
+			op = &m_Op1;
+
+			break;
+		case 1:
+			op = &m_Op2;
+
+			break;
+		case 2:
+			op = &m_Op3;
+
+			break;
+		case 3:
+			op = &m_Op4;
+
+			break;
+		default:
+			return false;
+	}
+
+	switch (modDest)
+	{
+		case EGModDestination::AMPLITUDE:
+			return op->egModAmplitudeSet();
+		case EGModDestination::FREQUENCY:
+			return op->egModFrequencySet();
+		case EGModDestination::FILT_FREQUENCY:
+			return op->egModFilterSet();
+		default:
+			return false;
+	}
+}
+
+float ARMor8Voice::getOperatorAttack (unsigned int opNum)
+{
+	switch (opNum)
+	{
+		case 0:
+			return m_Eg1.getAttack();
+		case 1:
+			return m_Eg2.getAttack();
+		case 2:
+			return m_Eg3.getAttack();
+		case 3:
+			return m_Eg4.getAttack();
+		default:
+			return 0.0f;
+	}
+}
+
+float ARMor8Voice::getOperatorDecay (unsigned int opNum)
+{
+	switch (opNum)
+	{
+		case 0:
+			return m_Eg1.getDecay();
+		case 1:
+			return m_Eg2.getDecay();
+		case 2:
+			return m_Eg3.getDecay();
+		case 3:
+			return m_Eg4.getDecay();
+		default:
+			return 0.0f;
+	}
+}
+
+float ARMor8Voice::getOperatorRelease (unsigned int opNum)
+{
+	switch (opNum)
+	{
+		case 0:
+			return m_Eg1.getRelease();
+		case 1:
+			return m_Eg2.getRelease();
+		case 2:
+			return m_Eg3.getRelease();
+		case 3:
+			return m_Eg4.getRelease();
+		default:
+			return 0.0f;
+	}
+}
+
+float ARMor8Voice::getOperatorAttackExpo (unsigned int opNum)
+{
+	switch (opNum)
+	{
+		case 0:
+			return m_AtkResponse1.getSlope();
+		case 1:
+			return m_AtkResponse2.getSlope();
+		case 2:
+			return m_AtkResponse3.getSlope();
+		case 3:
+			return m_AtkResponse4.getSlope();
+		default:
+			return 0.0f;
+	}
+}
+
+float ARMor8Voice::getOperatorDecayExpo (unsigned int opNum)
+{
+	switch (opNum)
+	{
+		case 0:
+			return m_DecResponse1.getSlope();
+		case 1:
+			return m_DecResponse2.getSlope();
+		case 2:
+			return m_DecResponse3.getSlope();
+		case 3:
+			return m_DecResponse4.getSlope();
+		default:
+			return 0.0f;
+	}
+}
+
+float ARMor8Voice::getOperatorReleaseExpo (unsigned int opNum)
+{
+	switch (opNum)
+	{
+		case 0:
+			return m_RelResponse1.getSlope();
+		case 1:
+			return m_RelResponse2.getSlope();
+		case 2:
+			return m_RelResponse3.getSlope();
+		case 3:
+			return m_RelResponse4.getSlope();
+		default:
+			return 0.0f;
 	}
 }
 
@@ -384,6 +534,7 @@ ARMor8VoiceState ARMor8Voice::getState()
 void ARMor8Voice::setState (const ARMor8VoiceState& state)
 {
 	// operator 1 state
+	m_Op1.setUseGlide( true );
 	m_Op1.setFrequency( state.frequency1 );
 	m_Op1.setRatio( state.useRatio1 );
 	m_Op1.setWave( state.wave1 );
@@ -427,6 +578,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op1.setDetune( state.detune1 );
 
 	// operator 2 state
+	m_Op2.setUseGlide( true );
 	m_Op2.setFrequency( state.frequency2 );
 	m_Op2.setRatio( state.useRatio2 );
 	m_Op2.setWave( state.wave2 );
@@ -470,6 +622,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op2.setDetune( state.detune2 );
 
 	// operator 3 state
+	m_Op3.setUseGlide( true );
 	m_Op3.setFrequency( state.frequency3 );
 	m_Op3.setRatio( state.useRatio3 );
 	m_Op3.setWave( state.wave3 );
@@ -513,6 +666,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op3.setDetune( state.detune3 );
 
 	// operator 4 state
+	m_Op4.setUseGlide( true );
 	m_Op4.setFrequency( state.frequency4 );
 	m_Op4.setRatio( state.useRatio4 );
 	m_Op4.setWave( state.wave4 );
