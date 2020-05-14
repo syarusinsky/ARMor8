@@ -80,6 +80,7 @@ MainComponent::MainComponent() :
 	writePresetBtn( "Write Preset" )
 {
 	// connecting to event system
+	this->bindToARMor8PresetEventSystem();
 	armor8VoiceManager.bindToKeyEventSystem();
 	armor8VoiceManager.bindToPitchEventSystem();
 	armor8VoiceManager.bindToPotEventSystem();
@@ -730,16 +731,12 @@ void MainComponent::buttonClicked (Button* button)
 		{
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 						static_cast<unsigned int>(BUTTON_CHANNEL::PREV_PRESET)) );
-			String presetNumStr( presetManager.getCurrentPresetNum() + 1 );
-			presetNumLbl.setText( presetNumStr, dontSendNotification );
 			op1Btn.triggerClick();
 		}
 		else if (button == &nextPresetBtn)
 		{
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 						static_cast<unsigned int>(BUTTON_CHANNEL::NEXT_PRESET)) );
-			String presetNumStr( presetManager.getCurrentPresetNum() + 1 );
-			presetNumLbl.setText( presetNumStr, dontSendNotification );
 			op1Btn.triggerClick();
 		}
 		else if (button == &writePresetBtn)
@@ -766,7 +763,6 @@ void MainComponent::updateToggleState (Button* button)
 			{
 				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
-				this->setFromARMor8VoiceState( armor8VoiceManager.getState() );
 			}
 		}
 		else if (button == &op2Btn)
@@ -775,7 +771,6 @@ void MainComponent::updateToggleState (Button* button)
 			{
 				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::OP2)) );
-				this->setFromARMor8VoiceState (armor8VoiceManager.getState());
 			}
 		}
 		else if (button == &op3Btn)
@@ -784,7 +779,6 @@ void MainComponent::updateToggleState (Button* button)
 			{
 				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::OP3)) );
-				this->setFromARMor8VoiceState (armor8VoiceManager.getState());
 			}
 		}
 		else if (button == &op4Btn)
@@ -793,7 +787,6 @@ void MainComponent::updateToggleState (Button* button)
 			{
 				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::OP4)) );
-				this->setFromARMor8VoiceState (armor8VoiceManager.getState());
 			}
 		}
 		else if (button == &sineBtn)
@@ -865,12 +858,20 @@ void MainComponent::updateToggleState (Button* button)
 	}
 }
 
-void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state)
+void MainComponent::onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent)
+{
+	this->setFromARMor8VoiceState( presetEvent.getPreset(), presetEvent.getOpToEdit(), presetEvent.getPresetNum() );
+}
+
+void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum)
 {
 	try
 	{
+		// set preset num label
+		String presetNumStr( presetNum + 1 );
+		presetNumLbl.setText( presetNumStr, dontSendNotification );
+
 		// handle global states first
-		midiHandler.setNumberOfSemitonesToPitchBend( state.pitchBendSemitones );
 		pitchBendSldr.setValue( state.pitchBendSemitones, dontSendNotification );
 		glideSldr.setValue( state.glideTime, dontSendNotification );
 		if ( !egRetriggerBtn.getToggleState() )
@@ -902,7 +903,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state)
 			}
 		}
 
-		switch ( armor8VoiceManager.getOperatorToEdit() )
+		switch ( opToEdit )
 		{
 			case 0:
 				freqSldr.setValue( state.frequency1, dontSendNotification );

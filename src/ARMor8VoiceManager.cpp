@@ -1,13 +1,11 @@
 #include "ARMor8VoiceManager.hpp"
 
+#include "IARMor8PresetEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 #include "AudioConstants.hpp"
 #include <string.h>
 #include <cmath>
-
-// TODO REMOVE THIS
-#include <iostream>
 
 ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
 	m_MidiHandler (midiHandler),
@@ -514,17 +512,37 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 			case BUTTON_CHANNEL::OP1:
 				m_OpToEdit = 0;
 
+				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
+										m_OpToEdit,
+										m_PresetManager->getCurrentPresetNum(),
+									       	0) );
+
 				break;
 			case BUTTON_CHANNEL::OP2:
 				m_OpToEdit = 1;
+
+				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
+										m_OpToEdit,
+										m_PresetManager->getCurrentPresetNum(),
+									       	0) );
 
 				break;
 			case BUTTON_CHANNEL::OP3:
 				m_OpToEdit = 2;
 
+				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
+										m_OpToEdit,
+										m_PresetManager->getCurrentPresetNum(),
+									       	0) );
+
 				break;
 			case BUTTON_CHANNEL::OP4:
 				m_OpToEdit = 3;
+
+				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
+										m_OpToEdit,
+										m_PresetManager->getCurrentPresetNum(),
+									       	0) );
 
 				break;
 			case BUTTON_CHANNEL::SINE:
@@ -630,6 +648,7 @@ void ARMor8VoiceManager::setState (const ARMor8VoiceState& state)
 	// global
 	m_Monophonic = state.monophonic;
 	m_PitchBendSemitones = state.pitchBendSemitones;
+	m_MidiHandler->setNumberOfSemitonesToPitchBend( m_PitchBendSemitones );
 }
 
 ARMor8PresetHeader ARMor8VoiceManager::getPresetHeader()

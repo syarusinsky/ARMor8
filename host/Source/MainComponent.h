@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AudioBuffer.hpp"
 #include "ARMor8VoiceManager.hpp"
+#include "IARMor8PresetEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 
@@ -22,7 +23,8 @@
    This component lives inside our window, and this is where you should put all
    your controls and content.
    */
-class MainComponent   : public AudioAppComponent, public Slider::Listener, public Button::Listener, public MidiInputCallback
+class MainComponent   : public AudioAppComponent, public Slider::Listener, public Button::Listener, public MidiInputCallback,
+			public IARMor8PresetEventListener
 {
 	public:
 		//==============================================================================
@@ -42,7 +44,7 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 		void buttonClicked (Button* button) override;
 		void updateToggleState (Button* button);
 
-		void setFromARMor8VoiceState (const ARMor8VoiceState& state);
+		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent);
 
 		void setMidiInput (int index);
 		void handleIncomingMidiMessage (MidiInput *source, const MidiMessage &message) override;
@@ -139,6 +141,8 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 		TextButton writePresetBtn;
 
 		std::ofstream testFile;
+
+		void setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum);
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
