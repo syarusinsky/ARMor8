@@ -77,7 +77,8 @@ MainComponent::MainComponent() :
 	prevPresetBtn( "Prev Preset" ),
 	presetNumLbl( "Preset Number", "1" ),
 	nextPresetBtn( "Next Preset" ),
-	writePresetBtn( "Write Preset" )
+	writePresetBtn( "Write Preset" ),
+	screenRep( Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
 {
 	// connecting to event system
 	this->bindToARMor8PresetEventSystem();
@@ -540,6 +541,9 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 	{
 		std::cout << "Exception caught in getNextAudioBlock: " << e.what() << std::endl;
 	}
+
+	// TODO remove this, just for testing
+	this->copyFrameBufferToImage();
 }
 
 void MainComponent::releaseResources()
@@ -557,6 +561,7 @@ void MainComponent::paint (Graphics& g)
 	g.fillAll( getLookAndFeel().findColour (ResizableWindow::backgroundColourId) );
 
 	// You can add your drawing code here!
+	g.drawImageWithin( screenRep, 0, 120, getWidth(), 120, RectanglePlacement::centred | RectanglePlacement::doNotResize );
 }
 
 void MainComponent::resized()
@@ -1292,6 +1297,22 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 	catch (std::exception& e)
 	{
 		std::cout << "Caught an exception in setFromState!!: " << e.what() << std::endl;
+	}
+}
+
+void MainComponent::copyFrameBufferToImage()
+{
+	// TODO the sizes shouldn't be hard-coded
+	for ( unsigned int pixelY = 0; pixelY < 64; pixelY++ )
+	{
+		for ( unsigned int pixelX = 0; pixelX < 128; pixelX++ )
+		{
+			// TODO here we would get the pixel values from the actual frame buffer, then copy to image
+			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, Colour(255, 255, 255) );
+		}
 	}
 }
 

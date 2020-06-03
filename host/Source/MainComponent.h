@@ -140,9 +140,12 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 		TextButton nextPresetBtn;
 		TextButton writePresetBtn;
 
+		Image screenRep;
+
 		std::ofstream testFile;
 
 		void setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum);
+		void copyFrameBufferToImage();
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
