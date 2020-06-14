@@ -97,6 +97,10 @@
       <FILE id="WyOxZs" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="iOXFFj" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
+      <FILE id="WyOxZs" name="AudioSettingsComponent.h" compile="0" resource="0"
+            file="Source/AudioSettingsComponent.h"/>
+      <FILE id="iOXFFj" name="AudioSettingsComponent.cpp" compile="1" resource="0"
+            file="Source/AudioSettingsComponent.cpp"/>
       <FILE id="UwgOe8" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
   </MAINGROUP>

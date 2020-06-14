@@ -71,6 +71,7 @@ MainComponent::MainComponent() :
 	glideSldr(),
 	glideLbl(),
 	egRetriggerBtn( "Glide Retrigger" ),
+	audioSettingsBtn( "Audio Settings" ),
 	midiInputList(),
 	midiInputListLbl(),
 	monoBtn( "Global: Monophonic" ),
@@ -78,6 +79,7 @@ MainComponent::MainComponent() :
 	presetNumLbl( "Preset Number", "1" ),
 	nextPresetBtn( "Next Preset" ),
 	writePresetBtn( "Write Preset" ),
+	audioSettingsComponent( deviceManager, 2, 2, &audioSettingsBtn ),
 	screenRep( Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
 {
 	// connecting to event system
@@ -332,6 +334,9 @@ MainComponent::MainComponent() :
 
 	addAndMakeVisible( egRetriggerBtn );
 	egRetriggerBtn.onClick = [this] { updateToggleState(&egRetriggerBtn); };
+
+	addAndMakeVisible( audioSettingsBtn );
+	audioSettingsBtn.addListener( this );
 
 	addAndMakeVisible( midiInputList );
 	midiInputList.setTextWhenNoChoicesAvailable( "No MIDI Inputs Enabled" );
@@ -606,12 +611,13 @@ void MainComponent::resized()
 	pitchBendSldr.setBounds   (sliderLeft, 890, getWidth() - sliderLeft - 10, 20);
 	glideSldr.setBounds       (sliderLeft + (getWidth() / 5) * 0, 920, (getWidth() / 5) * 4 - sliderLeft - 10, 20);
 	egRetriggerBtn.setBounds  (sliderLeft + (getWidth() / 5) * 4, 920, (getWidth() / 5) * 1 - sliderLeft - 10, 20);
-	midiInputList.setBounds   (sliderLeft, 970, getWidth() - sliderLeft - 10, 20);
-	monoBtn.setBounds         (sliderLeft + (getWidth() / 5) * 0, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
-	prevPresetBtn.setBounds   (sliderLeft + (getWidth() / 5) * 1, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
-	presetNumLbl.setBounds    (sliderLeft + (getWidth() / 5) * 2, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
-	nextPresetBtn.setBounds   ((getWidth() / 5) * 3, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
-	writePresetBtn.setBounds  ((getWidth() / 5) * 4, 1000, ((getWidth() - sliderLeft - 10) / 5), 20);
+	audioSettingsBtn.setBounds(sliderLeft, 950, getWidth() - sliderLeft - 10, 20);
+	midiInputList.setBounds   (sliderLeft, 980, getWidth() - sliderLeft - 10, 20);
+	monoBtn.setBounds         (sliderLeft + (getWidth() / 5) * 0, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
+	prevPresetBtn.setBounds   (sliderLeft + (getWidth() / 5) * 1, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
+	presetNumLbl.setBounds    (sliderLeft + (getWidth() / 5) * 2, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
+	nextPresetBtn.setBounds   ((getWidth() / 5) * 3, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
+	writePresetBtn.setBounds  ((getWidth() / 5) * 4, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
 }
 
 void MainComponent::sliderValueChanged (Slider* slider)

@@ -14,6 +14,7 @@
 #include "IARMor8PresetEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
+#include "AudioSettingsComponent.h"
 
 #include <iostream>
 #include <fstream>
@@ -130,6 +131,8 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 
 		ToggleButton egRetriggerBtn;
 
+		TextButton audioSettingsBtn;
+
 		ComboBox midiInputList;
 		Label midiInputListLbl;
 
@@ -139,6 +142,8 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 		Label presetNumLbl;
 		TextButton nextPresetBtn;
 		TextButton writePresetBtn;
+
+		AudioSettingsComponent audioSettingsComponent;
 
 		Image screenRep;
 
