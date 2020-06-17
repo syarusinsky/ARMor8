@@ -94,6 +94,23 @@
             file="../include/ARMor8PresetUpgrader.hpp"/>
       <FILE id="IPesLA" name="ARMor8Filter.hpp" compile="0" resource="0"
             file="../include/ARMor8Filter.hpp"/>
+      <FILE id="wPWgYh" name="ColorProfile.cpp" compile="1" resource="0"
+            file="../lib/SIGL/src/ColorProfile.cpp"/>
+      <FILE id="IPesLA" name="ColorProfile.hpp" compile="0" resource="0"
+            file="../lib/SIGL/include/ColorProfile.hpp"/>
+      <FILE id="wPWgYh" name="Font.cpp" compile="1" resource="0" file="../lib/SIGL/src/Font.cpp"/>
+      <FILE id="IPesLA" name="Font.hpp" compile="0" resource="0" file="../lib/SIGL/include/Font.hpp"/>
+      <FILE id="wPWgYh" name="FrameBuffer.cpp" compile="1" resource="0" file="../lib/SIGL/src/FrameBuffer.cpp"/>
+      <FILE id="IPesLA" name="FrameBuffer.hpp" compile="0" resource="0" file="../lib/SIGL/include/FrameBuffer.hpp"/>
+      <FILE id="IPesLA" name="Graphics.hpp" compile="0" resource="0" file="../lib/SIGL/include/Graphics.hpp"/>
+      <FILE id="wPWgYh" name="SoftwareGraphics.cpp" compile="1" resource="0"
+            file="../lib/SIGL/src/SoftwareGraphics.cpp"/>
+      <FILE id="IPesLA" name="SoftwareGraphics.hpp" compile="0" resource="0"
+            file="../lib/SIGL/include/SoftwareGraphics.hpp"/>
+      <FILE id="wPWgYh" name="Sprite.cpp" compile="1" resource="0" file="../lib/SIGL/src/Sprite.cpp"/>
+      <FILE id="IPesLA" name="Sprite.hpp" compile="0" resource="0" file="../lib/SIGL/include/Sprite.hpp"/>
+      <FILE id="wPWgYh" name="Surface.cpp" compile="1" resource="0" file="../lib/SIGL/src/Surface.cpp"/>
+      <FILE id="IPesLA" name="Surface.hpp" compile="0" resource="0" file="../lib/SIGL/include/Surface.hpp"/>
       <FILE id="WyOxZs" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="iOXFFj" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
@@ -105,7 +122,7 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraCompilerFlags="-I../../../lib/SAL/include -I../../../include">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraCompilerFlags="-I../../../lib/SAL/include -I../../../include -I../../../lib/SIGL/include -DSOFTWARE_RENDERING">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>

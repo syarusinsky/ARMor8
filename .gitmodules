@@ -4,3 +4,6 @@
 [submodule "lib/SAL"]
 	path = lib/SAL
 	url = https://github.com/syarusinsky/SAL
+[submodule "lib/SIGL"]
+	path = lib/SIGL
+	url = https://github.com/syarusinsky/SIGL.git
