@@ -15,6 +15,7 @@
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 #include "AudioSettingsComponent.h"
+#include "ARMor8UiManager.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -24,7 +25,7 @@
    This component lives inside our window, and this is where you should put all
    your controls and content.
    */
-class MainComponent   : public AudioAppComponent, public Slider::Listener, public Button::Listener, public MidiInputCallback,
+class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Listener, public juce::Button::Listener, public juce::MidiInputCallback,
 			public IARMor8PresetEventListener
 {
 	public:
@@ -34,21 +35,21 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 
 		//==============================================================================
 		void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-		void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
+		void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
 		void releaseResources() override;
 
 		//==============================================================================
-		void paint (Graphics& g) override;
+		void paint (juce::Graphics& g) override;
 		void resized() override;
 
-		void sliderValueChanged (Slider* slider) override;
-		void buttonClicked (Button* button) override;
-		void updateToggleState (Button* button);
+		void sliderValueChanged (juce::Slider* slider) override;
+		void buttonClicked (juce::Button* button) override;
+		void updateToggleState (juce::Button* button);
 
 		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent);
 
 		void setMidiInput (int index);
-		void handleIncomingMidiMessage (MidiInput *source, const MidiMessage &message) override;
+		void handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message) override;
 
 	private:
 		//==============================================================================
@@ -60,92 +61,94 @@ class MainComponent   : public AudioAppComponent, public Slider::Listener, publi
 		ARMor8VoiceManager armor8VoiceManager;
 		bool keyButtonRelease;
 
-		AudioFormatWriter* writer;
-		Slider freqSldr;
-		Label freqLbl;
-		Slider detuneSldr;
-		Label detuneLbl;
-		ToggleButton ratioBtn;
+		juce::AudioFormatWriter* writer;
+		juce::Slider freqSldr;
+		juce::Label freqLbl;
+		juce::Slider detuneSldr;
+		juce::Label detuneLbl;
+		juce::ToggleButton ratioBtn;
 
-		Label editLbl;
-		ToggleButton op1Btn;
-		ToggleButton op2Btn;
-		ToggleButton op3Btn;
-		ToggleButton op4Btn;
+		juce::Label editLbl;
+		juce::ToggleButton op1Btn;
+		juce::ToggleButton op2Btn;
+		juce::ToggleButton op3Btn;
+		juce::ToggleButton op4Btn;
 
-		Label waveLbl;
-		ToggleButton sineBtn;
-		ToggleButton triangleBtn;
-		ToggleButton squareBtn;
-		ToggleButton sawBtn;
+		juce::Label waveLbl;
+		juce::ToggleButton sineBtn;
+		juce::ToggleButton triangleBtn;
+		juce::ToggleButton squareBtn;
+		juce::ToggleButton sawBtn;
 
-		Slider attackSldr;
-		Label attackLbl;
-		Slider attackExpoSldr;
-		Label attackExpoLbl;
-		Slider decaySldr;
-		Label decayLbl;
-		Slider decayExpoSldr;
-		Label decayExpoLbl;
-		Slider sustainSldr;
-		Label sustainLbl;
-		Slider releaseSldr;
-		Label releaseLbl;
-		Slider releaseExpoSldr;
-		Label releaseExpoLbl;
+		juce::Slider attackSldr;
+		juce::Label attackLbl;
+		juce::Slider attackExpoSldr;
+		juce::Label attackExpoLbl;
+		juce::Slider decaySldr;
+		juce::Label decayLbl;
+		juce::Slider decayExpoSldr;
+		juce::Label decayExpoLbl;
+		juce::Slider sustainSldr;
+		juce::Label sustainLbl;
+		juce::Slider releaseSldr;
+		juce::Label releaseLbl;
+		juce::Slider releaseExpoSldr;
+		juce::Label releaseExpoLbl;
 
-		Label egDestLbl;
-		ToggleButton amplitudeDestBtn;
-		ToggleButton frequencyDestBtn;
-		ToggleButton filterDestBtn;
+		juce::Label egDestLbl;
+		juce::ToggleButton amplitudeDestBtn;
+		juce::ToggleButton frequencyDestBtn;
+		juce::ToggleButton filterDestBtn;
 
-		Slider op1ModAmountSldr;
-		Label op1ModAmountLbl;
-		Slider op2ModAmountSldr;
-		Label op2ModAmountLbl;
-		Slider op3ModAmountSldr;
-		Label op3ModAmountLbl;
-		Slider op4ModAmountSldr;
-		Label op4ModAmountLbl;
+		juce::Slider op1ModAmountSldr;
+		juce::Label op1ModAmountLbl;
+		juce::Slider op2ModAmountSldr;
+		juce::Label op2ModAmountLbl;
+		juce::Slider op3ModAmountSldr;
+		juce::Label op3ModAmountLbl;
+		juce::Slider op4ModAmountSldr;
+		juce::Label op4ModAmountLbl;
 
-		Slider amplitudeSldr;
-		Label amplitudeLbl;
+		juce::Slider amplitudeSldr;
+		juce::Label amplitudeLbl;
 
-		Slider filterFreqSldr;
-		Label filterFreqLbl;
+		juce::Slider filterFreqSldr;
+		juce::Label filterFreqLbl;
 
-		Slider filterResSldr;
-		Label filterResLbl;
+		juce::Slider filterResSldr;
+		juce::Label filterResLbl;
 
-		Slider ampVelSldr;
-		Label ampVelLbl;
+		juce::Slider ampVelSldr;
+		juce::Label ampVelLbl;
 
-		Slider filtVelSldr;
-		Label filtVelLbl;
+		juce::Slider filtVelSldr;
+		juce::Label filtVelLbl;
 
-		Slider pitchBendSldr;
-		Label pitchBendLbl;
+		juce::Slider pitchBendSldr;
+		juce::Label pitchBendLbl;
 
-		Slider glideSldr;
-		Label glideLbl;
+		juce::Slider glideSldr;
+		juce::Label glideLbl;
 
-		ToggleButton egRetriggerBtn;
+		juce::ToggleButton egRetriggerBtn;
 
-		TextButton audioSettingsBtn;
+		juce::TextButton audioSettingsBtn;
 
-		ComboBox midiInputList;
-		Label midiInputListLbl;
+		juce::ComboBox midiInputList;
+		juce::Label midiInputListLbl;
 
-		ToggleButton monoBtn;
+		juce::ToggleButton monoBtn;
 
-		TextButton prevPresetBtn;
-		Label presetNumLbl;
-		TextButton nextPresetBtn;
-		TextButton writePresetBtn;
+		juce::TextButton prevPresetBtn;
+		juce::Label presetNumLbl;
+		juce::TextButton nextPresetBtn;
+		juce::TextButton writePresetBtn;
 
 		AudioSettingsComponent audioSettingsComponent;
 
-		Image screenRep;
+		ARMor8UiManager uiSim;
+
+		juce::Image screenRep;
 
 		std::ofstream testFile;
 

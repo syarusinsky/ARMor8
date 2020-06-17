@@ -10,6 +10,7 @@
 
 #include "CPPFile.hpp"
 #include "ARMor8PresetUpgrader.hpp"
+#include "ColorProfile.hpp"
 
 const int OpRadioId = 1001;
 const int WaveRadioId = 1002;
@@ -80,7 +81,8 @@ MainComponent::MainComponent() :
 	nextPresetBtn( "Next Preset" ),
 	writePresetBtn( "Write Preset" ),
 	audioSettingsComponent( deviceManager, 2, 2, &audioSettingsBtn ),
-	screenRep( Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
+	uiSim( 123, 64, CP_FORMAT::RGB_24BIT ),
+	screenRep( juce::Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
 {
 	// connecting to event system
 	this->bindToARMor8PresetEventSystem();
@@ -96,10 +98,10 @@ MainComponent::MainComponent() :
 	armor8VoiceManager.setOperatorAmplitude(3, 0.0f);
 
 	// Some platforms require permissions to open input channels so request that here
-	if ( RuntimePermissions::isRequired (RuntimePermissions::recordAudio)
-			&& ! RuntimePermissions::isGranted (RuntimePermissions::recordAudio) )
+	if ( juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
+			&& ! juce::RuntimePermissions::isGranted (juce::RuntimePermissions::recordAudio) )
 	{
-		RuntimePermissions::request( RuntimePermissions::recordAudio,
+		juce::RuntimePermissions::request( juce::RuntimePermissions::recordAudio,
 				[&] (bool granted) { if (granted)  setAudioChannels (2, 2); } );
 	}
 	else
@@ -112,23 +114,23 @@ MainComponent::MainComponent() :
 	sAudioBuffer.registerCallback( &armor8VoiceManager );
 
 	// juce audio device setup
-	AudioDeviceManager::AudioDeviceSetup deviceSetup = AudioDeviceManager::AudioDeviceSetup();
+	juce::AudioDeviceManager::AudioDeviceSetup deviceSetup = juce::AudioDeviceManager::AudioDeviceSetup();
 	deviceSetup.sampleRate = 44100;
-	deviceManager.initialise( 2, 2, 0, true, String(), &deviceSetup );
+	deviceManager.initialise( 2, 2, 0, true, juce::String(), &deviceSetup );
 
 	// basic juce logging
-	Logger* log = Logger::getCurrentLogger();
+	juce::Logger* log = juce::Logger::getCurrentLogger();
 	int sampleRate = deviceManager.getCurrentAudioDevice()->getCurrentSampleRate();
-	log->writeToLog( String(sampleRate) );
-	log->writeToLog( String(deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples()) );
+	log->writeToLog( juce::String(sampleRate) );
+	log->writeToLog( juce::String(deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples()) );
 
 	// optionally we can write wav files for debugging
-	// WavAudioFormat wav;
-	// File tempFile( "TestAudio.wav" );
-	// OutputStream* outStream( tempFile.createOutputStream() );
+	// juce::WavAudioFormat wav;
+	// juce::File tempFile( "TestAudio.wav" );
+	// juce::OutputStream* outStream( tempFile.createOutputStream() );
 	// writer = wav.createWriterFor( outStream, sampleRate, 2, wav.getPossibleBitDepths().getLast(), NULL, 0 );
 
-	// log->writeToLog( String(wav.getPossibleBitDepths().getLast()) );
+	// log->writeToLog( juce::String(wav.getPossibleBitDepths().getLast()) );
 	// log->writeToLog( tempFile.getFullPathName() );
 
 	// this file can also be used for debugging
@@ -141,7 +143,7 @@ MainComponent::MainComponent() :
 	freqSldr.setSkewFactorFromMidPoint( 500 );
 	freqSldr.addListener( this );
 	addAndMakeVisible( freqLbl );
-	freqLbl.setText( "Frequency", dontSendNotification );
+	freqLbl.setText( "Frequency", juce::dontSendNotification );
 	freqLbl.attachToComponent( &freqSldr, true );
 
 	addAndMakeVisible( detuneSldr );
@@ -149,7 +151,7 @@ MainComponent::MainComponent() :
 	detuneSldr.setTextValueSuffix( "Cents" );
 	detuneSldr.addListener( this );
 	addAndMakeVisible( detuneLbl );
-	detuneLbl.setText( "Detune", dontSendNotification );
+	detuneLbl.setText( "Detune", juce::dontSendNotification );
 	detuneLbl.attachToComponent( &detuneSldr, true );
 
 	addAndMakeVisible( ratioBtn );
@@ -157,7 +159,7 @@ MainComponent::MainComponent() :
 	ratioBtn.addListener( this );
 
 	addAndMakeVisible( editLbl );
-	editLbl.setText( "Editing:", dontSendNotification );
+	editLbl.setText( "Editing:", juce::dontSendNotification );
 
 	addAndMakeVisible( op1Btn );
 	op1Btn.setRadioGroupId( OpRadioId );
@@ -173,7 +175,7 @@ MainComponent::MainComponent() :
 	op4Btn.onClick = [this] { updateToggleState(&op4Btn); };
 
 	addAndMakeVisible( waveLbl );
-	waveLbl.setText( "Waveform:", dontSendNotification );
+	waveLbl.setText( "Waveform:", juce::dontSendNotification );
 
 	addAndMakeVisible( sineBtn );
 	sineBtn.setRadioGroupId( WaveRadioId );
@@ -193,7 +195,7 @@ MainComponent::MainComponent() :
 	attackSldr.setTextValueSuffix( "Seconds" );
 	attackSldr.addListener( this );
 	addAndMakeVisible( attackLbl );
-	attackLbl.setText( "Attack", dontSendNotification );
+	attackLbl.setText( "Attack", juce::dontSendNotification );
 	attackLbl.attachToComponent( &attackSldr, true );
 
 	addAndMakeVisible( attackExpoSldr );
@@ -201,7 +203,7 @@ MainComponent::MainComponent() :
 	attackExpoSldr.setTextValueSuffix( "%" );
 	attackExpoSldr.addListener( this );
 	addAndMakeVisible( attackExpoLbl );
-	attackExpoLbl.setText( "Attack Expo Amount", dontSendNotification );
+	attackExpoLbl.setText( "Attack Expo Amount", juce::dontSendNotification );
 	attackExpoLbl.attachToComponent( &attackExpoSldr, true );
 
 	addAndMakeVisible( decaySldr );
@@ -209,7 +211,7 @@ MainComponent::MainComponent() :
 	decaySldr.setTextValueSuffix( "Seconds" );
 	decaySldr.addListener( this );
 	addAndMakeVisible( decayLbl );
-	decayLbl.setText( "Decay", dontSendNotification );
+	decayLbl.setText( "Decay", juce::dontSendNotification );
 	decayLbl.attachToComponent( &decaySldr, true );
 
 	addAndMakeVisible( decayExpoSldr );
@@ -217,7 +219,7 @@ MainComponent::MainComponent() :
 	decayExpoSldr.setTextValueSuffix( "%" );
 	decayExpoSldr.addListener( this );
 	addAndMakeVisible( decayExpoLbl );
-	decayExpoLbl.setText( "Decay Expo Amount", dontSendNotification );
+	decayExpoLbl.setText( "Decay Expo Amount", juce::dontSendNotification );
 	decayExpoLbl.attachToComponent( &decayExpoSldr, true );
 
 	addAndMakeVisible( sustainSldr );
@@ -225,7 +227,7 @@ MainComponent::MainComponent() :
 	sustainSldr.setTextValueSuffix( "%" );
 	sustainSldr.addListener( this );
 	addAndMakeVisible( sustainLbl );
-	sustainLbl.setText( "Sustain", dontSendNotification );
+	sustainLbl.setText( "Sustain", juce::dontSendNotification );
 	sustainLbl.attachToComponent( &sustainSldr, true );
 
 	addAndMakeVisible( releaseSldr );
@@ -233,7 +235,7 @@ MainComponent::MainComponent() :
 	releaseSldr.setTextValueSuffix( "Seconds" );
 	releaseSldr.addListener( this );
 	addAndMakeVisible( releaseLbl );
-	releaseLbl.setText( "Release", dontSendNotification );
+	releaseLbl.setText( "Release", juce::dontSendNotification );
 	releaseLbl.attachToComponent( &releaseSldr, true );
 
 	addAndMakeVisible( releaseExpoSldr );
@@ -241,11 +243,11 @@ MainComponent::MainComponent() :
 	releaseExpoSldr.setTextValueSuffix( "%" );
 	releaseExpoSldr.addListener( this );
 	addAndMakeVisible( releaseExpoLbl );
-	releaseExpoLbl.setText( "Release Expo Amount", dontSendNotification );
+	releaseExpoLbl.setText( "Release Expo Amount", juce::dontSendNotification );
 	releaseExpoLbl.attachToComponent( &releaseExpoSldr, true );
 
 	addAndMakeVisible( egDestLbl );
-	egDestLbl.setText( "EG Destinations:", dontSendNotification );
+	egDestLbl.setText( "EG Destinations:", juce::dontSendNotification );
 
 	addAndMakeVisible( amplitudeDestBtn );
 	amplitudeDestBtn.onClick = [this] { updateToggleState(&amplitudeDestBtn); };
@@ -258,35 +260,35 @@ MainComponent::MainComponent() :
 	op1ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
 	op1ModAmountSldr.addListener( this );
 	addAndMakeVisible( op1ModAmountLbl );
-	op1ModAmountLbl.setText( "Op1 Mod Amount", dontSendNotification );
+	op1ModAmountLbl.setText( "Op1 Mod Amount", juce::dontSendNotification );
 	op1ModAmountLbl.attachToComponent( &op1ModAmountSldr, true );
 
 	addAndMakeVisible( op2ModAmountSldr );
 	op2ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
 	op2ModAmountSldr.addListener( this );
 	addAndMakeVisible( op2ModAmountLbl );
-	op2ModAmountLbl.setText( "Op2 Mod Amount", dontSendNotification );
+	op2ModAmountLbl.setText( "Op2 Mod Amount", juce::dontSendNotification );
 	op2ModAmountLbl.attachToComponent( &op2ModAmountSldr, true );
 
 	addAndMakeVisible( op3ModAmountSldr );
 	op3ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
 	op3ModAmountSldr.addListener( this );
 	addAndMakeVisible( op3ModAmountLbl );
-	op3ModAmountLbl.setText( "Op3 Mod Amount", dontSendNotification );
+	op3ModAmountLbl.setText( "Op3 Mod Amount", juce::dontSendNotification );
 	op3ModAmountLbl.attachToComponent( &op3ModAmountSldr, true );
 
 	addAndMakeVisible( op4ModAmountSldr );
 	op4ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
 	op4ModAmountSldr.addListener( this );
 	addAndMakeVisible( op4ModAmountLbl );
-	op4ModAmountLbl.setText( "Op4 Mod Amount", dontSendNotification );
+	op4ModAmountLbl.setText( "Op4 Mod Amount", juce::dontSendNotification );
 	op4ModAmountLbl.attachToComponent( &op4ModAmountSldr, true );
 
 	addAndMakeVisible( amplitudeSldr );
 	amplitudeSldr.setRange( armor8VoiceManager.AMPLITUDE_MIN, armor8VoiceManager.AMPLITUDE_MAX );
 	amplitudeSldr.addListener( this );
 	addAndMakeVisible( amplitudeLbl );
-	amplitudeLbl.setText( "Amplitude", dontSendNotification );
+	amplitudeLbl.setText( "Amplitude", juce::dontSendNotification );
 	amplitudeLbl.attachToComponent( &amplitudeSldr, true );
 
 	addAndMakeVisible( filterFreqSldr );
@@ -294,42 +296,42 @@ MainComponent::MainComponent() :
 	filterFreqSldr.setSkewFactorFromMidPoint( 500 );
 	filterFreqSldr.addListener( this );
 	addAndMakeVisible( filterFreqLbl );
-	filterFreqLbl.setText( "Filter Freq", dontSendNotification );
+	filterFreqLbl.setText( "Filter Freq", juce::dontSendNotification );
 	filterFreqLbl.attachToComponent( &filterFreqSldr, true );
 
 	addAndMakeVisible( filterResSldr );
 	filterResSldr.setRange( armor8VoiceManager.FILT_RES_MIN, armor8VoiceManager.FILT_RES_MAX );
 	filterResSldr.addListener( this );
 	addAndMakeVisible( filterResLbl );
-	filterResLbl.setText( "Filter Res", dontSendNotification );
+	filterResLbl.setText( "Filter Res", juce::dontSendNotification );
 	filterResLbl.attachToComponent( &filterResSldr, true );
 
 	addAndMakeVisible( ampVelSldr );
 	ampVelSldr.setRange( armor8VoiceManager.VELOCITY_MIN, armor8VoiceManager.VELOCITY_MAX );
 	ampVelSldr.addListener( this );
 	addAndMakeVisible( ampVelLbl );
-	ampVelLbl.setText( "Vel Sens Amplitude", dontSendNotification );
+	ampVelLbl.setText( "Vel Sens Amplitude", juce::dontSendNotification );
 	ampVelLbl.attachToComponent( &ampVelSldr, true );
 
 	addAndMakeVisible( filtVelSldr );
 	filtVelSldr.setRange( armor8VoiceManager.VELOCITY_MIN, armor8VoiceManager.VELOCITY_MAX );
 	filtVelSldr.addListener( this );
 	addAndMakeVisible( filtVelLbl );
-	filtVelLbl.setText( "Vel Sens Filter", dontSendNotification );
+	filtVelLbl.setText( "Vel Sens Filter", juce::dontSendNotification );
 	filtVelLbl.attachToComponent( &filtVelSldr, true );
 
 	addAndMakeVisible( pitchBendSldr );
 	pitchBendSldr.setRange( armor8VoiceManager.PITCH_BEND_MIN, armor8VoiceManager.PITCH_BEND_MAX, 1);
 	pitchBendSldr.addListener( this );
 	addAndMakeVisible( pitchBendLbl );
-	pitchBendLbl.setText( "Pitch Bend", dontSendNotification );
+	pitchBendLbl.setText( "Pitch Bend", juce::dontSendNotification );
 	pitchBendLbl.attachToComponent( &pitchBendSldr, true );
 
 	addAndMakeVisible( glideSldr );
 	glideSldr.setRange( armor8VoiceManager.GLIDE_TIME_MIN, armor8VoiceManager.GLIDE_TIME_MAX );
 	glideSldr.addListener( this );
 	addAndMakeVisible( glideLbl );
-	glideLbl.setText( "Glide Time", dontSendNotification );
+	glideLbl.setText( "Glide Time", juce::dontSendNotification );
 	glideLbl.attachToComponent( &glideSldr, true );
 
 	addAndMakeVisible( egRetriggerBtn );
@@ -340,7 +342,7 @@ MainComponent::MainComponent() :
 
 	addAndMakeVisible( midiInputList );
 	midiInputList.setTextWhenNoChoicesAvailable( "No MIDI Inputs Enabled" );
-	auto midiInputs = MidiInput::getDevices();
+	auto midiInputs = juce::MidiInput::getDevices();
 	midiInputList.addItemList( midiInputs, 1 );
 	midiInputList.onChange = [this] { setMidiInput (midiInputList.getSelectedItemIndex()); };
 	// find the first enabled device and use that by default
@@ -357,7 +359,7 @@ MainComponent::MainComponent() :
 		setMidiInput( 0 );
 
 	addAndMakeVisible( midiInputListLbl );
-	midiInputListLbl.setText( "Midi Input Device", dontSendNotification );
+	midiInputListLbl.setText( "Midi Input Device", juce::dontSendNotification );
 	midiInputListLbl.attachToComponent( &midiInputList, true );
 
 	addAndMakeVisible( monoBtn );
@@ -519,7 +521,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	// For more details, see the help for AudioProcessor::prepareToPlay()
 }
 
-void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
 	// Your audio-processing code goes here!
 
@@ -560,13 +562,13 @@ void MainComponent::releaseResources()
 }
 
 //==============================================================================
-void MainComponent::paint (Graphics& g)
+void MainComponent::paint (juce::Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
-	g.fillAll( getLookAndFeel().findColour (ResizableWindow::backgroundColourId) );
+	g.fillAll( getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId) );
 
 	// You can add your drawing code here!
-	g.drawImageWithin( screenRep, 0, 120, getWidth(), 120, RectanglePlacement::centred | RectanglePlacement::doNotResize );
+	g.drawImageWithin( screenRep, 0, 120, getWidth(), 120, juce::RectanglePlacement::centred | juce::RectanglePlacement::doNotResize );
 }
 
 void MainComponent::resized()
@@ -620,7 +622,7 @@ void MainComponent::resized()
 	writePresetBtn.setBounds  ((getWidth() / 5) * 4, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
 }
 
-void MainComponent::sliderValueChanged (Slider* slider)
+void MainComponent::sliderValueChanged (juce::Slider* slider)
 {
 	try
 	{
@@ -734,7 +736,7 @@ void MainComponent::sliderValueChanged (Slider* slider)
 	}
 }
 
-void MainComponent::buttonClicked (Button* button)
+void MainComponent::buttonClicked (juce::Button* button)
 {
 	try
 	{
@@ -762,7 +764,7 @@ void MainComponent::buttonClicked (Button* button)
 	}
 }
 
-void MainComponent::updateToggleState (Button* button)
+void MainComponent::updateToggleState (juce::Button* button)
 {
 	try
 	{
@@ -879,102 +881,102 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 	try
 	{
 		// set preset num label
-		String presetNumStr( presetNum + 1 );
-		presetNumLbl.setText( presetNumStr, dontSendNotification );
+		juce::String presetNumStr( presetNum + 1 );
+		presetNumLbl.setText( presetNumStr, juce::dontSendNotification );
 
 		// handle global states first
-		pitchBendSldr.setValue( state.pitchBendSemitones, dontSendNotification );
-		glideSldr.setValue( state.glideTime, dontSendNotification );
+		pitchBendSldr.setValue( state.pitchBendSemitones, juce::dontSendNotification );
+		glideSldr.setValue( state.glideTime, juce::dontSendNotification );
 		if ( !egRetriggerBtn.getToggleState() )
 		{
 			if ( state.glideRetrigger )
 			{
-				egRetriggerBtn.setToggleState( true, dontSendNotification );
+				egRetriggerBtn.setToggleState( true, juce::dontSendNotification );
 			}
 		}
 		else
 		{
 			if ( !state.glideRetrigger )
 			{
-				egRetriggerBtn.setToggleState( false, dontSendNotification );
+				egRetriggerBtn.setToggleState( false, juce::dontSendNotification );
 			}
 		}
 		if ( !monoBtn.getToggleState() )
 		{
 			if ( state.monophonic )
 			{
-				monoBtn.setToggleState( true, dontSendNotification );
+				monoBtn.setToggleState( true, juce::dontSendNotification );
 			}
 		}
 		else
 		{
 			if ( !state.monophonic )
 			{
-				monoBtn.setToggleState( false, dontSendNotification );
+				monoBtn.setToggleState( false, juce::dontSendNotification );
 			}
 		}
 
 		switch ( opToEdit )
 		{
 			case 0:
-				freqSldr.setValue( state.frequency1, dontSendNotification );
+				freqSldr.setValue( state.frequency1, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
 					if ( !state.useRatio1 )
 					{
-						ratioBtn.setToggleState( false, dontSendNotification );
+						ratioBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.useRatio1 )
 					{
-						ratioBtn.setToggleState( true, dontSendNotification );
+						ratioBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				switch ( state.wave1 )
 				{
 					case OscillatorMode::SINE:
-						sineBtn.setToggleState( true, dontSendNotification );
+						sineBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::TRIANGLE:
-						triangleBtn.setToggleState( true, dontSendNotification );
+						triangleBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SQUARE:
-						squareBtn.setToggleState( true, dontSendNotification );
+						squareBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SAWTOOTH:
-						sawBtn.setToggleState( true, dontSendNotification );
+						sawBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					default:
 						std::cout << "Wave not recognized in setFromARMor8VoiceState..." << std::endl;
 				}
-				attackSldr.setValue( state.attack1, dontSendNotification );
-				attackExpoSldr.setValue( state.attackExpo1, dontSendNotification );
-				decaySldr.setValue( state.decay1, dontSendNotification );
-				decayExpoSldr.setValue( state.decayExpo1, dontSendNotification );
-				sustainSldr.setValue( state.sustain1, dontSendNotification );
-				releaseSldr.setValue( state.release1, dontSendNotification );
-				releaseExpoSldr.setValue( state.releaseExpo1, dontSendNotification );
+				attackSldr.setValue( state.attack1, juce::dontSendNotification );
+				attackExpoSldr.setValue( state.attackExpo1, juce::dontSendNotification );
+				decaySldr.setValue( state.decay1, juce::dontSendNotification );
+				decayExpoSldr.setValue( state.decayExpo1, juce::dontSendNotification );
+				sustainSldr.setValue( state.sustain1, juce::dontSendNotification );
+				releaseSldr.setValue( state.release1, juce::dontSendNotification );
+				releaseExpoSldr.setValue( state.releaseExpo1, juce::dontSendNotification );
 				if ( amplitudeDestBtn.getToggleState() )
 				{
 					if ( !state.egAmplitudeMod1 )
 					{
-						amplitudeDestBtn.setToggleState( false, dontSendNotification );
+						amplitudeDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egAmplitudeMod1 )
 					{
-						amplitudeDestBtn.setToggleState( true, dontSendNotification );
+						amplitudeDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( frequencyDestBtn.getToggleState() )
 				{
 					if (!state.egFrequencyMod1)
 					{
-						frequencyDestBtn.setToggleState( false, dontSendNotification );
+						frequencyDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
@@ -982,94 +984,94 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 					if ( state.egFrequencyMod1 )
 					{
-						frequencyDestBtn.setToggleState( true, dontSendNotification );
+						frequencyDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( filterDestBtn.getToggleState() )
 				{
 					if ( !state.egFilterMod1 )
 					{
-						filterDestBtn.setToggleState( false, dontSendNotification );
+						filterDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egFilterMod1 )
 					{
-						filterDestBtn.setToggleState( true, dontSendNotification );
+						filterDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
-				op1ModAmountSldr.setValue( state.op1ModAmount1, dontSendNotification );
-				op2ModAmountSldr.setValue( state.op2ModAmount1, dontSendNotification );
-				op3ModAmountSldr.setValue( state.op3ModAmount1, dontSendNotification );
-				op4ModAmountSldr.setValue( state.op4ModAmount1, dontSendNotification );
-				amplitudeSldr.setValue( state.amplitude1, dontSendNotification );
-				filterFreqSldr.setValue( state.filterFreq1, dontSendNotification );
-				filterResSldr.setValue( state.filterRes1, dontSendNotification );
-				ampVelSldr.setValue( state.ampVelSens1, dontSendNotification );
-				filtVelSldr.setValue( state.filtVelSens1, dontSendNotification );
-				detuneSldr.setValue( state.detune1, dontSendNotification );
+				op1ModAmountSldr.setValue( state.op1ModAmount1, juce::dontSendNotification );
+				op2ModAmountSldr.setValue( state.op2ModAmount1, juce::dontSendNotification );
+				op3ModAmountSldr.setValue( state.op3ModAmount1, juce::dontSendNotification );
+				op4ModAmountSldr.setValue( state.op4ModAmount1, juce::dontSendNotification );
+				amplitudeSldr.setValue( state.amplitude1, juce::dontSendNotification );
+				filterFreqSldr.setValue( state.filterFreq1, juce::dontSendNotification );
+				filterResSldr.setValue( state.filterRes1, juce::dontSendNotification );
+				ampVelSldr.setValue( state.ampVelSens1, juce::dontSendNotification );
+				filtVelSldr.setValue( state.filtVelSens1, juce::dontSendNotification );
+				detuneSldr.setValue( state.detune1, juce::dontSendNotification );
 
 				break;
 			case 1:
-				freqSldr.setValue( state.frequency2, dontSendNotification );
+				freqSldr.setValue( state.frequency2, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
 					if ( !state.useRatio2 )
 					{
-						ratioBtn.setToggleState( false, dontSendNotification );
+						ratioBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.useRatio2 )
 					{
-						ratioBtn.setToggleState( true, dontSendNotification );
+						ratioBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				switch ( state.wave2 )
 				{
 					case OscillatorMode::SINE:
-						sineBtn.setToggleState( true, dontSendNotification );
+						sineBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::TRIANGLE:
-						triangleBtn.setToggleState( true, dontSendNotification );
+						triangleBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SQUARE:
-						squareBtn.setToggleState( true, dontSendNotification );
+						squareBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SAWTOOTH:
-						sawBtn.setToggleState( true, dontSendNotification );
+						sawBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					default:
 						std::cout << "Wave not recognized in setFromARMor8VoiceState..." << std::endl;
 				}
-				attackSldr.setValue( state.attack2, dontSendNotification );
-				attackExpoSldr.setValue( state.attackExpo2, dontSendNotification );
-				decaySldr.setValue( state.decay2, dontSendNotification );
-				decayExpoSldr.setValue( state.decayExpo2, dontSendNotification );
-				sustainSldr.setValue( state.sustain2, dontSendNotification );
-				releaseSldr.setValue( state.release2, dontSendNotification );
-				releaseExpoSldr.setValue( state.releaseExpo2, dontSendNotification );
+				attackSldr.setValue( state.attack2, juce::dontSendNotification );
+				attackExpoSldr.setValue( state.attackExpo2, juce::dontSendNotification );
+				decaySldr.setValue( state.decay2, juce::dontSendNotification );
+				decayExpoSldr.setValue( state.decayExpo2, juce::dontSendNotification );
+				sustainSldr.setValue( state.sustain2, juce::dontSendNotification );
+				releaseSldr.setValue( state.release2, juce::dontSendNotification );
+				releaseExpoSldr.setValue( state.releaseExpo2, juce::dontSendNotification );
 				if ( amplitudeDestBtn.getToggleState() )
 				{
 					if ( !state.egAmplitudeMod2 )
 					{
-						amplitudeDestBtn.setToggleState( false, dontSendNotification );
+						amplitudeDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egAmplitudeMod2 )
 					{
-						amplitudeDestBtn.setToggleState( true, dontSendNotification );
+						amplitudeDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( frequencyDestBtn.getToggleState() )
 				{
 					if ( !state.egFrequencyMod2 )
 					{
-						frequencyDestBtn.setToggleState( false, dontSendNotification );
+						frequencyDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
@@ -1077,94 +1079,94 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 					if ( state.egFrequencyMod2 )
 					{
-						frequencyDestBtn.setToggleState( true, dontSendNotification );
+						frequencyDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( filterDestBtn.getToggleState() )
 				{
 					if ( !state.egFilterMod2 )
 					{
-						filterDestBtn.setToggleState( false, dontSendNotification );
+						filterDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egFilterMod2 )
 					{
-						filterDestBtn.setToggleState( true, dontSendNotification );
+						filterDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
-				op1ModAmountSldr.setValue( state.op1ModAmount2, dontSendNotification );
-				op2ModAmountSldr.setValue( state.op2ModAmount2, dontSendNotification );
-				op3ModAmountSldr.setValue( state.op3ModAmount2, dontSendNotification );
-				op4ModAmountSldr.setValue( state.op4ModAmount2, dontSendNotification );
-				amplitudeSldr.setValue( state.amplitude2, dontSendNotification );
-				filterFreqSldr.setValue( state.filterFreq2, dontSendNotification);
-				filterResSldr.setValue( state.filterRes2, dontSendNotification);
-				ampVelSldr.setValue( state.ampVelSens2, dontSendNotification );
-				filtVelSldr.setValue( state.filtVelSens2, dontSendNotification );
-				detuneSldr.setValue( state.detune2, dontSendNotification );
+				op1ModAmountSldr.setValue( state.op1ModAmount2, juce::dontSendNotification );
+				op2ModAmountSldr.setValue( state.op2ModAmount2, juce::dontSendNotification );
+				op3ModAmountSldr.setValue( state.op3ModAmount2, juce::dontSendNotification );
+				op4ModAmountSldr.setValue( state.op4ModAmount2, juce::dontSendNotification );
+				amplitudeSldr.setValue( state.amplitude2, juce::dontSendNotification );
+				filterFreqSldr.setValue( state.filterFreq2, juce::dontSendNotification);
+				filterResSldr.setValue( state.filterRes2, juce::dontSendNotification);
+				ampVelSldr.setValue( state.ampVelSens2, juce::dontSendNotification );
+				filtVelSldr.setValue( state.filtVelSens2, juce::dontSendNotification );
+				detuneSldr.setValue( state.detune2, juce::dontSendNotification );
 
 				break;
 			case 2:
-				freqSldr.setValue( state.frequency3, dontSendNotification );
+				freqSldr.setValue( state.frequency3, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
 					if ( !state.useRatio3 )
 					{
-						ratioBtn.setToggleState( false, dontSendNotification );
+						ratioBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.useRatio3 )
 					{
-						ratioBtn.setToggleState( true, dontSendNotification );
+						ratioBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				switch ( state.wave3 )
 				{
 					case OscillatorMode::SINE:
-						sineBtn.setToggleState( true, dontSendNotification );
+						sineBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::TRIANGLE:
-						triangleBtn.setToggleState( true, dontSendNotification );
+						triangleBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SQUARE:
-						squareBtn.setToggleState( true, dontSendNotification );
+						squareBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SAWTOOTH:
-						sawBtn.setToggleState( true, dontSendNotification );
+						sawBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					default:
 						std::cout << "Wave not recognized in setFromARMor8VoiceState..." << std::endl;
 				}
-				attackSldr.setValue( state.attack3, dontSendNotification );
-				attackExpoSldr.setValue( state.attackExpo3, dontSendNotification );
-				decaySldr.setValue( state.decay3, dontSendNotification );
-				decayExpoSldr.setValue( state.decayExpo3, dontSendNotification );
-				sustainSldr.setValue( state.sustain3, dontSendNotification );
-				releaseSldr.setValue( state.release3, dontSendNotification );
-				releaseExpoSldr.setValue( state.releaseExpo3, dontSendNotification );
+				attackSldr.setValue( state.attack3, juce::dontSendNotification );
+				attackExpoSldr.setValue( state.attackExpo3, juce::dontSendNotification );
+				decaySldr.setValue( state.decay3, juce::dontSendNotification );
+				decayExpoSldr.setValue( state.decayExpo3, juce::dontSendNotification );
+				sustainSldr.setValue( state.sustain3, juce::dontSendNotification );
+				releaseSldr.setValue( state.release3, juce::dontSendNotification );
+				releaseExpoSldr.setValue( state.releaseExpo3, juce::dontSendNotification );
 				if ( amplitudeDestBtn.getToggleState() )
 				{
 					if ( !state.egAmplitudeMod3 )
 					{
-						amplitudeDestBtn.setToggleState( false, dontSendNotification );
+						amplitudeDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egAmplitudeMod3 )
 					{
-						amplitudeDestBtn.setToggleState( true, dontSendNotification );
+						amplitudeDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( frequencyDestBtn.getToggleState() )
 				{
 					if ( !state.egFrequencyMod3 )
 					{
-						frequencyDestBtn.setToggleState( false, dontSendNotification );
+						frequencyDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
@@ -1172,94 +1174,94 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 					if ( state.egFrequencyMod3 )
 					{
-						frequencyDestBtn.setToggleState( true, dontSendNotification );
+						frequencyDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( filterDestBtn.getToggleState() )
 				{
 					if ( !state.egFilterMod3 )
 					{
-						filterDestBtn.setToggleState( false, dontSendNotification );
+						filterDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egFilterMod3 )
 					{
-						filterDestBtn.setToggleState( true, dontSendNotification );
+						filterDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
-				op1ModAmountSldr.setValue( state.op1ModAmount3, dontSendNotification );
-				op2ModAmountSldr.setValue( state.op2ModAmount3, dontSendNotification );
-				op3ModAmountSldr.setValue( state.op3ModAmount3, dontSendNotification );
-				op4ModAmountSldr.setValue( state.op4ModAmount3, dontSendNotification );
-				amplitudeSldr.setValue( state.amplitude3, dontSendNotification );
-				filterFreqSldr.setValue( state.filterFreq3, dontSendNotification );
-				filterResSldr.setValue( state.filterRes3, dontSendNotification );
-				ampVelSldr.setValue( state.ampVelSens3, dontSendNotification );
-				filtVelSldr.setValue( state.filtVelSens3, dontSendNotification );
-				detuneSldr.setValue( state.detune3, dontSendNotification );
+				op1ModAmountSldr.setValue( state.op1ModAmount3, juce::dontSendNotification );
+				op2ModAmountSldr.setValue( state.op2ModAmount3, juce::dontSendNotification );
+				op3ModAmountSldr.setValue( state.op3ModAmount3, juce::dontSendNotification );
+				op4ModAmountSldr.setValue( state.op4ModAmount3, juce::dontSendNotification );
+				amplitudeSldr.setValue( state.amplitude3, juce::dontSendNotification );
+				filterFreqSldr.setValue( state.filterFreq3, juce::dontSendNotification );
+				filterResSldr.setValue( state.filterRes3, juce::dontSendNotification );
+				ampVelSldr.setValue( state.ampVelSens3, juce::dontSendNotification );
+				filtVelSldr.setValue( state.filtVelSens3, juce::dontSendNotification );
+				detuneSldr.setValue( state.detune3, juce::dontSendNotification );
 
 				break;
 			case 3:
-				freqSldr.setValue( state.frequency4, dontSendNotification );
+				freqSldr.setValue( state.frequency4, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
 					if ( !state.useRatio4 )
 					{
-						ratioBtn.setToggleState( false, dontSendNotification );
+						ratioBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.useRatio4 )
 					{
-						ratioBtn.setToggleState( true, dontSendNotification );
+						ratioBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				switch ( state.wave4 )
 				{
 					case OscillatorMode::SINE:
-						sineBtn.setToggleState( true, dontSendNotification );
+						sineBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::TRIANGLE:
-						triangleBtn.setToggleState( true, dontSendNotification );
+						triangleBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SQUARE:
-						squareBtn.setToggleState( true, dontSendNotification );
+						squareBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					case OscillatorMode::SAWTOOTH:
-						sawBtn.setToggleState( true, dontSendNotification );
+						sawBtn.setToggleState( true, juce::dontSendNotification );
 						break;
 					default:
 						std::cout << "Wave not recognized in setFromARMor8VoiceState..." << std::endl;
 				}
-				attackSldr.setValue( state.attack4, dontSendNotification );
-				attackExpoSldr.setValue( state.attackExpo4, dontSendNotification );
-				decaySldr.setValue( state.decay4, dontSendNotification );
-				decayExpoSldr.setValue( state.decayExpo4, dontSendNotification );
-				sustainSldr.setValue( state.sustain4, dontSendNotification );
-				releaseSldr.setValue( state.release4, dontSendNotification );
-				releaseExpoSldr.setValue( state.releaseExpo4, dontSendNotification );
+				attackSldr.setValue( state.attack4, juce::dontSendNotification );
+				attackExpoSldr.setValue( state.attackExpo4, juce::dontSendNotification );
+				decaySldr.setValue( state.decay4, juce::dontSendNotification );
+				decayExpoSldr.setValue( state.decayExpo4, juce::dontSendNotification );
+				sustainSldr.setValue( state.sustain4, juce::dontSendNotification );
+				releaseSldr.setValue( state.release4, juce::dontSendNotification );
+				releaseExpoSldr.setValue( state.releaseExpo4, juce::dontSendNotification );
 				if ( amplitudeDestBtn.getToggleState() )
 				{
 					if ( !state.egAmplitudeMod4 )
 					{
-						amplitudeDestBtn.setToggleState( false, dontSendNotification );
+						amplitudeDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egAmplitudeMod4 )
 					{
-						amplitudeDestBtn.setToggleState( true, dontSendNotification );
+						amplitudeDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( frequencyDestBtn.getToggleState() )
 				{
 					if ( !state.egFrequencyMod4 )
 					{
-						frequencyDestBtn.setToggleState( false, dontSendNotification );
+						frequencyDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
@@ -1267,33 +1269,33 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 					if ( state.egFrequencyMod4 )
 					{
-						frequencyDestBtn.setToggleState( true, dontSendNotification );
+						frequencyDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
 				if ( filterDestBtn.getToggleState() )
 				{
 					if ( !state.egFilterMod4 )
 					{
-						filterDestBtn.setToggleState( false, dontSendNotification );
+						filterDestBtn.setToggleState( false, juce::dontSendNotification );
 					}
 				}
 				else
 				{
 					if ( state.egFilterMod4 )
 					{
-						filterDestBtn.setToggleState( true, dontSendNotification );
+						filterDestBtn.setToggleState( true, juce::dontSendNotification );
 					}
 				}
-				op1ModAmountSldr.setValue( state.op1ModAmount4, dontSendNotification );
-				op2ModAmountSldr.setValue( state.op2ModAmount4, dontSendNotification );
-				op3ModAmountSldr.setValue( state.op3ModAmount4, dontSendNotification );
-				op4ModAmountSldr.setValue( state.op4ModAmount4, dontSendNotification );
-				amplitudeSldr.setValue( state.amplitude4, dontSendNotification );
-				filterFreqSldr.setValue( state.filterFreq4, dontSendNotification );
-				filterResSldr.setValue( state.filterRes4, dontSendNotification );
-				ampVelSldr.setValue( state.ampVelSens4, dontSendNotification );
-				filtVelSldr.setValue( state.filtVelSens4, dontSendNotification );
-				detuneSldr.setValue( state.detune4, dontSendNotification );
+				op1ModAmountSldr.setValue( state.op1ModAmount4, juce::dontSendNotification );
+				op2ModAmountSldr.setValue( state.op2ModAmount4, juce::dontSendNotification );
+				op3ModAmountSldr.setValue( state.op3ModAmount4, juce::dontSendNotification );
+				op4ModAmountSldr.setValue( state.op4ModAmount4, juce::dontSendNotification );
+				amplitudeSldr.setValue( state.amplitude4, juce::dontSendNotification );
+				filterFreqSldr.setValue( state.filterFreq4, juce::dontSendNotification );
+				filterResSldr.setValue( state.filterRes4, juce::dontSendNotification );
+				ampVelSldr.setValue( state.ampVelSens4, juce::dontSendNotification );
+				filtVelSldr.setValue( state.filtVelSens4, juce::dontSendNotification );
+				detuneSldr.setValue( state.detune4, juce::dontSendNotification );
 
 				break;
 			default:
@@ -1314,17 +1316,17 @@ void MainComponent::copyFrameBufferToImage()
 		for ( unsigned int pixelX = 0; pixelX < 128; pixelX++ )
 		{
 			// TODO here we would get the pixel values from the actual frame buffer, then copy to image
-			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     Colour(255, 255, 255) );
-			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     Colour(255, 255, 255) );
-			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, Colour(255, 255, 255) );
-			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
+			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
 		}
 	}
 }
 
 void MainComponent::setMidiInput (int index)
 {
-	auto list = MidiInput::getDevices();
+	auto list = juce::MidiInput::getDevices();
 
 	deviceManager.removeMidiInputCallback( list[lastInputIndex], this );
 
@@ -1334,12 +1336,12 @@ void MainComponent::setMidiInput (int index)
 		deviceManager.setMidiInputEnabled( newInput, true );
 
 	deviceManager.addMidiInputCallback( newInput, this );
-	midiInputList.setSelectedId ( index + 1, dontSendNotification );
+	midiInputList.setSelectedId ( index + 1, juce::dontSendNotification );
 
 	lastInputIndex = index;
 }
 
-void MainComponent::handleIncomingMidiMessage (MidiInput *source, const MidiMessage &message)
+void MainComponent::handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message)
 {
 	for ( int byte = 0; byte < message.getRawDataSize(); byte++ )
 	{

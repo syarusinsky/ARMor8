@@ -1,10 +1,10 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AudioSettingsComponent.h"
 
-AudioSettingsComponent::AudioSettingsComponent (AudioDeviceManager& deviceManager, unsigned int inputs, unsigned int outputs,
-						TextButton* audioSettingsBtn) :
+AudioSettingsComponent::AudioSettingsComponent (juce::AudioDeviceManager& deviceManager, unsigned int inputs, unsigned int outputs,
+						juce::TextButton* audioSettingsBtn) :
 	m_AudioSettingsButton( audioSettingsBtn ),
-	m_AudioDeviceSelector( new AudioDeviceSelectorComponent(deviceManager, inputs, inputs, outputs, outputs, false, false, false, false) )
+	m_AudioDeviceSelector( new juce::AudioDeviceSelectorComponent(deviceManager, inputs, inputs, outputs, outputs, false, false, false, false) )
 {
 	m_AudioSettingsButton->addListener( this );
 }
@@ -17,18 +17,18 @@ AudioSettingsComponent::~AudioSettingsComponent()
 
 void AudioSettingsComponent::showAudioDeviceSelectorWindow()
 {
-	DialogWindow::LaunchOptions options;
+	juce::DialogWindow::LaunchOptions options;
 	options.content.setNonOwned( m_AudioDeviceSelector );
 
 	const int width = 300;
 	const int height = 500;
 
-	Rectangle<int> area (0, 0, width, height);
+	juce::Rectangle<int> area (0, 0, width, height);
 
 	options.content->setSize ( area.getWidth(), area.getHeight() );
 
 	options.dialogTitle                   = "Audio Settings";
-	options.dialogBackgroundColour        = Colours::lightgrey;
+	options.dialogBackgroundColour        = juce::Colours::lightgrey;
 	options.escapeKeyTriggersCloseButton  = true;
 	options.useNativeTitleBar             = true;
 	options.resizable                     = false;
@@ -41,17 +41,17 @@ void AudioSettingsComponent::showAudioDeviceSelectorWindow()
 	}
 }
 
-void AudioSettingsComponent::paint (Graphics& g) {}
+void AudioSettingsComponent::paint (juce::Graphics& g) {}
 
 void AudioSettingsComponent::resized()
 {
 	int buttonWidth = 100;
-	Rectangle<int> area = getLocalBounds();
+	juce::Rectangle<int> area = getLocalBounds();
 	area.removeFromLeft( getWidth() - buttonWidth );
 	m_AudioSettingsButton->setBounds( area );
 }
 
-void AudioSettingsComponent::buttonClicked (Button* button)
+void AudioSettingsComponent::buttonClicked (juce::Button* button)
 {
 	if ( button == m_AudioSettingsButton )
 	{
