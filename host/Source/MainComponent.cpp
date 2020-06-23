@@ -6,11 +6,23 @@
    ==============================================================================
    */
 
+#ifdef __unix__
+#include <unistd.h>
+#elif defined(_WIN32) || defined(WIN32)
+#include <windows.h>
+#endif
+
 #include "MainComponent.h"
 
 #include "CPPFile.hpp"
 #include "ARMor8PresetUpgrader.hpp"
 #include "ColorProfile.hpp"
+#include "FrameBuffer.hpp"
+#include "Font.hpp"
+#include "Sprite.hpp"
+
+const unsigned int FONT_FILE_SIZE = 779;
+const unsigned int LOGO_FILE_SIZE = 119;
 
 const int OpRadioId = 1001;
 const int WaveRadioId = 1002;
@@ -81,7 +93,7 @@ MainComponent::MainComponent() :
 	nextPresetBtn( "Next Preset" ),
 	writePresetBtn( "Write Preset" ),
 	audioSettingsComponent( deviceManager, 2, 2, &audioSettingsBtn ),
-	uiSim( 123, 64, CP_FORMAT::RGB_24BIT ),
+	uiSim( 128, 64, CP_FORMAT::MONOCHROME_1BIT ),
 	screenRep( juce::Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
 {
 	// connecting to event system
@@ -90,6 +102,53 @@ MainComponent::MainComponent() :
 	armor8VoiceManager.bindToPitchEventSystem();
 	armor8VoiceManager.bindToPotEventSystem();
 	armor8VoiceManager.bindToButtonEventSystem();
+
+	// load font and logo from file
+	char fontBytes[FONT_FILE_SIZE];
+	char logoBytes[LOGO_FILE_SIZE];
+
+	const unsigned int pathMax = 1000;
+#ifdef __unix__
+	char result[pathMax];
+	ssize_t count = readlink( "/proc/self/exe", result, pathMax );
+	std::string assetsPath( result, (count > 0) ? count : 0 );
+	std::string strToRemove( "host/Builds/LinuxMakefile/build/FMSynth" );
+
+	std::string::size_type i = assetsPath.find( strToRemove );
+
+	if ( i != std::string::npos )
+	{
+		assetsPath.erase( i, strToRemove.length() );
+	}
+
+	assetsPath += "assets/";
+
+	std::string fontPath = assetsPath + "Smoll.sff";
+	std::string logoPath = assetsPath + "theroomdisconnectlogo.sif";
+#elif defined(_WIN32) || defined(WIN32)
+	// TODO need to actually implement this for windows
+#endif
+	std::ifstream fontFile( fontPath, std::ifstream::binary );
+	if ( ! fontFile )
+	{
+		std::cout << "FAILED TO OPEN FONT FILE!" << std::endl;
+	}
+	fontFile.read( fontBytes, FONT_FILE_SIZE );
+	fontFile.close();
+
+	Font* font = new Font( (uint8_t*)fontBytes );
+	uiSim.setFont( font );
+
+	std::ifstream logoFile( logoPath, std::ifstream::binary );
+	if ( ! logoFile )
+	{
+		std::cout << "FAILED TO OPEN LOGO FILE!" << std::endl;
+	}
+	logoFile.read( logoBytes, LOGO_FILE_SIZE );
+	logoFile.close();
+
+	Sprite* logo = new Sprite( (uint8_t*)logoBytes );
+	uiSim.setLogo( logo );
 
 	// this is to avoid unwanted audio on startup
 	armor8VoiceManager.setOperatorAmplitude(0, 0.0f);
@@ -119,10 +178,10 @@ MainComponent::MainComponent() :
 	deviceManager.initialise( 2, 2, 0, true, juce::String(), &deviceSetup );
 
 	// basic juce logging
-	juce::Logger* log = juce::Logger::getCurrentLogger();
-	int sampleRate = deviceManager.getCurrentAudioDevice()->getCurrentSampleRate();
-	log->writeToLog( juce::String(sampleRate) );
-	log->writeToLog( juce::String(deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples()) );
+	// juce::Logger* log = juce::Logger::getCurrentLogger();
+	// int sampleRate = deviceManager.getCurrentAudioDevice()->getCurrentSampleRate();
+	// log->writeToLog( juce::String(sampleRate) );
+	// log->writeToLog( juce::String(deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples()) );
 
 	// optionally we can write wav files for debugging
 	// juce::WavAudioFormat wav;
@@ -499,6 +558,10 @@ MainComponent::MainComponent() :
 
 	// force UI to refresh
 	op1Btn.triggerClick();
+
+	// UI initialization
+	uiSim.draw();
+	this->copyFrameBufferToImage();
 }
 
 MainComponent::~MainComponent()
@@ -548,9 +611,6 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 	{
 		std::cout << "Exception caught in getNextAudioBlock: " << e.what() << std::endl;
 	}
-
-	// TODO remove this, just for testing
-	this->copyFrameBufferToImage();
 }
 
 void MainComponent::releaseResources()
@@ -744,13 +804,11 @@ void MainComponent::buttonClicked (juce::Button* button)
 		{
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 						static_cast<unsigned int>(BUTTON_CHANNEL::PREV_PRESET)) );
-			op1Btn.triggerClick();
 		}
 		else if (button == &nextPresetBtn)
 		{
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 						static_cast<unsigned int>(BUTTON_CHANNEL::NEXT_PRESET)) );
-			op1Btn.triggerClick();
 		}
 		else if (button == &writePresetBtn)
 		{
@@ -1310,16 +1368,29 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 void MainComponent::copyFrameBufferToImage()
 {
-	// TODO the sizes shouldn't be hard-coded
-	for ( unsigned int pixelY = 0; pixelY < 64; pixelY++ )
+	ColorProfile* colorProfile = uiSim.getColorProfile();
+	FrameBuffer* frameBuffer = uiSim.getFrameBuffer();
+	unsigned int frameBufferWidth = frameBuffer->getWidth();
+	unsigned int frameBufferHeight = frameBuffer->getHeight();
+
+	for ( unsigned int pixelY = 0; pixelY < frameBufferHeight; pixelY++ )
 	{
-		for ( unsigned int pixelX = 0; pixelX < 128; pixelX++ )
+		for ( unsigned int pixelX = 0; pixelX < frameBufferWidth; pixelX++ )
 		{
-			// TODO here we would get the pixel values from the actual frame buffer, then copy to image
-			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(255, 255, 255) );
-			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(255, 255, 255) );
-			screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
-			screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
+			if ( ! colorProfile->getPixel(frameBuffer->getPixels(), (pixelY * frameBufferWidth) + pixelX).m_M )
+			{
+				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(0, 0, 0) );
+				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(0, 0, 0) );
+				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, juce::Colour(0, 0, 0) );
+				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, juce::Colour(0, 0, 0) );
+			}
+			else
+			{
+				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(255, 255, 255) );
+				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(255, 255, 255) );
+				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
+				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
+			}
 		}
 	}
 }

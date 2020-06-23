@@ -405,6 +405,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 	// TODO for hardware, may also need thresholds for changing values. ie: Pot needs to be turned
 	// a certain amount before taking effect. That should probably be ifdef'd. Previous values may
 	// be able to just be static variables beneath each pot channel.
+	// UPDATE: this should actually be done in the ARMor8UiManager, which should generate the PotEvents
 
 	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
 	float percentage = potEvent.getPercentage();
@@ -515,7 +516,7 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
 										m_OpToEdit,
 										m_PresetManager->getCurrentPresetNum(),
-									       	0) );
+										0) );
 
 				break;
 			case BUTTON_CHANNEL::OP2:
@@ -524,7 +525,7 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
 										m_OpToEdit,
 										m_PresetManager->getCurrentPresetNum(),
-									       	0) );
+										0) );
 
 				break;
 			case BUTTON_CHANNEL::OP3:
@@ -533,7 +534,7 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
 										m_OpToEdit,
 										m_PresetManager->getCurrentPresetNum(),
-									       	0) );
+										0) );
 
 				break;
 			case BUTTON_CHANNEL::OP4:
@@ -542,7 +543,7 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
 										m_OpToEdit,
 										m_PresetManager->getCurrentPresetNum(),
-									       	0) );
+										0) );
 
 				break;
 			case BUTTON_CHANNEL::SINE:
@@ -606,6 +607,8 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				{
 					ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
 					this->setState( preset );
+					IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
+							static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
 				}
 
 				break;
@@ -613,6 +616,8 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				{
 					ARMor8VoiceState preset = m_PresetManager->nextPreset<ARMor8VoiceState>();
 					this->setState( preset );
+					IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
+							static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
 				}
 
 				break;

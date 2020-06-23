@@ -3,8 +3,8 @@
 
 /*******************************************************************
  * An ARMor8PresetEventListener specifies a simple interface which
- * a subclass can use to be notified of ARMor8 preset events (such
- * as preset changed events).
+ * a subclass can use to be notified of ARMor8 preset events.
+ * Specifically this means changing between operators and presets.
 *******************************************************************/
 
 #include "ARMor8Voice.hpp"

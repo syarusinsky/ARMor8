@@ -12,13 +12,22 @@
 
 #include "Surface.hpp"
 
+class Font;
+class Sprite;
+
 class ARMor8UiManager : public Surface
 {
 	public:
 		ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format);
 		~ARMor8UiManager() override;
 
+		void setFont (Font* font);
+		void setLogo (Sprite* logo);
+
 		void draw() override;
+
+	private:
+		Sprite* m_Logo;
 };
 
 #endif // ARMOR8UIMANAGER_HPP
