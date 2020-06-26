@@ -98,6 +98,8 @@
             file="../src/ARMor8UiManager.cpp"/>
       <FILE id="IPesLA" name="ARMor8Filter.hpp" compile="0" resource="0"
             file="../include/ARMor8Filter.hpp"/>
+      <FILE id="IPesLA" name="ARMor8Constants.hpp" compile="0" resource="0"
+            file="../include/ARMor8Constants.hpp"/>
       <FILE id="wPWgYh" name="ColorProfile.cpp" compile="1" resource="0"
             file="../lib/SIGL/src/ColorProfile.cpp"/>
       <FILE id="IPesLA" name="ColorProfile.hpp" compile="0" resource="0"

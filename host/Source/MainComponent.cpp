@@ -16,6 +16,7 @@
 
 #include "CPPFile.hpp"
 #include "ARMor8PresetUpgrader.hpp"
+#include "ARMor8Constants.hpp"
 #include "ColorProfile.hpp"
 #include "FrameBuffer.hpp"
 #include "Font.hpp"
@@ -197,7 +198,7 @@ MainComponent::MainComponent() :
 
 	// adding all child components
 	addAndMakeVisible( freqSldr );
-	freqSldr.setRange( armor8VoiceManager.FREQUENCY_MIN, armor8VoiceManager.FREQUENCY_MAX );
+	freqSldr.setRange( ARMOR8_FREQUENCY_MIN, ARMOR8_FREQUENCY_MAX );
 	freqSldr.setTextValueSuffix( "Hz" );
 	freqSldr.setSkewFactorFromMidPoint( 500 );
 	freqSldr.addListener( this );
@@ -206,7 +207,7 @@ MainComponent::MainComponent() :
 	freqLbl.attachToComponent( &freqSldr, true );
 
 	addAndMakeVisible( detuneSldr );
-	detuneSldr.setRange( armor8VoiceManager.DETUNE_MIN, armor8VoiceManager.DETUNE_MAX, 1 );
+	detuneSldr.setRange( ARMOR8_DETUNE_MIN, ARMOR8_DETUNE_MAX, 1 );
 	detuneSldr.setTextValueSuffix( "Cents" );
 	detuneSldr.addListener( this );
 	addAndMakeVisible( detuneLbl );
@@ -250,7 +251,7 @@ MainComponent::MainComponent() :
 	sawBtn.onClick = [this] { updateToggleState(&sawBtn); };
 
 	addAndMakeVisible( attackSldr );
-	attackSldr.setRange( armor8VoiceManager.ATTACK_MIN, armor8VoiceManager.ATTACK_MAX );
+	attackSldr.setRange( ARMOR8_ATTACK_MIN, ARMOR8_ATTACK_MAX );
 	attackSldr.setTextValueSuffix( "Seconds" );
 	attackSldr.addListener( this );
 	addAndMakeVisible( attackLbl );
@@ -258,7 +259,7 @@ MainComponent::MainComponent() :
 	attackLbl.attachToComponent( &attackSldr, true );
 
 	addAndMakeVisible( attackExpoSldr );
-	attackExpoSldr.setRange( armor8VoiceManager.EXPO_MIN, armor8VoiceManager.EXPO_MAX );
+	attackExpoSldr.setRange( ARMOR8_EXPO_MIN, ARMOR8_EXPO_MAX );
 	attackExpoSldr.setTextValueSuffix( "%" );
 	attackExpoSldr.addListener( this );
 	addAndMakeVisible( attackExpoLbl );
@@ -266,7 +267,7 @@ MainComponent::MainComponent() :
 	attackExpoLbl.attachToComponent( &attackExpoSldr, true );
 
 	addAndMakeVisible( decaySldr );
-	decaySldr.setRange( armor8VoiceManager.DECAY_MIN, armor8VoiceManager.DECAY_MAX );
+	decaySldr.setRange( ARMOR8_DECAY_MIN, ARMOR8_DECAY_MAX );
 	decaySldr.setTextValueSuffix( "Seconds" );
 	decaySldr.addListener( this );
 	addAndMakeVisible( decayLbl );
@@ -274,7 +275,7 @@ MainComponent::MainComponent() :
 	decayLbl.attachToComponent( &decaySldr, true );
 
 	addAndMakeVisible( decayExpoSldr );
-	decayExpoSldr.setRange( armor8VoiceManager.EXPO_MIN, armor8VoiceManager.EXPO_MAX );
+	decayExpoSldr.setRange( ARMOR8_EXPO_MIN, ARMOR8_EXPO_MAX );
 	decayExpoSldr.setTextValueSuffix( "%" );
 	decayExpoSldr.addListener( this );
 	addAndMakeVisible( decayExpoLbl );
@@ -282,7 +283,7 @@ MainComponent::MainComponent() :
 	decayExpoLbl.attachToComponent( &decayExpoSldr, true );
 
 	addAndMakeVisible( sustainSldr );
-	sustainSldr.setRange( armor8VoiceManager.SUSTAIN_MIN, armor8VoiceManager.SUSTAIN_MAX );
+	sustainSldr.setRange( ARMOR8_SUSTAIN_MIN, ARMOR8_SUSTAIN_MAX );
 	sustainSldr.setTextValueSuffix( "%" );
 	sustainSldr.addListener( this );
 	addAndMakeVisible( sustainLbl );
@@ -290,7 +291,7 @@ MainComponent::MainComponent() :
 	sustainLbl.attachToComponent( &sustainSldr, true );
 
 	addAndMakeVisible( releaseSldr );
-	releaseSldr.setRange( armor8VoiceManager.RELEASE_MIN, armor8VoiceManager.RELEASE_MAX );
+	releaseSldr.setRange( ARMOR8_RELEASE_MIN, ARMOR8_RELEASE_MAX );
 	releaseSldr.setTextValueSuffix( "Seconds" );
 	releaseSldr.addListener( this );
 	addAndMakeVisible( releaseLbl );
@@ -298,7 +299,7 @@ MainComponent::MainComponent() :
 	releaseLbl.attachToComponent( &releaseSldr, true );
 
 	addAndMakeVisible( releaseExpoSldr );
-	releaseExpoSldr.setRange( armor8VoiceManager.EXPO_MIN, armor8VoiceManager.EXPO_MAX );
+	releaseExpoSldr.setRange( ARMOR8_EXPO_MIN, ARMOR8_EXPO_MAX );
 	releaseExpoSldr.setTextValueSuffix( "%" );
 	releaseExpoSldr.addListener( this );
 	addAndMakeVisible( releaseExpoLbl );
@@ -316,42 +317,42 @@ MainComponent::MainComponent() :
 	filterDestBtn.onClick = [this] { updateToggleState(&filterDestBtn); };
 
 	addAndMakeVisible( op1ModAmountSldr );
-	op1ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
+	op1ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
 	op1ModAmountSldr.addListener( this );
 	addAndMakeVisible( op1ModAmountLbl );
 	op1ModAmountLbl.setText( "Op1 Mod Amount", juce::dontSendNotification );
 	op1ModAmountLbl.attachToComponent( &op1ModAmountSldr, true );
 
 	addAndMakeVisible( op2ModAmountSldr );
-	op2ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
+	op2ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
 	op2ModAmountSldr.addListener( this );
 	addAndMakeVisible( op2ModAmountLbl );
 	op2ModAmountLbl.setText( "Op2 Mod Amount", juce::dontSendNotification );
 	op2ModAmountLbl.attachToComponent( &op2ModAmountSldr, true );
 
 	addAndMakeVisible( op3ModAmountSldr );
-	op3ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
+	op3ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
 	op3ModAmountSldr.addListener( this );
 	addAndMakeVisible( op3ModAmountLbl );
 	op3ModAmountLbl.setText( "Op3 Mod Amount", juce::dontSendNotification );
 	op3ModAmountLbl.attachToComponent( &op3ModAmountSldr, true );
 
 	addAndMakeVisible( op4ModAmountSldr );
-	op4ModAmountSldr.setRange( armor8VoiceManager.OP_MOD_MIN, armor8VoiceManager.OP_MOD_MAX );
+	op4ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
 	op4ModAmountSldr.addListener( this );
 	addAndMakeVisible( op4ModAmountLbl );
 	op4ModAmountLbl.setText( "Op4 Mod Amount", juce::dontSendNotification );
 	op4ModAmountLbl.attachToComponent( &op4ModAmountSldr, true );
 
 	addAndMakeVisible( amplitudeSldr );
-	amplitudeSldr.setRange( armor8VoiceManager.AMPLITUDE_MIN, armor8VoiceManager.AMPLITUDE_MAX );
+	amplitudeSldr.setRange( ARMOR8_AMPLITUDE_MIN, ARMOR8_AMPLITUDE_MAX );
 	amplitudeSldr.addListener( this );
 	addAndMakeVisible( amplitudeLbl );
 	amplitudeLbl.setText( "Amplitude", juce::dontSendNotification );
 	amplitudeLbl.attachToComponent( &amplitudeSldr, true );
 
 	addAndMakeVisible( filterFreqSldr );
-	filterFreqSldr.setRange( armor8VoiceManager.FILT_FREQ_MIN, armor8VoiceManager.FILT_FREQ_MAX );
+	filterFreqSldr.setRange( ARMOR8_FILT_FREQ_MIN, ARMOR8_FILT_FREQ_MAX );
 	filterFreqSldr.setSkewFactorFromMidPoint( 500 );
 	filterFreqSldr.addListener( this );
 	addAndMakeVisible( filterFreqLbl );
@@ -359,35 +360,35 @@ MainComponent::MainComponent() :
 	filterFreqLbl.attachToComponent( &filterFreqSldr, true );
 
 	addAndMakeVisible( filterResSldr );
-	filterResSldr.setRange( armor8VoiceManager.FILT_RES_MIN, armor8VoiceManager.FILT_RES_MAX );
+	filterResSldr.setRange( ARMOR8_FILT_RES_MIN, ARMOR8_FILT_RES_MAX );
 	filterResSldr.addListener( this );
 	addAndMakeVisible( filterResLbl );
 	filterResLbl.setText( "Filter Res", juce::dontSendNotification );
 	filterResLbl.attachToComponent( &filterResSldr, true );
 
 	addAndMakeVisible( ampVelSldr );
-	ampVelSldr.setRange( armor8VoiceManager.VELOCITY_MIN, armor8VoiceManager.VELOCITY_MAX );
+	ampVelSldr.setRange( ARMOR8_VELOCITY_MIN, ARMOR8_VELOCITY_MAX );
 	ampVelSldr.addListener( this );
 	addAndMakeVisible( ampVelLbl );
 	ampVelLbl.setText( "Vel Sens Amplitude", juce::dontSendNotification );
 	ampVelLbl.attachToComponent( &ampVelSldr, true );
 
 	addAndMakeVisible( filtVelSldr );
-	filtVelSldr.setRange( armor8VoiceManager.VELOCITY_MIN, armor8VoiceManager.VELOCITY_MAX );
+	filtVelSldr.setRange( ARMOR8_VELOCITY_MIN, ARMOR8_VELOCITY_MAX );
 	filtVelSldr.addListener( this );
 	addAndMakeVisible( filtVelLbl );
 	filtVelLbl.setText( "Vel Sens Filter", juce::dontSendNotification );
 	filtVelLbl.attachToComponent( &filtVelSldr, true );
 
 	addAndMakeVisible( pitchBendSldr );
-	pitchBendSldr.setRange( armor8VoiceManager.PITCH_BEND_MIN, armor8VoiceManager.PITCH_BEND_MAX, 1);
+	pitchBendSldr.setRange( ARMOR8_PITCH_BEND_MIN, ARMOR8_PITCH_BEND_MAX, 1);
 	pitchBendSldr.addListener( this );
 	addAndMakeVisible( pitchBendLbl );
 	pitchBendLbl.setText( "Pitch Bend", juce::dontSendNotification );
 	pitchBendLbl.attachToComponent( &pitchBendSldr, true );
 
 	addAndMakeVisible( glideSldr );
-	glideSldr.setRange( armor8VoiceManager.GLIDE_TIME_MIN, armor8VoiceManager.GLIDE_TIME_MAX );
+	glideSldr.setRange( ARMOR8_GLIDE_TIME_MIN, ARMOR8_GLIDE_TIME_MAX );
 	glideSldr.addListener( this );
 	addAndMakeVisible( glideLbl );
 	glideLbl.setText( "Glide Time", juce::dontSendNotification );
@@ -691,103 +692,131 @@ void MainComponent::sliderValueChanged (juce::Slider* slider)
 
 		if (slider == &freqSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::FREQUENCY)) );
+			uiSim.processFreqOrDetunePot( percentage );
 		}
 		else if (slider == &detuneSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::DETUNE)) );
+			uiSim.processAlt1Btn( true ); // pressed
+			uiSim.processAlt1Btn( true ); // held
+			uiSim.processFreqOrDetunePot( percentage );
+			uiSim.processAlt1Btn( false ); // released
+			uiSim.processAlt1Btn( false ); // floating
 		}
 		else if (slider == &attackSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::ATTACK)) );
+			uiSim.processAtkOrAtkExpoOrOp1ModPot( percentage );
 		}
 		else if (slider == &attackExpoSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::ATTACK_EXPO)) );
+			uiSim.processAlt1Btn( true ); // pressed
+			uiSim.processAlt1Btn( true ); // held
+			uiSim.processAtkOrAtkExpoOrOp1ModPot( percentage );
+			uiSim.processAlt1Btn( false ); // released
+			uiSim.processAlt1Btn( false ); // floating
 		}
 		else if (slider == &decaySldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::DECAY)) );
+			uiSim.processDecOrDecExpoOrOp2ModPot( percentage );
 		}
 		else if (slider == &decayExpoSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::DECAY_EXPO)) );
+			uiSim.processAlt1Btn( true ); // pressed
+			uiSim.processAlt1Btn( true ); // held
+			uiSim.processDecOrDecExpoOrOp2ModPot( percentage );
+			uiSim.processAlt1Btn( false ); // released
+			uiSim.processAlt1Btn( false ); // floating
 		}
 		else if (slider == &sustainSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::SUSTAIN)) );
+			uiSim.processSusOrOp3ModPot( percentage );
 		}
 		else if (slider == &releaseSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::RELEASE)) );
+			uiSim.processRelOrRelExpoOrOp4ModPot( percentage );
 		}
 		else if (slider == &releaseExpoSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::RELEASE_EXPO)) );
+			uiSim.processAlt1Btn( true ); // pressed
+			uiSim.processAlt1Btn( true ); // held
+			uiSim.processRelOrRelExpoOrOp4ModPot( percentage );
+			uiSim.processAlt1Btn( false ); // released
+			uiSim.processAlt1Btn( false ); // floating
 		}
 		else if (slider == &op1ModAmountSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP1_MOD_AMT)) );
+			uiSim.processAlt2Btn( true ); // pressed
+			uiSim.processAlt2Btn( true ); // held
+			uiSim.processAtkOrAtkExpoOrOp1ModPot( percentage );
+			uiSim.processAlt2Btn( false ); // released
+			uiSim.processAlt2Btn( false ); // floating
 		}
 		else if (slider == &op2ModAmountSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP2_MOD_AMT)) );
+			uiSim.processAlt2Btn( true ); // pressed
+			uiSim.processAlt2Btn( true ); // held
+			uiSim.processDecOrDecExpoOrOp2ModPot( percentage );
+			uiSim.processAlt2Btn( false ); // released
+			uiSim.processAlt2Btn( false ); // floating
 		}
 		else if (slider == &op3ModAmountSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP3_MOD_AMT)) );
+			uiSim.processAlt2Btn( true ); // pressed
+			uiSim.processAlt2Btn( true ); // held
+			uiSim.processSusOrOp3ModPot( percentage );
+			uiSim.processAlt2Btn( false ); // released
+			uiSim.processAlt2Btn( false ); // floating
 		}
 		else if (slider == &op4ModAmountSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP4_MOD_AMT)) );
+			uiSim.processAlt2Btn( true ); // pressed
+			uiSim.processAlt2Btn( true ); // held
+			uiSim.processRelOrRelExpoOrOp4ModPot( percentage );
+			uiSim.processAlt2Btn( false ); // released
+			uiSim.processAlt2Btn( false ); // floating
 		}
 		else if (slider == &amplitudeSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::AMPLITUDE)) );
+			uiSim.processAmpOrAmpVelPot( percentage );
 		}
 		else if (slider == &filterFreqSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::FILT_FREQ)) );
+			uiSim.processFiltFreqOrFiltResOrFiltVelPot( percentage );
 		}
 		else if (slider == &filterResSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::FILT_RES)) );
+			uiSim.processAlt1Btn( true ); // pressed
+			uiSim.processAlt1Btn( true ); // held
+			uiSim.processFiltFreqOrFiltResOrFiltVelPot( percentage );
+			uiSim.processAlt1Btn( false ); // released
+			uiSim.processAlt1Btn( false ); // floating
 		}
 		else if (slider == &ampVelSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::VEL_AMP)) );
+			uiSim.processAlt2Btn( true ); // pressed
+			uiSim.processAlt2Btn( true ); // held
+			uiSim.processAmpOrAmpVelPot( percentage );
+			uiSim.processAlt2Btn( false ); // released
+			uiSim.processAlt2Btn( false ); // floating
 		}
 		else if (slider == &filtVelSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::VEL_FILT)) );
+			uiSim.processAlt2Btn( true ); // pressed
+			uiSim.processAlt2Btn( true ); // held
+			uiSim.processFiltFreqOrFiltResOrFiltVelPot( percentage );
+			uiSim.processAlt2Btn( false ); // released
+			uiSim.processAlt2Btn( false ); // floating
 		}
 		else if (slider == &pitchBendSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::PITCH_BEND)) );
+			uiSim.processAlt1Btn( true ); // pressed
+			uiSim.processAlt1Btn( true ); // held
+			uiSim.processPitchBendOrGlidePot( percentage );
+			uiSim.processAlt1Btn( false ); // released
+			uiSim.processAlt1Btn( false ); // floating
 		}
 		else if (slider == &glideSldr)
 		{
-			IPotEventListener::PublishEvent( PotEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::GLIDE_TIME)) );
+			uiSim.processPitchBendOrGlidePot( percentage );
 		}
 	}
 	catch (std::exception& e)

@@ -12,6 +12,8 @@
 
 #include "Surface.hpp"
 
+#include "IButtonEventListener.hpp"
+
 class Font;
 class Sprite;
 
@@ -26,8 +28,53 @@ class ARMor8UiManager : public Surface
 
 		void draw() override;
 
+		void processFreqOrDetunePot               (float percentage);
+		void processAtkOrAtkExpoOrOp1ModPot       (float percentage);
+		void processDecOrDecExpoOrOp2ModPot       (float percentage);
+		void processSusOrOp3ModPot                (float percentage);
+		void processRelOrRelExpoOrOp4ModPot       (float percentage);
+		void processAmpOrAmpVelPot                (float percentage);
+		void processFiltFreqOrFiltResOrFiltVelPot (float percentage);
+		void processPitchBendOrGlidePot           (float percentage);
+
+		void processAlt1Btn         (bool pressed);
+		void processAlt2Btn         (bool pressed);
+		void processRatioOrFixedBtn (bool pressed);
+		void processNextOpBtn       (bool pressed);
+		void processNextWaveBtn     (bool pressed);
+		void processGlideRetrigBtn  (bool pressed);
+		void processMonoBtn         (bool pressed);
+		void processPrevPresetBtn   (bool pressed);
+		void processNextPresetBtn   (bool pressed);
+		void processWritePresetBtn  (bool pressed);
+
 	private:
-		Sprite* m_Logo;
+		Sprite* 	m_Logo;
+
+		BUTTON_STATE 	m_Alt1State;
+		BUTTON_STATE 	m_Alt2State;
+		float 		m_FreqPotCached;
+		float 		m_DetunePotCached;
+		float 		m_AttackPotCached;
+		float 		m_AttackExpoPotCached;
+		float 		m_Op1ModPotCached;
+		float 		m_DecayPotCached;
+		float 		m_DecayExpoPotCached;
+		float 		m_Op2ModPotCached;
+		float 		m_SustainPotCached;
+		float 		m_Op3ModPotCached;
+		float 		m_ReleasePotCached;
+		float 		m_ReleaseExpoPotCached;
+		float 		m_Op4ModPotCached;
+		float 		m_AmplitudePotCached;
+		float 		m_AmplitudeVelPotCached;
+		float 		m_FiltFreqPotCached;
+		float 		m_FiltResPotCached;
+		float 		m_FiltVelPotCached;
+		float 		m_PitchBendPotCached;
+		float 		m_GlidePotCached;
+
+		void updateButtonState (BUTTON_STATE& buttonState, bool pressed); // note: buttonState is an output variable
 };
 
 #endif // ARMOR8UIMANAGER_HPP

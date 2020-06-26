@@ -413,31 +413,31 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 	switch ( channel )
 	{
 		case POT_CHANNEL::FREQUENCY:
-			this->setOperatorFreq( m_OpToEdit, FREQUENCY_MAX * percentage );
+			this->setOperatorFreq( m_OpToEdit, ARMOR8_FREQUENCY_MAX * percentage );
 
 			break;
 		case POT_CHANNEL::DETUNE:
-			this->setOperatorDetune( m_OpToEdit, std::round((percentage * DETUNE_MAX * 2.0f) - DETUNE_MAX) );
+			this->setOperatorDetune( m_OpToEdit, std::round((percentage * ARMOR8_DETUNE_MAX * 2.0f) - ARMOR8_DETUNE_MAX) );
 
 			break;
 		case POT_CHANNEL::ATTACK:
-			this->setOperatorEGAttack( m_OpToEdit, (percentage * (ATTACK_MAX - ATTACK_MIN)) + ATTACK_MIN,
+			this->setOperatorEGAttack( m_OpToEdit, (percentage * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN)) + ARMOR8_ATTACK_MIN,
 					m_Voices[0]->getOperatorAttackExpo(m_OpToEdit) );
 
 			break;
 		case POT_CHANNEL::ATTACK_EXPO:
 			this->setOperatorEGAttack( m_OpToEdit, m_Voices[0]->getOperatorAttack(m_OpToEdit),
-					(percentage * (EXPO_MAX - EXPO_MIN)) + EXPO_MIN );
+					(percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN );
 
 			break;
 		case POT_CHANNEL::DECAY:
-			this->setOperatorEGDecay( m_OpToEdit, (percentage * (DECAY_MAX - DECAY_MIN)) + DECAY_MIN,
+			this->setOperatorEGDecay( m_OpToEdit, (percentage * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN)) + ARMOR8_DECAY_MIN,
 					m_Voices[0]->getOperatorDecayExpo(m_OpToEdit) );
 
 			break;
 		case POT_CHANNEL::DECAY_EXPO:
 			this->setOperatorEGDecay( m_OpToEdit, m_Voices[0]->getOperatorDecay(m_OpToEdit),
-					(percentage * (EXPO_MAX - EXPO_MIN)) + EXPO_MIN );
+					(percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN );
 
 			break;
 		case POT_CHANNEL::SUSTAIN:
@@ -445,41 +445,42 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::RELEASE:
-			this->setOperatorEGRelease( m_OpToEdit, (percentage * (RELEASE_MAX - RELEASE_MIN)) + RELEASE_MIN,
+			this->setOperatorEGRelease( m_OpToEdit, (percentage * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN)) + ARMOR8_RELEASE_MIN,
 					m_Voices[0]->getOperatorReleaseExpo(m_OpToEdit) );
 
 			break;
 		case POT_CHANNEL::RELEASE_EXPO:
 			this->setOperatorEGRelease( m_OpToEdit, m_Voices[0]->getOperatorRelease(m_OpToEdit),
-					(percentage * (EXPO_MAX - EXPO_MIN)) + EXPO_MIN );
+					(percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN );
 
 			break;
 		case POT_CHANNEL::OP1_MOD_AMT:
-			this->setOperatorModulation( 0, m_OpToEdit, percentage * OP_MOD_MAX );
+			this->setOperatorModulation( 0, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
 
 			break;
 		case POT_CHANNEL::OP2_MOD_AMT:
-			this->setOperatorModulation( 1, m_OpToEdit, percentage * OP_MOD_MAX );
+			this->setOperatorModulation( 1, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
 
 			break;
 		case POT_CHANNEL::OP3_MOD_AMT:
-			this->setOperatorModulation( 2, m_OpToEdit, percentage * OP_MOD_MAX );
+			this->setOperatorModulation( 2, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
 
 			break;
 		case POT_CHANNEL::OP4_MOD_AMT:
-			this->setOperatorModulation( 3, m_OpToEdit, percentage * OP_MOD_MAX );
+			this->setOperatorModulation( 3, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
 
 			break;
 		case POT_CHANNEL::AMPLITUDE:
-			this->setOperatorAmplitude( m_OpToEdit, percentage * AMPLITUDE_MAX );
+			this->setOperatorAmplitude( m_OpToEdit, percentage * ARMOR8_AMPLITUDE_MAX );
 
 			break;
 		case POT_CHANNEL::FILT_FREQ:
-			this->setOperatorFilterFreq( m_OpToEdit, (percentage * (FILT_FREQ_MAX - FILT_FREQ_MIN)) + FILT_FREQ_MIN );
+			this->setOperatorFilterFreq( m_OpToEdit, (percentage *
+							(ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN)) + ARMOR8_FILT_FREQ_MIN );
 
 			break;
 		case POT_CHANNEL::FILT_RES:
-			this->setOperatorFilterRes( m_OpToEdit, percentage * FILT_RES_MAX );
+			this->setOperatorFilterRes( m_OpToEdit, percentage * ARMOR8_FILT_RES_MAX );
 
 			break;
 		case POT_CHANNEL::VEL_AMP:
@@ -491,12 +492,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::PITCH_BEND:
-			this->setPitchBendSemitones( std::round(percentage * (PITCH_BEND_MAX - PITCH_BEND_MIN) + PITCH_BEND_MIN) );
+			this->setPitchBendSemitones( std::round(percentage *
+							(ARMOR8_PITCH_BEND_MAX - ARMOR8_PITCH_BEND_MIN) + ARMOR8_PITCH_BEND_MIN) );
 			m_MidiHandler->setNumberOfSemitonesToPitchBend( m_PitchBendSemitones );
 
 			break;
 		case POT_CHANNEL::GLIDE_TIME:
-			this->setGlideTime( percentage * GLIDE_TIME_MAX );
+			this->setGlideTime( percentage * ARMOR8_GLIDE_TIME_MAX );
 
 			break;
 		default:
