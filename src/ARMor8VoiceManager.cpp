@@ -42,6 +42,30 @@ unsigned int ARMor8VoiceManager::getOperatorToEdit()
 	return m_OpToEdit;
 }
 
+unsigned int ARMor8VoiceManager::getCurrentWaveNum()
+{
+	OscillatorMode wave = m_Voices[0]->getOperatorWave( m_OpToEdit );
+
+	if ( wave == OscillatorMode::SINE )
+	{
+		return 0;
+	}
+	else if ( wave == OscillatorMode::TRIANGLE )
+	{
+		return 1;
+	}
+	else if ( wave == OscillatorMode::SQUARE )
+	{
+		return 2;
+	}
+	else if ( wave == OscillatorMode::SAWTOOTH )
+	{
+		return 3;
+	}
+
+	return 0;
+}
+
 void ARMor8VoiceManager::setOperatorFreq (unsigned int opNum, float freq)
 {
 	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
@@ -564,47 +588,6 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				this->setOperatorWave( m_OpToEdit, OscillatorMode::SAWTOOTH );
 
 				break;
-			case BUTTON_CHANNEL::EG_AMP:
-				{
-					bool lastState = m_Voices[0]->getOperatorEGModDestination( m_OpToEdit, EGModDestination::AMPLITUDE );
-					this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::AMPLITUDE, !lastState );
-				}
-
-				break;
-			case BUTTON_CHANNEL::EG_FREQ:
-				{
-					bool lastState = m_Voices[0]->getOperatorEGModDestination( m_OpToEdit, EGModDestination::FREQUENCY );
-					this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FREQUENCY, !lastState );
-				}
-
-				break;
-			case BUTTON_CHANNEL::EG_FILT:
-				{
-					bool lastState = m_Voices[0]->getOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY );
-					this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, !lastState );
-				}
-
-				break;
-			case BUTTON_CHANNEL::RATIO:
-				{
-					bool lastState = m_Voices[0]->getOperatorUseRatio( m_OpToEdit );
-					this->setOperatorRatio( m_OpToEdit, !lastState );
-				}
-
-				break;
-			case BUTTON_CHANNEL::MONOPHONIC:
-				{
-					m_Monophonic = !m_Monophonic;
-				}
-
-				break;
-			case BUTTON_CHANNEL::GLIDE_RETRIG:
-				{
-					bool lastState = m_Voices[0]->getGlideRetrigger();
-					this->setGlideRetrigger( !lastState );
-				}
-
-				break;
 			case BUTTON_CHANNEL::PREV_PRESET:
 				{
 					ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
@@ -631,6 +614,66 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 
 				break;
 			default:
+				break;
+		}
+	}
+	else if ( buttonEvent.getButtonState() == BUTTON_STATE::HELD )
+	{
+		switch ( static_cast<BUTTON_CHANNEL>(buttonEvent.getChannel()) )
+		{
+			case BUTTON_CHANNEL::RATIO:
+				this->setOperatorRatio( m_OpToEdit, true );
+
+				break;
+			case BUTTON_CHANNEL::MONOPHONIC:
+				m_Monophonic = true;
+
+				break;
+			case BUTTON_CHANNEL::GLIDE_RETRIG:
+				this->setGlideRetrigger( true );
+
+				break;
+			case BUTTON_CHANNEL::EG_AMP:
+				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::AMPLITUDE, true );
+
+				break;
+			case BUTTON_CHANNEL::EG_FREQ:
+				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FREQUENCY, true );
+
+				break;
+			case BUTTON_CHANNEL::EG_FILT:
+				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, true );
+
+				break;
+		}
+	}
+	else if ( buttonEvent.getButtonState() == BUTTON_STATE::FLOATING )
+	{
+		switch ( static_cast<BUTTON_CHANNEL>(buttonEvent.getChannel()) )
+		{
+			case BUTTON_CHANNEL::RATIO:
+				this->setOperatorRatio( m_OpToEdit, false );
+
+				break;
+			case BUTTON_CHANNEL::MONOPHONIC:
+				m_Monophonic = false;
+
+				break;
+			case BUTTON_CHANNEL::GLIDE_RETRIG:
+				this->setGlideRetrigger( false );
+
+				break;
+			case BUTTON_CHANNEL::EG_AMP:
+				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::AMPLITUDE, false );
+
+				break;
+			case BUTTON_CHANNEL::EG_FREQ:
+				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FREQUENCY, false );
+
+				break;
+			case BUTTON_CHANNEL::EG_FILT:
+				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, false );
+
 				break;
 		}
 	}

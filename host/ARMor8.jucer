@@ -80,6 +80,10 @@
             file="../src/ARMor8VoiceManager.cpp"/>
       <FILE id="wPWgYh" name="IARMor8PresetEventListener.cpp" compile="1"
             resource="0" file="../src/IARMor8PresetEventListener.cpp"/>
+      <FILE id="wPWgYh" name="IARMor8ParameterEventListener.cpp" compile="1"
+            resource="0" file="../src/IARMor8ParameterEventListener.cpp"/>
+      <FILE id="wPWgYh" name="IARMor8LCDRefreshEventListener.cpp" compile="1"
+            resource="0" file="../src/IARMor8LCDRefreshEventListener.cpp"/>
       <FILE id="OkAx1i" name="ARMor8Voice.cpp" compile="1" resource="0" file="../src/ARMor8Voice.cpp"/>
       <FILE id="xxpzs5" name="ARMor8PresetUpgrader.cpp" compile="1" resource="0"
             file="../src/ARMor8PresetUpgrader.cpp"/>
@@ -89,6 +93,10 @@
             file="../include/ARMor8VoiceManager.hpp"/>
       <FILE id="hefVOZ" name="IARMor8PresetEventListener.hpp" compile="0"
             resource="0" file="../include/IARMor8PresetEventListener.hpp"/>
+      <FILE id="hefVOZ" name="IARMor8ParameterEventListener.hpp" compile="0"
+            resource="0" file="../include/IARMor8ParameterEventListener.hpp"/>
+      <FILE id="hefVOZ" name="IARMor8LCDRefreshEventListener.hpp" compile="0"
+            resource="0" file="../include/IARMor8LCDRefreshEventListener.hpp"/>
       <FILE id="eyez39" name="ARMor8Voice.hpp" compile="0" resource="0" file="../include/ARMor8Voice.hpp"/>
       <FILE id="yevoCd" name="ARMor8PresetUpgrader.hpp" compile="0" resource="0"
             file="../include/ARMor8PresetUpgrader.hpp"/>

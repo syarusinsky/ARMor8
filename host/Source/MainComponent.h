@@ -12,6 +12,7 @@
 #include "AudioBuffer.hpp"
 #include "ARMor8VoiceManager.hpp"
 #include "IARMor8PresetEventListener.hpp"
+#include "IARMor8LCDRefreshEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 #include "AudioSettingsComponent.h"
@@ -25,13 +26,17 @@
    This component lives inside our window, and this is where you should put all
    your controls and content.
    */
-class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Listener, public juce::Button::Listener, public juce::MidiInputCallback,
-			public IARMor8PresetEventListener
+class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Listener, public juce::Button::Listener,
+			public juce::MidiInputCallback, public IARMor8PresetEventListener, public juce::Timer,
+			public IARMor8LCDRefreshEventListener
 {
 	public:
 		//==============================================================================
 		MainComponent();
 		~MainComponent();
+
+		//==============================================================================
+		void timerCallback() override;
 
 		//==============================================================================
 		void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
@@ -46,7 +51,9 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		void buttonClicked (juce::Button* button) override;
 		void updateToggleState (juce::Button* button);
 
-		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent);
+		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
+
+		void onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRefreshEvent) override;
 
 		void setMidiInput (int index);
 		void handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message) override;
@@ -153,7 +160,7 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		std::ofstream testFile;
 
 		void setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum);
-		void copyFrameBufferToImage();
+		void copyFrameBufferToImage (unsigned int xStart, unsigned int yStart, unsigned int xEnd, unsigned int yEnd);
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

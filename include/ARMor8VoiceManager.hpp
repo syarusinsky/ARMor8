@@ -28,7 +28,9 @@ class ARMor8VoiceManager : public IBufferCallback, public IKeyEventListener, pub
 		~ARMor8VoiceManager() override;
 
 		void setOperatorToEdit (unsigned int opToEdit);
-		unsigned int getOperatorToEdit();
+		unsigned int getOperatorToEdit(); // 0 indexed
+
+		unsigned int getCurrentWaveNum(); // 0 for sine, 1 for triangle, 2 for square, 3 for saw
 
 		void setMonophonic (bool on);
 

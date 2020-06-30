@@ -176,6 +176,8 @@ class ARMor8Voice
 		void setUseGlide (const bool useGlide);
 		bool getUseGlide();
 
+		OscillatorMode getOperatorWave (unsigned int opNum);
+
 		bool getOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest);
 
 		float getOperatorAttack (unsigned int opNum);

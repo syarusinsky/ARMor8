@@ -86,6 +86,8 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o \
   $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o \
   $(JUCE_OBJDIR)/IARMor8PresetEventListener_71c133bc.o \
+  $(JUCE_OBJDIR)/IARMor8ParameterEventListener_628ba5c2.o \
+  $(JUCE_OBJDIR)/IARMor8LCDRefreshEventListener_9fd5ca2d.o \
   $(JUCE_OBJDIR)/ARMor8Voice_45068494.o \
   $(JUCE_OBJDIR)/ARMor8PresetUpgrader_7d7d8afd.o \
   $(JUCE_OBJDIR)/ARMor8Filter_5c2bce20.o \
@@ -214,6 +216,16 @@ $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o: ../../../src/ARMor8VoiceManager.cp
 $(JUCE_OBJDIR)/IARMor8PresetEventListener_71c133bc.o: ../../../src/IARMor8PresetEventListener.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling IARMor8PresetEventListener.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/IARMor8ParameterEventListener_628ba5c2.o: ../../../src/IARMor8ParameterEventListener.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling IARMor8ParameterEventListener.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/IARMor8LCDRefreshEventListener_9fd5ca2d.o: ../../../src/IARMor8LCDRefreshEventListener.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling IARMor8LCDRefreshEventListener.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/ARMor8Voice_45068494.o: ../../../src/ARMor8Voice.cpp

@@ -99,14 +99,15 @@ MainComponent::MainComponent() :
 {
 	// connecting to event system
 	this->bindToARMor8PresetEventSystem();
+	this->bindToARMor8LCDRefreshEventSystem();
 	armor8VoiceManager.bindToKeyEventSystem();
 	armor8VoiceManager.bindToPitchEventSystem();
 	armor8VoiceManager.bindToPotEventSystem();
 	armor8VoiceManager.bindToButtonEventSystem();
 
 	// load font and logo from file
-	char fontBytes[FONT_FILE_SIZE];
-	char logoBytes[LOGO_FILE_SIZE];
+	char* fontBytes = new char[FONT_FILE_SIZE];
+	char* logoBytes = new char[LOGO_FILE_SIZE];
 
 	const unsigned int pathMax = 1000;
 #ifdef __unix__
@@ -554,15 +555,11 @@ MainComponent::MainComponent() :
 	ARMor8PresetUpgrader presetUpgrader( initPreset, armor8VoiceManager.getPresetHeader() );
 	presetManager.upgradePresets( &presetUpgrader );
 
-	// set preset to first preset
-	armor8VoiceManager.setState( presetManager.retrievePreset<ARMor8VoiceState>(0) );
-
-	// force UI to refresh
-	op1Btn.triggerClick();
-
 	// UI initialization
 	uiSim.draw();
-	this->copyFrameBufferToImage();
+
+	// start timer for fake loading
+	this->startTimer( 33 );
 }
 
 MainComponent::~MainComponent()
@@ -571,6 +568,29 @@ MainComponent::~MainComponent()
 	shutdownAudio();
 	delete writer;
 	testFile.close();
+}
+
+void MainComponent::timerCallback()
+{
+	static unsigned int fakeLoadingCounter = 0;
+
+	if ( fakeLoadingCounter == 100 )
+	{
+		fakeLoadingCounter++;
+
+		// set preset to first preset
+		armor8VoiceManager.setState( presetManager.retrievePreset<ARMor8VoiceState>(0) );
+
+		// force UI to refresh
+		op1Btn.triggerClick();
+
+		this->stopTimer();
+	}
+	else if ( fakeLoadingCounter < 100 )
+	{
+		uiSim.drawLoadingLogo();
+		fakeLoadingCounter++;
+	}
 }
 
 //==============================================================================
@@ -831,18 +851,21 @@ void MainComponent::buttonClicked (juce::Button* button)
 	{
 		if (button == &prevPresetBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::PREV_PRESET)) );
+			uiSim.processPrevPresetBtn( true ); // pressed
+			uiSim.processPrevPresetBtn( false ); // released
+			uiSim.processPrevPresetBtn( false ); // floating
 		}
 		else if (button == &nextPresetBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::NEXT_PRESET)) );
+			uiSim.processNextPresetBtn( true ); // pressed
+			uiSim.processNextPresetBtn( false ); // released
+			uiSim.processNextPresetBtn( false ); // floating
 		}
 		else if (button == &writePresetBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::WRITE_PRESET)) );
+			uiSim.processWritePresetBtn( true ); // pressed
+			uiSim.processWritePresetBtn( false ); // released
+			uiSim.processWritePresetBtn( false ); // floating
 		}
 	}
 	catch (std::exception& e)
@@ -861,95 +884,404 @@ void MainComponent::updateToggleState (juce::Button* button)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
+				unsigned int opToEdit = armor8VoiceManager.getOperatorToEdit() + 1;
+
+				if ( opToEdit == 1 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 2 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 3 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 4 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &op2Btn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::OP2)) );
+				unsigned int opToEdit = armor8VoiceManager.getOperatorToEdit() + 1;
+
+				if ( opToEdit == 1 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 2 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 3 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 4 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &op3Btn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::OP3)) );
+				unsigned int opToEdit = armor8VoiceManager.getOperatorToEdit() + 1;
+
+				if ( opToEdit == 1 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 2 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 3 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 4 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &op4Btn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::OP4)) );
+				unsigned int opToEdit = armor8VoiceManager.getOperatorToEdit() + 1;
+
+				if ( opToEdit == 1 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 2 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 3 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
+				else if ( opToEdit == 4 )
+				{
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( true ); // pressed
+					uiSim.processNextOpBtn( false ); // released
+					uiSim.processNextOpBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &sineBtn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::SINE)) );
+				unsigned int waveNum = armor8VoiceManager.getCurrentWaveNum() + 1;
+
+				if ( waveNum == 1 ) // SINE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 2 ) // TRIANGLE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 3 ) // SQUARE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 4 ) // SAWTOOTH
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &triangleBtn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::TRIANGLE)) );
+				unsigned int waveNum = armor8VoiceManager.getCurrentWaveNum() + 1;
+
+				if ( waveNum == 1 ) // SINE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 2 ) // TRIANGLE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 3 ) // SQUARE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 4 ) // SAWTOOTH
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &squareBtn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::SQUARE)) );
+				unsigned int waveNum = armor8VoiceManager.getCurrentWaveNum() + 1;
+
+				if ( waveNum == 1 ) // SINE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 2 ) // TRIANGLE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 3 ) // SQUARE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 4 ) // SAWTOOTH
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &sawBtn)
 		{
 			if (isPressed)
 			{
-				IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::SAWTOOTH)) );
+				unsigned int waveNum = armor8VoiceManager.getCurrentWaveNum() + 1;
+
+				if ( waveNum == 1 ) // SINE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 2 ) // TRIANGLE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 3 ) // SQUARE
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
+				else if ( waveNum == 4 ) // SAWTOOTH
+				{
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( true ); // pressed
+					uiSim.processNextWaveBtn( false ); // released
+					uiSim.processNextWaveBtn( false ); // floating
+				}
 			}
 		}
 		else if (button == &amplitudeDestBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::EG_AMP)) );
+			if ( isPressed )
+			{
+				uiSim.setEGDestAmplitude( true );
+			}
+			else
+			{
+				uiSim.setEGDestAmplitude( false );
+			}
 		}
 		else if (button == &frequencyDestBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::EG_FREQ)) );
+			if ( isPressed )
+			{
+				uiSim.setEGDestFrequency( true );
+			}
+			else
+			{
+				uiSim.setEGDestFrequency( false );
+			}
 		}
 		else if (button == &filterDestBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::EG_FILT)) );
+			if ( isPressed )
+			{
+				uiSim.setEGDestFiltrFreq( true );
+			}
+			else
+			{
+				uiSim.setEGDestFiltrFreq( false );
+			}
 		}
 		else if (button == &ratioBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::RATIO)) );
+			uiSim.processRatioOrFixedBtn( true ); // pressed
+			uiSim.processRatioOrFixedBtn( false ); // released
+			uiSim.processRatioOrFixedBtn( false ); // floating
 		}
 		else if (button == &monoBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::MONOPHONIC)) );
+			uiSim.processMonoBtn( true ); // pressed
+			uiSim.processMonoBtn( false ); // released
+			uiSim.processMonoBtn( false ); // floating
 		}
 		else if (button == &egRetriggerBtn)
 		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-						static_cast<unsigned int>(BUTTON_CHANNEL::GLIDE_RETRIG)) );
+			uiSim.processGlideRetrigBtn( true ); // pressed
+			uiSim.processGlideRetrigBtn( false ); // released
+			uiSim.processGlideRetrigBtn( false ); // floating
 		}
 	}
 	catch (std::exception& e)
@@ -961,6 +1293,13 @@ void MainComponent::updateToggleState (juce::Button* button)
 void MainComponent::onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent)
 {
 	this->setFromARMor8VoiceState( presetEvent.getPreset(), presetEvent.getOpToEdit(), presetEvent.getPresetNum() );
+}
+
+void MainComponent::onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRefreshEvent)
+{
+	this->copyFrameBufferToImage( lcdRefreshEvent.getXStart(), lcdRefreshEvent.getYStart(),
+					lcdRefreshEvent.getXEnd(), lcdRefreshEvent.getYEnd() );
+	this->repaint();
 }
 
 void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum)
@@ -1006,6 +1345,8 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 		switch ( opToEdit )
 		{
 			case 0:
+				op1Btn.setToggleState( true, juce::dontSendNotification );
+
 				freqSldr.setValue( state.frequency1, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
@@ -1101,6 +1442,8 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 				break;
 			case 1:
+				op2Btn.setToggleState( true, juce::dontSendNotification );
+
 				freqSldr.setValue( state.frequency2, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
@@ -1196,6 +1539,8 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 				break;
 			case 2:
+				op3Btn.setToggleState( true, juce::dontSendNotification );
+
 				freqSldr.setValue( state.frequency3, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
@@ -1291,6 +1636,8 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 
 				break;
 			case 3:
+				op4Btn.setToggleState( true, juce::dontSendNotification );
+
 				freqSldr.setValue( state.frequency4, juce::dontSendNotification );
 				if ( ratioBtn.getToggleState() )
 				{
@@ -1395,16 +1742,15 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 	}
 }
 
-void MainComponent::copyFrameBufferToImage()
+void MainComponent::copyFrameBufferToImage (unsigned int xStart, unsigned int yStart, unsigned int xEnd, unsigned int yEnd)
 {
 	ColorProfile* colorProfile = uiSim.getColorProfile();
 	FrameBuffer* frameBuffer = uiSim.getFrameBuffer();
 	unsigned int frameBufferWidth = frameBuffer->getWidth();
-	unsigned int frameBufferHeight = frameBuffer->getHeight();
 
-	for ( unsigned int pixelY = 0; pixelY < frameBufferHeight; pixelY++ )
+	for ( unsigned int pixelY = yStart; pixelY < yEnd; pixelY++ )
 	{
-		for ( unsigned int pixelX = 0; pixelX < frameBufferWidth; pixelX++ )
+		for ( unsigned int pixelX = xStart; pixelX < xEnd; pixelX++ )
 		{
 			if ( ! colorProfile->getPixel(frameBuffer->getPixels(), (pixelY * frameBufferWidth) + pixelX).m_M )
 			{
@@ -1415,10 +1761,10 @@ void MainComponent::copyFrameBufferToImage()
 			}
 			else
 			{
-				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(255, 255, 255) );
-				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(255, 255, 255) );
-				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
-				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, juce::Colour(255, 255, 255) );
+				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(0, 97, 252) );
+				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(0, 97, 252) );
+				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2) + 1, juce::Colour(0, 97, 252) );
+				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2) + 1, juce::Colour(0, 97, 252) );
 			}
 		}
 	}

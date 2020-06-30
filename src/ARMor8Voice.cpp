@@ -260,6 +260,11 @@ bool ARMor8Voice::getUseGlide()
 	return m_Operators[0]->getUseGlide();
 }
 
+OscillatorMode ARMor8Voice::getOperatorWave (unsigned int opNum)
+{
+	return m_Operators[opNum]->getWave();
+}
+
 bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest)
 {
 	Operator* op = nullptr;

@@ -1,8 +1,8 @@
-#ifndef ARMOR8PRESETEVENTLISTENER_HPP
-#define ARMOR8PRESETEVENTLISTENER_HPP
+#ifndef IARMOR8PRESETEVENTLISTENER_HPP
+#define IARMOR8PRESETEVENTLISTENER_HPP
 
 /*******************************************************************
- * An ARMor8PresetEventListener specifies a simple interface which
+ * An IARMor8PresetEventListener specifies a simple interface which
  * a subclass can use to be notified of ARMor8 preset events.
  * Specifically this means changing between operators and presets.
 *******************************************************************/
@@ -44,4 +44,4 @@ class IARMor8PresetEventListener : public IEventListener
 					&IARMor8PresetEventListener::onARMor8PresetChangedEvent> m_EventDispatcher;
 };
 
-#endif // ARMOR8PRESETLISTENER_HPP
+#endif // IARMOR8PRESETLISTENER_HPP
