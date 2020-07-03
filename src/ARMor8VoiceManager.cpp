@@ -1,6 +1,7 @@
 #include "ARMor8VoiceManager.hpp"
 
 #include "IARMor8PresetEventListener.hpp"
+#include "IARMor8ParameterEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 #include "AudioConstants.hpp"
@@ -426,11 +427,6 @@ void ARMor8VoiceManager::onPitchEvent (const PitchEvent& pitchEvent)
 
 void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 {
-	// TODO for hardware, may also need thresholds for changing values. ie: Pot needs to be turned
-	// a certain amount before taking effect. That should probably be ifdef'd. Previous values may
-	// be able to just be static variables beneath each pot channel.
-	// UPDATE: this should actually be done in the ARMor8UiManager, which should generate the PotEvents
-
 	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
 	float percentage = potEvent.getPercentage();
 
@@ -445,8 +441,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::ATTACK:
-			this->setOperatorEGAttack( m_OpToEdit, (percentage * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN)) + ARMOR8_ATTACK_MIN,
-					m_Voices[0]->getOperatorAttackExpo(m_OpToEdit) );
+		{
+			float attackVal = (percentage * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN)) + ARMOR8_ATTACK_MIN;
+			this->setOperatorEGAttack( m_OpToEdit, attackVal, m_Voices[0]->getOperatorAttackExpo(m_OpToEdit) );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(attackVal,
+						static_cast<unsigned int>(POT_CHANNEL::ATTACK)) );
+		}
 
 			break;
 		case POT_CHANNEL::ATTACK_EXPO:
@@ -455,8 +456,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::DECAY:
-			this->setOperatorEGDecay( m_OpToEdit, (percentage * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN)) + ARMOR8_DECAY_MIN,
-					m_Voices[0]->getOperatorDecayExpo(m_OpToEdit) );
+		{
+			float decayVal = (percentage * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN)) + ARMOR8_DECAY_MIN;
+			this->setOperatorEGDecay( m_OpToEdit, decayVal, m_Voices[0]->getOperatorDecayExpo(m_OpToEdit) );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(decayVal,
+						static_cast<unsigned int>(POT_CHANNEL::DECAY)) );
+		}
 
 			break;
 		case POT_CHANNEL::DECAY_EXPO:
@@ -465,12 +471,23 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::SUSTAIN:
-			this->setOperatorEGSustain( m_OpToEdit, percentage );
+		{
+			float sustainVal = percentage;
+			this->setOperatorEGSustain( m_OpToEdit, sustainVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(sustainVal,
+						static_cast<unsigned int>(POT_CHANNEL::SUSTAIN)) );
+		}
 
 			break;
 		case POT_CHANNEL::RELEASE:
-			this->setOperatorEGRelease( m_OpToEdit, (percentage * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN)) + ARMOR8_RELEASE_MIN,
-					m_Voices[0]->getOperatorReleaseExpo(m_OpToEdit) );
+		{
+			float releaseVal = (percentage * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN)) + ARMOR8_RELEASE_MIN;
+			this->setOperatorEGRelease( m_OpToEdit, releaseVal, m_Voices[0]->getOperatorReleaseExpo(m_OpToEdit) );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(releaseVal,
+						static_cast<unsigned int>(POT_CHANNEL::RELEASE)) );
+		}
 
 			break;
 		case POT_CHANNEL::RELEASE_EXPO:
@@ -481,17 +498,29 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 		case POT_CHANNEL::OP1_MOD_AMT:
 			this->setOperatorModulation( 0, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
 
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
+						static_cast<unsigned int>(POT_CHANNEL::OP1_MOD_AMT)) );
+
 			break;
 		case POT_CHANNEL::OP2_MOD_AMT:
 			this->setOperatorModulation( 1, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
+						static_cast<unsigned int>(POT_CHANNEL::OP2_MOD_AMT)) );
 
 			break;
 		case POT_CHANNEL::OP3_MOD_AMT:
 			this->setOperatorModulation( 2, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
 
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
+						static_cast<unsigned int>(POT_CHANNEL::OP3_MOD_AMT)) );
+
 			break;
 		case POT_CHANNEL::OP4_MOD_AMT:
 			this->setOperatorModulation( 3, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
+						static_cast<unsigned int>(POT_CHANNEL::OP4_MOD_AMT)) );
 
 			break;
 		case POT_CHANNEL::AMPLITUDE:

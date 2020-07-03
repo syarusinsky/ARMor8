@@ -16,15 +16,13 @@ const unsigned int MAX_PARAMETER_EVENT_STRING_SIZE = 5;
 class ARMor8ParameterEvent : public IEvent
 {
 	public:
-		ARMor8ParameterEvent (const char* parameterStr, unsigned int strSize, unsigned int channel);
+		ARMor8ParameterEvent (float value, unsigned int channel);
 		~ARMor8ParameterEvent() override;
 
-		const char* getParameterStr() const;
-		unsigned int getParameterStrSize() const;
+		float getValue() const;
 
 	private:
-		char 		m_ParamStr[MAX_PARAMETER_EVENT_STRING_SIZE];
-		unsigned int 	m_ParamStrSize;
+		float m_Value;
 };
 
 class IARMor8ParameterEventListener : public IEventListener

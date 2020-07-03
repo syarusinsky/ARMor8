@@ -4,29 +4,19 @@
 EventDispatcher<IARMor8ParameterEventListener, ARMor8ParameterEvent,
 		&IARMor8ParameterEventListener::onARMor8ParameterEvent> IARMor8ParameterEventListener::m_EventDispatcher;
 
-ARMor8ParameterEvent::ARMor8ParameterEvent (const char* parameterStr, unsigned int strSize, unsigned int channel) :
+ARMor8ParameterEvent::ARMor8ParameterEvent (float value, unsigned int channel) :
 	IEvent( channel ),
-	m_ParamStr{ 0 },
-	m_ParamStrSize( strSize )
+	m_Value{ value }
 {
-	for ( unsigned int i = 0; i < strSize; i++ )
-	{
-		m_ParamStr[i] = parameterStr[i];
-	}
 }
 
 ARMor8ParameterEvent::~ARMor8ParameterEvent()
 {
 }
 
-const char* ARMor8ParameterEvent::getParameterStr() const
+float ARMor8ParameterEvent::getValue() const
 {
-	return m_ParamStr;
-}
-
-unsigned int ARMor8ParameterEvent::getParameterStrSize() const
-{
-	return m_ParamStrSize;
+	return m_Value;
 }
 
 IARMor8ParameterEventListener::~IARMor8ParameterEventListener()
@@ -48,3 +38,4 @@ void IARMor8ParameterEventListener::PublishEvent (const ARMor8ParameterEvent& pa
 {
 	m_EventDispatcher.dispatch( paramEvent );
 }
+

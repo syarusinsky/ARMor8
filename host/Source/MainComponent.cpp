@@ -1748,9 +1748,9 @@ void MainComponent::copyFrameBufferToImage (unsigned int xStart, unsigned int yS
 	FrameBuffer* frameBuffer = uiSim.getFrameBuffer();
 	unsigned int frameBufferWidth = frameBuffer->getWidth();
 
-	for ( unsigned int pixelY = yStart; pixelY < yEnd; pixelY++ )
+	for ( unsigned int pixelY = yStart; pixelY < yEnd + 1; pixelY++ )
 	{
-		for ( unsigned int pixelX = xStart; pixelX < xEnd; pixelX++ )
+		for ( unsigned int pixelX = xStart; pixelX < xEnd + 1; pixelX++ )
 		{
 			if ( ! colorProfile->getPixel(frameBuffer->getPixels(), (pixelY * frameBufferWidth) + pixelX).m_M )
 			{

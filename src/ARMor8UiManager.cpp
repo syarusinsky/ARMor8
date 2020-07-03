@@ -1,5 +1,6 @@
 #include "ARMor8UiManager.hpp"
 
+#include "AudioConstants.hpp"
 #include "ARMor8Constants.hpp"
 #include "Graphics.hpp"
 #include "Sprite.hpp"
@@ -20,6 +21,20 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_UsingRatio( false ),
 	m_UsingGlideRetrigger( false ),
 	m_UsingMono( false ),
+	m_PrstAndOpStr{ "[PRST: XX][OP: X]" },
+	m_AttackStr{ "ATK:X.XXX" },
+	m_DecayStr{ "DEC:X.XXX" },
+	m_SustainStr{ "SUS:X.XXX" },
+	m_ReleaseStr{ "REL:X.XXX" },
+	m_Op1Str{ "OP1:X.XXX" },
+	m_Op2Str{ "OP2:X.XXX" },
+	m_Op3Str{ "OP3:X.XXX" },
+	m_Op4Str{ "OP4:X.XXX" },
+	m_OpAmpStr{ "AMPL: X.XXX" },
+	m_FreqStr{ "FREQ: XXXXX" },
+	m_FiltFreqStr{ "FILT: XXXXX" },
+	m_MonoPolyStr{ "[XXXX]" },
+	m_RatioFixedStr{ "[XXXXX]" },
 	m_FreqPotCached( 0.0f ),
 	m_DetunePotCached( 0.0f ),
 	m_AttackPotCached( 0.0f ),
@@ -53,6 +68,7 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_WritePresetBtnState( BUTTON_STATE::FLOATING )
 {
 	this->bindToARMor8PresetEventSystem();
+	this->bindToARMor8ParameterEventSystem();
 }
 
 ARMor8UiManager::~ARMor8UiManager()
@@ -89,36 +105,76 @@ void ARMor8UiManager::draw()
 		m_Graphics->fill();
 
 		m_Graphics->setColor( true );
-		m_Graphics->drawText( 0.0f, 0.0f, "[PRST: 1][OP: 1]", 1.0f );
+
+		m_Graphics->drawText( 0.0f, 0.0f, m_PrstAndOpStr, 1.0f );
 
 		m_Graphics->drawLine( 0.0f, 0.12f, 1.0f, 0.12f );
 		m_Graphics->drawLine( 0.0f, 0.14f, 1.0f, 0.14f );
 
-		m_Graphics->drawText( -0.02f, 0.16f, "ATK:0.002", 1.0f );
-		m_Graphics->drawText( -0.02f, 0.28f, "DEC:0.002", 1.0f );
-		m_Graphics->drawText( -0.02f, 0.39f, "SUS:1.000", 1.0f );
-		m_Graphics->drawText( -0.02f, 0.50f, "REL:0.002", 1.0f );
+		m_Graphics->drawText( -0.02f, 0.16f, m_AttackStr,  1.0f );
+		m_Graphics->drawText( -0.02f, 0.28f, m_DecayStr,   1.0f );
+		m_Graphics->drawText( -0.02f, 0.39f, m_SustainStr, 1.0f );
+		m_Graphics->drawText( -0.02f, 0.50f, m_ReleaseStr, 1.0f );
 
 		m_Graphics->drawLine( 0.5f, 0.14f, 0.5f, 0.6f );
 
-		m_Graphics->drawText( 0.52f, 0.16f, "OP1:0.002", 1.0f );
-		m_Graphics->drawText( 0.52f, 0.28f, "OP2:0.005", 1.0f );
-		m_Graphics->drawText( 0.52f, 0.39f, "OP3:0.002", 1.0f );
-		m_Graphics->drawText( 0.52f, 0.50f, "OP4:0.000", 1.0f );
+		m_Graphics->drawText( 0.52f, 0.16f, m_Op1Str, 1.0f );
+		m_Graphics->drawText( 0.52f, 0.28f, m_Op2Str, 1.0f );
+		m_Graphics->drawText( 0.52f, 0.39f, m_Op3Str, 1.0f );
+		m_Graphics->drawText( 0.52f, 0.50f, m_Op4Str, 1.0f );
 
 		m_Graphics->drawLine( 0.1f, 0.61f, 0.9f, 0.61f );
 
-		m_Graphics->drawText( 0.14f, 0.65f, "OP AMP: 1.002", 1.0f );
+		m_Graphics->drawText( -0.02f, 0.65f, m_OpAmpStr, 1.0f );
 
-		m_Graphics->drawText( 0.06f, 0.74f, "FILT FREQ: 20000", 1.0f );
+		m_Graphics->drawText( -0.02f, 0.74f, m_FreqStr, 1.0f );
 
-		m_Graphics->drawText( 0.0f, 0.92f, "[MONO]", 1.0f );
+		m_Graphics->drawText( -0.02f, 0.83f, m_FiltFreqStr, 1.0f );
 
-		m_Logo->setRotationAngle( 0 );
-		m_Logo->setScaleFactor( 0.25f );
-		m_Graphics->drawSprite( 0.45f, 0.41f, *m_Logo );
+		m_Graphics->drawLine( 0.61f, 0.63f, 0.61f, 0.9f );
 
-		m_Graphics->drawText( 0.625f, 0.92f, "[RATIO]", 1.0f );
+		m_Graphics->drawText( 0.63f, 0.65f, "EGAMP", 1.0f );
+
+		m_Graphics->drawText( 0.63f, 0.74f, "EGFRQ", 1.0f );
+
+		m_Graphics->drawText( 0.63f, 0.83f, "EGFLT", 1.0f );
+
+		// eg destination amplitude
+		if ( m_EGDestBitmask & 0b100 )
+		{
+			m_Graphics->drawCircle( 0.96f, 0.67f, 0.02f );
+			m_Graphics->drawCircleFilled( 0.96f, 0.67f, 0.02f );
+		}
+		else
+		{
+			m_Graphics->drawCircle( 0.96f, 0.67f, 0.02f );
+		}
+
+		// eg destination frequency
+		if ( m_EGDestBitmask & 0b010 )
+		{
+			m_Graphics->drawCircle( 0.96f, 0.77f, 0.02f );
+			m_Graphics->drawCircleFilled( 0.96f, 0.77f, 0.02f );
+		}
+		else
+		{
+			m_Graphics->drawCircle( 0.96f, 0.77f, 0.02f );
+		}
+
+		// eg destination filter
+		if ( m_EGDestBitmask & 0b001 )
+		{
+			m_Graphics->drawCircle( 0.96f, 0.87f, 0.02f );
+			m_Graphics->drawCircleFilled( 0.96f, 0.87f, 0.02f );
+		}
+		else
+		{
+			m_Graphics->drawCircle( 0.96f, 0.87f, 0.02f );
+		}
+
+		m_Graphics->drawText( 0.0f, 0.93f, m_MonoPolyStr, 1.0f );
+
+		m_Graphics->drawText( 0.625f, 0.93f, m_RatioFixedStr, 1.0f );
 	}
 
 	IARMor8LCDRefreshEventListener::PublishEvent(
@@ -141,48 +197,107 @@ void ARMor8UiManager::drawLoadingLogo()
 
 void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent)
 {
-	m_CurrentMenu = ARMOR8_MENUS::STATUS;
-	this->draw();
-
 	ARMor8VoiceState voiceState = presetEvent.getPreset();
 	m_OpCurrentlyBeingEdited = presetEvent.getOpToEdit() + 1;
 	m_CurrentPresetNum = presetEvent.getPresetNum() + 1;
 
-	bool egDestAmpl = false;
-	bool egDestFreq = false;
-	bool egDestFilt = false;
-	bool usingRatio = false;
-	bool usingGlide = voiceState.glideRetrigger;
-	bool usingMono  = voiceState.monophonic;
+	// buffer for holding parameter strings
+	const unsigned int bufferLen = 20;
+	char buffer[bufferLen];
+
+	this->updateOpNumberStr( buffer, bufferLen );
+	this->updatePrstNumberStr( buffer, bufferLen);
+
+	float amplitude     = 0.0f;
+	float frequency     = 0.0f;
+	float filtFrequency = 0.0f;
+	float attackAmount  = 0.0f;
+	float decayAmount   = 0.0f;
+	float sustainAmount = 0.0f;
+	float releaseAmount = 0.0f;
+	float op1ModAmount  = 0.0f;
+	float op2ModAmount  = 0.0f;
+	float op3ModAmount  = 0.0f;
+	float op4ModAmount  = 0.0f;
+	bool  egDestAmpl    = false;
+	bool  egDestFreq    = false;
+	bool  egDestFilt    = false;
+	bool  usingRatio    = false;
+	bool  usingGlide    = voiceState.glideRetrigger;
+	bool  usingMono     = voiceState.monophonic;
 
 	switch ( m_OpCurrentlyBeingEdited )
 	{
 		case 1:
-			egDestAmpl = voiceState.egAmplitudeMod1;
-			egDestFreq = voiceState.egFrequencyMod1;
-			egDestFilt = voiceState.egFilterMod1;
-			usingRatio = voiceState.useRatio1;
+			amplitude     = voiceState.amplitude1;
+			frequency     = voiceState.frequency1;
+			filtFrequency = voiceState.filterFreq1;
+			attackAmount  = voiceState.attack1;
+			decayAmount   = voiceState.decay1;
+			sustainAmount = voiceState.sustain1;
+			releaseAmount = voiceState.release1;
+			op1ModAmount  = voiceState.op1ModAmount1;
+			op2ModAmount  = voiceState.op2ModAmount1;
+			op3ModAmount  = voiceState.op3ModAmount1;
+			op4ModAmount  = voiceState.op4ModAmount1;
+			egDestAmpl    = voiceState.egAmplitudeMod1;
+			egDestFreq    = voiceState.egFrequencyMod1;
+			egDestFilt    = voiceState.egFilterMod1;
+			usingRatio    = voiceState.useRatio1;
 
 			break;
 		case 2:
-			egDestAmpl = voiceState.egAmplitudeMod2;
-			egDestFreq = voiceState.egFrequencyMod2;
-			egDestFilt = voiceState.egFilterMod2;
-			usingRatio = voiceState.useRatio2;
+			amplitude     = voiceState.amplitude2;
+			frequency     = voiceState.frequency2;
+			filtFrequency = voiceState.filterFreq2;
+			attackAmount  = voiceState.attack2;
+			decayAmount   = voiceState.decay2;
+			sustainAmount = voiceState.sustain2;
+			releaseAmount = voiceState.release2;
+			op1ModAmount  = voiceState.op1ModAmount2;
+			op2ModAmount  = voiceState.op2ModAmount2;
+			op3ModAmount  = voiceState.op3ModAmount2;
+			op4ModAmount  = voiceState.op4ModAmount2;
+			egDestAmpl    = voiceState.egAmplitudeMod2;
+			egDestFreq    = voiceState.egFrequencyMod2;
+			egDestFilt    = voiceState.egFilterMod2;
+			usingRatio    = voiceState.useRatio2;
 
 			break;
 		case 3:
-			egDestAmpl = voiceState.egAmplitudeMod3;
-			egDestFreq = voiceState.egFrequencyMod3;
-			egDestFilt = voiceState.egFilterMod3;
-			usingRatio = voiceState.useRatio3;
+			amplitude     = voiceState.amplitude3;
+			frequency     = voiceState.frequency3;
+			filtFrequency = voiceState.filterFreq3;
+			attackAmount  = voiceState.attack3;
+			decayAmount   = voiceState.decay3;
+			sustainAmount = voiceState.sustain3;
+			releaseAmount = voiceState.release3;
+			op1ModAmount  = voiceState.op1ModAmount3;
+			op2ModAmount  = voiceState.op2ModAmount3;
+			op3ModAmount  = voiceState.op3ModAmount3;
+			op4ModAmount  = voiceState.op4ModAmount3;
+			egDestAmpl    = voiceState.egAmplitudeMod3;
+			egDestFreq    = voiceState.egFrequencyMod3;
+			egDestFilt    = voiceState.egFilterMod3;
+			usingRatio    = voiceState.useRatio3;
 
 			break;
 		case 4:
-			egDestAmpl = voiceState.egAmplitudeMod4;
-			egDestFreq = voiceState.egFrequencyMod4;
-			egDestFilt = voiceState.egFilterMod4;
-			usingRatio = voiceState.useRatio4;
+			amplitude     = voiceState.amplitude4;
+			frequency     = voiceState.frequency4;
+			filtFrequency = voiceState.filterFreq4;
+			attackAmount  = voiceState.attack4;
+			decayAmount   = voiceState.decay4;
+			sustainAmount = voiceState.sustain4;
+			releaseAmount = voiceState.release4;
+			op1ModAmount  = voiceState.op1ModAmount4;
+			op2ModAmount  = voiceState.op2ModAmount4;
+			op3ModAmount  = voiceState.op3ModAmount4;
+			op4ModAmount  = voiceState.op4ModAmount4;
+			egDestAmpl    = voiceState.egAmplitudeMod4;
+			egDestFreq    = voiceState.egFrequencyMod4;
+			egDestFilt    = voiceState.egFilterMod4;
+			usingRatio    = voiceState.useRatio4;
 
 			break;
 		default:
@@ -199,12 +314,165 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 	m_UsingGlideRetrigger = usingGlide;
 	m_UsingMono = usingMono;
 
+	this->updateMonoPolyStr();
+	this->updateRatioFixedStr();
+
+	this->updateAmplitudeStr( amplitude, buffer, bufferLen );
+	this->updateFrequencyStr( frequency, buffer, bufferLen );
+	this->updateFiltFreqStr( filtFrequency, buffer, bufferLen );
+
+	this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen );
+	this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen );
+	this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen );
+	this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen );
+
+	this->updateAttackStr( attackAmount, buffer, bufferLen );
+	this->updateDecayStr( decayAmount, buffer, bufferLen );
+	this->updateSustainStr( sustainAmount, buffer, bufferLen );
+	this->updateReleaseStr( releaseAmount, buffer, bufferLen );
+
 	std::cout << "OP TO EDIT: " << m_OpCurrentlyBeingEdited << std::endl;
 	std::cout << "PRESET NUM: " << m_CurrentPresetNum << std::endl;
 	std::cout << "EG DEST: " << static_cast<unsigned int>(m_EGDestBitmask) << std::endl;
 	std::cout << "RATIO: " << std::to_string( m_UsingRatio ) << std::endl;
 	std::cout << "GLIDE RETRIG: " << std::to_string( m_UsingGlideRetrigger ) << std::endl;
 	std::cout << "MONO: " << std::to_string( m_UsingMono ) << std::endl;
+
+	m_CurrentMenu = ARMOR8_MENUS::STATUS;
+	this->draw();
+}
+
+void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent)
+{
+	POT_CHANNEL channel = static_cast<POT_CHANNEL>( paramEvent.getChannel() );
+
+	unsigned int bufferLen = 20;
+	char buffer[bufferLen];
+
+	switch ( channel )
+	{
+		case POT_CHANNEL::ATTACK:
+		{
+			float attackAmount = paramEvent.getValue();
+			this->updateAttackStr( attackAmount, buffer, bufferLen );
+
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.5f, 0.26f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.16f, m_AttackStr,  1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.5f, 0.26f );
+		}
+
+			break;
+		case POT_CHANNEL::DECAY:
+		{
+			float decayAmount = paramEvent.getValue();
+			this->updateDecayStr( decayAmount, buffer, bufferLen );
+
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.28f, 0.5f, 0.38f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.28f, m_DecayStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.28f, 0.5f, 0.38f );
+		}
+			break;
+		case POT_CHANNEL::SUSTAIN:
+		{
+			float sustainAmount = paramEvent.getValue();
+			this->updateSustainStr( sustainAmount, buffer, bufferLen );
+
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.39f, 0.5f, 0.49f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.39f, m_SustainStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.39f, 0.5f, 0.49f );
+		}
+
+			break;
+		case POT_CHANNEL::RELEASE:
+		{
+			float releaseAmount = paramEvent.getValue();
+			this->updateReleaseStr( releaseAmount, buffer, bufferLen );
+
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.5f, 0.5f, 0.6f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.50f, m_ReleaseStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.5f, 0.5f, 0.6f );
+		}
+
+			break;
+		case POT_CHANNEL::OP1_MOD_AMT:
+		{
+			float op1ModAmount = paramEvent.getValue();
+			this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
+
+			// draw only the dirty part of the screen
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.16f, 1.1f, 0.26f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.16f, m_Op1Str, 1.0f );
+
+			// send LCD refresh event
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.16f, 1.0f, 0.28f );
+		}
+
+			break;
+		case POT_CHANNEL::OP2_MOD_AMT:
+		{
+			float op2ModAmount = paramEvent.getValue();
+			this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
+
+			// draw only the dirty part of the screen
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.28f, 1.1f, 0.38f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.28f, m_Op2Str, 1.0f );
+
+			// send LCD refresh event
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.28f, 1.0f, 0.38f );
+		}
+
+			break;
+		case POT_CHANNEL::OP3_MOD_AMT:
+		{
+			float op3ModAmount = paramEvent.getValue();
+			this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
+
+			// draw only the dirty part of the screen
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.39f, 1.1f, 0.49f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.39f, m_Op3Str, 1.0f );
+
+			// send LCD refresh event
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.39f, 1.0f, 0.49f );
+		}
+
+			break;
+		case POT_CHANNEL::OP4_MOD_AMT:
+		{
+			float op4ModAmount = paramEvent.getValue();
+			this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
+
+			// draw only the dirty part of the screen
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.50f, 1.1f, 0.60f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.50f, m_Op4Str, 1.0f );
+
+			// send LCD refresh event
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.50f, 1.0f, 0.60f );
+		}
+
+			break;
+		default:
+			break;
+	}
 }
 
 void ARMor8UiManager::setEGDestAmplitude (bool on)
@@ -664,4 +932,303 @@ void ARMor8UiManager::publishPartialLCDRefreshEvent (float xStart, float yStart,
 	unsigned int yEndUInt   = m_Graphics->convertYPercentageToUInt( yEnd   );
 
 	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(xStartUInt, yStartUInt, xEndUInt, yEndUInt, 0) );
+}
+
+void ARMor8UiManager::updateOpNumberStr (char* buffer, unsigned int bufferLen)
+{
+	this->intToCString( m_OpCurrentlyBeingEdited, buffer, bufferLen );
+	this->concatDigitStr( m_OpCurrentlyBeingEdited, buffer, m_PrstAndOpStr, 15, 1 );
+}
+
+void ARMor8UiManager::updatePrstNumberStr (char* buffer, unsigned int bufferLen)
+{
+	this->intToCString( m_CurrentPresetNum, buffer, bufferLen );
+	this->concatDigitStr( m_CurrentPresetNum, buffer, m_PrstAndOpStr, 7, 2 );
+}
+
+void ARMor8UiManager::updateMonoPolyStr()
+{
+	if ( m_UsingMono )
+	{
+		m_MonoPolyStr[1] = 'M';
+		m_MonoPolyStr[2] = '0';
+		m_MonoPolyStr[3] = 'N';
+		m_MonoPolyStr[4] = '0';
+	}
+	else
+	{
+		m_MonoPolyStr[1] = 'P';
+		m_MonoPolyStr[2] = '0';
+		m_MonoPolyStr[3] = 'L';
+		m_MonoPolyStr[4] = 'Y';
+	}
+}
+
+void ARMor8UiManager::updateRatioFixedStr()
+{
+	if ( m_UsingRatio )
+	{
+		m_RatioFixedStr[1] = 'R';
+		m_RatioFixedStr[2] = 'A';
+		m_RatioFixedStr[3] = 'T';
+		m_RatioFixedStr[4] = 'I';
+		m_RatioFixedStr[5] = '0';
+	}
+	else
+	{
+		m_RatioFixedStr[1] = 'F';
+		m_RatioFixedStr[2] = 'I';
+		m_RatioFixedStr[3] = 'X';
+		m_RatioFixedStr[4] = 'E';
+		m_RatioFixedStr[5] = 'D';
+	}
+}
+
+void ARMor8UiManager::updateAmplitudeStr (float amplitude, char* buffer, unsigned int bufferLen)
+{
+	int amplitudeInt = static_cast<int>( amplitude * 1000.0f );
+	this->intToCString( amplitudeInt, buffer, bufferLen );
+	this->concatDigitStr( amplitudeInt, buffer, m_OpAmpStr, 6, 5, 2 );
+}
+
+void ARMor8UiManager::updateFrequencyStr (float frequency, char* buffer, unsigned int bufferLen)
+{
+	if ( m_UsingRatio )
+	{
+		if ( frequency > OP_THRESHOLD_6X )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '6';
+			m_FreqStr[10] = 'X';
+		}
+		else if ( frequency > OP_THRESHOLD_5X )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '5';
+			m_FreqStr[10] = 'X';
+		}
+		else if ( frequency > OP_THRESHOLD_4X )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '4';
+			m_FreqStr[10] = 'X';
+		}
+		else if ( frequency > OP_THRESHOLD_3X )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '3';
+			m_FreqStr[10] = 'X';
+		}
+		else if ( frequency > OP_THRESHOLD_2X )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '2';
+			m_FreqStr[10] = 'X';
+		}
+		else if ( frequency > OP_THRESHOLD_1X )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '1';
+			m_FreqStr[10] = 'X';
+		}
+		else if ( frequency > OP_THRESHOLD_D2 )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '/';
+			m_FreqStr[10] = '2';
+		}
+		else if ( frequency >= OP_THRESHOLD_D4 )
+		{
+			m_FreqStr[6] =  ' ';
+			m_FreqStr[7] =  ' ';
+			m_FreqStr[8] =  ' ';
+			m_FreqStr[9] =  '/';
+			m_FreqStr[10] = '4';
+		}
+	}
+	else
+	{
+		int frequencyInt = static_cast<int>( frequency );
+		this->intToCString( frequencyInt, buffer, bufferLen );
+		this->concatDigitStr( frequencyInt, buffer, m_FreqStr, 6, 5 );
+	}
+}
+
+void ARMor8UiManager::updateFiltFreqStr (float filtFrequency, char* buffer, unsigned int bufferLen)
+{
+	int filtFreqInt = static_cast<int>( filtFrequency );
+	this->intToCString( filtFreqInt, buffer, bufferLen );
+	this->concatDigitStr( filtFreqInt, buffer, m_FiltFreqStr, 6, 5 );
+}
+
+void ARMor8UiManager::updateOpModStr (unsigned int opNum, float opModAmount, char* buffer, unsigned int bufferLen, bool div)
+{
+	if ( div )
+	{
+		opModAmount = ( opModAmount / ARMOR8_OP_MOD_MAX ) ;
+	}
+
+	if ( opNum == 1 )
+	{
+		int op1ModAmountInt = static_cast<int>( opModAmount * 1000.0f );
+		this->intToCString( op1ModAmountInt, buffer, bufferLen );
+		this->concatDigitStr( op1ModAmountInt, buffer, m_Op1Str, 4, 5, 2 );
+	}
+	else if ( opNum == 2 )
+	{
+		int op2ModAmountInt = static_cast<int>( opModAmount * 1000.0f );
+		this->intToCString( op2ModAmountInt, buffer, bufferLen );
+		this->concatDigitStr( op2ModAmountInt, buffer, m_Op2Str, 4, 5, 2 );
+	}
+	else if ( opNum == 3 )
+	{
+		int op3ModAmountInt = static_cast<int>( opModAmount * 1000.0f );
+		this->intToCString( op3ModAmountInt, buffer, bufferLen );
+		this->concatDigitStr( op3ModAmountInt, buffer, m_Op3Str, 4, 5, 2 );
+	}
+	else if ( opNum == 4 )
+	{
+		int op4ModAmountInt = static_cast<int>( opModAmount * 1000.0f );
+		this->intToCString( op4ModAmountInt, buffer, bufferLen );
+		this->concatDigitStr( op4ModAmountInt, buffer, m_Op4Str, 4, 5, 2 );
+	}
+}
+
+void ARMor8UiManager::updateAttackStr (float attackAmount, char* buffer, unsigned int bufferLen)
+{
+	int attackAmountInt = static_cast<int>( attackAmount * 1000.0f );
+	this->intToCString( attackAmountInt, buffer, bufferLen );
+	this->concatDigitStr( attackAmountInt, buffer, m_AttackStr, 4, 5, 2 );
+}
+
+void ARMor8UiManager::updateDecayStr (float decayAmount, char* buffer, unsigned int bufferLen)
+{
+	int decayAmountInt = static_cast<int>( decayAmount * 1000.0f );
+	this->intToCString( decayAmountInt, buffer, bufferLen );
+	this->concatDigitStr( decayAmountInt, buffer, m_DecayStr, 4, 5, 2 );
+}
+
+void ARMor8UiManager::updateSustainStr (float sustainAmount, char* buffer, unsigned int bufferLen)
+{
+	int sustainAmountInt = static_cast<int>( sustainAmount * 1000.0f );
+	this->intToCString( sustainAmountInt, buffer, bufferLen );
+	this->concatDigitStr( sustainAmountInt, buffer, m_SustainStr, 4, 5, 2 );
+}
+
+void ARMor8UiManager::updateReleaseStr (float releaseAmount, char* buffer, unsigned int bufferLen)
+{
+	int releaseAmountInt = static_cast<int>( releaseAmount * 1000.0f );
+	this->intToCString( releaseAmountInt, buffer, bufferLen );
+	this->concatDigitStr( releaseAmountInt, buffer, m_ReleaseStr, 4, 5, 2 );
+}
+
+void ARMor8UiManager::intToCString (int val, char* buffer, unsigned int bufferLen)
+{
+	if ( bufferLen == 0 ) return;
+
+	unsigned int bufferIndex = 0;
+
+	bool isNegative = val < 0;
+
+	unsigned int valUInt = isNegative ? -val : val;
+
+	while ( valUInt != 0 )
+	{
+		if ( bufferIndex == bufferLen - 1 )
+		{
+			buffer[bufferIndex] = '\0';
+			return;
+		}
+
+		buffer[bufferIndex] = ( valUInt % 10 ) + '0';
+		valUInt = valUInt / 10;
+		bufferIndex++;
+	}
+
+	if ( isNegative && bufferIndex != bufferLen - 1 )
+	{
+		buffer[bufferIndex] = '-';
+		bufferIndex++;
+	}
+
+	buffer[bufferIndex] = '\0';
+
+	for ( int swapIndex = 0; swapIndex < bufferIndex/2; swapIndex++ )
+	{
+		buffer[swapIndex] ^= buffer[bufferIndex - swapIndex - 1];
+		buffer[bufferIndex - swapIndex - 1] ^= buffer[swapIndex];
+		buffer[swapIndex] ^= buffer[ bufferIndex - swapIndex - 1];
+	}
+
+	if ( val == 0 )
+	{
+		buffer[0] = '0';
+		buffer[1] = '\0';
+	}
+}
+
+void ARMor8UiManager::concatDigitStr (int val, char* sourceBuffer, char* destBuffer, unsigned int offset, unsigned int digitWidth,
+					int decimalPlaceIndex)
+{
+	int sourceNumDigits = 1;
+
+	unsigned int valAbs = abs( val );
+
+	if ( valAbs > 0 )
+	{
+		for (sourceNumDigits = 0; valAbs > 0; sourceNumDigits++)
+		{
+			valAbs = valAbs / 10;
+		}
+	}
+
+	// if it's negative, we need an extra space
+	if ( val < 0 ) sourceNumDigits += 1;
+
+	bool usingDecimalPoint = false;
+
+	// if it's got a decimal place, it also needs an extra space
+	if ( decimalPlaceIndex > -1 )
+	{
+		usingDecimalPoint = true;
+		sourceNumDigits += 1;
+	}
+
+	unsigned int numToSkip = abs( sourceNumDigits - digitWidth );
+
+	// this needs to be set after skipping the decimal place so that source buffer index is still correct
+	unsigned int decimalPlaceOffset = 0;
+
+	for ( unsigned int index = 0; index < digitWidth; index++ )
+	{
+		if ( index != decimalPlaceIndex - 1 )
+		{
+			if ( index < (numToSkip + decimalPlaceOffset) )
+			{
+				destBuffer[offset + index] = ' ';
+			}
+			else
+			{
+				destBuffer[offset + index] = sourceBuffer[index - numToSkip - decimalPlaceOffset];
+			}
+		}
+		else
+		{
+			decimalPlaceOffset = 1;
+		}
+	}
 }

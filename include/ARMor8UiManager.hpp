@@ -13,6 +13,7 @@
 #include "Surface.hpp"
 
 #include "IARMor8PresetEventListener.hpp"
+#include "IARMor8ParameterEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
 enum class ARMOR8_MENUS : unsigned int
@@ -24,7 +25,7 @@ enum class ARMOR8_MENUS : unsigned int
 class Font;
 class Sprite;
 
-class ARMor8UiManager : public Surface, public IARMor8PresetEventListener
+class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IARMor8ParameterEventListener
 {
 	public:
 		ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format);
@@ -37,6 +38,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener
 		void drawLoadingLogo();
 
 		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
+
+		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
 
 		void setEGDestAmplitude (bool on);
 		void setEGDestFrequency (bool on);
@@ -76,6 +79,21 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener
 		bool 		m_UsingGlideRetrigger;
 		bool 		m_UsingMono;
 
+		char 		m_PrstAndOpStr[18];
+		char 		m_AttackStr[10];
+		char 		m_DecayStr[10];
+		char 		m_SustainStr[10];
+		char 		m_ReleaseStr[10];
+		char 		m_Op1Str[10];
+		char 		m_Op2Str[10];
+		char 		m_Op3Str[10];
+		char 		m_Op4Str[10];
+		char 		m_OpAmpStr[12];
+		char 		m_FreqStr[12];
+		char 		m_FiltFreqStr[12];
+		char 		m_MonoPolyStr[7];
+		char 		m_RatioFixedStr[8];
+
 		// pot cached values for parameter thresholds (so preset parameters don't change unless moved by a certain amount)
 		float 		m_FreqPotCached;
 		float 		m_DetunePotCached;
@@ -114,6 +132,25 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener
 		void updateButtonState (BUTTON_STATE& buttonState, bool pressed); // note: buttonState is an output variable
 		void updateEGDestState();
 		void publishPartialLCDRefreshEvent (float xStart, float yStart, float xEnd, float yEnd);
+
+		void updateOpNumberStr (char* buffer, unsigned int bufferLen);
+		void updatePrstNumberStr (char* buffer, unsigned int bufferLen);
+		void updateMonoPolyStr();
+		void updateRatioFixedStr();
+		void updateAmplitudeStr (float amplitude, char* buffer, unsigned int bufferLen);
+		void updateFrequencyStr (float frequency, char* buffer, unsigned int bufferLen);
+		void updateFiltFreqStr (float filtFrequency, char* buffer, unsigned int bufferLen);
+		void updateOpModStr (unsigned int opNum, float opModAmount, char* buffer, unsigned int bufferLen, bool div = true);
+		void updateAttackStr (float attackAmount, char* buffer, unsigned int bufferLen);
+		void updateDecayStr (float decayAmount, char* buffer, unsigned int bufferLen);
+		void updateSustainStr (float sustainAmount, char* buffer, unsigned int bufferLen);
+		void updateReleaseStr (float releaseAmount, char* buffer, unsigned int bufferLen);
+
+		// note: this truncates ungracefully if bufferLen is smaller than then needed
+		void intToCString (int val, char* buffer, unsigned int bufferLen);
+
+		void concatDigitStr (int val, char* sourceBuffer, char* destBuffer, unsigned int offset, unsigned int digitWidth,
+					int decimalPlaceIndex = -1);
 };
 
 #endif // ARMOR8UIMANAGER_HPP
