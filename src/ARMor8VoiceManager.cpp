@@ -433,7 +433,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 	switch ( channel )
 	{
 		case POT_CHANNEL::FREQUENCY:
-			this->setOperatorFreq( m_OpToEdit, ARMOR8_FREQUENCY_MAX * percentage );
+		{
+			float frequencyVal = ARMOR8_FREQUENCY_MAX * percentage;
+			this->setOperatorFreq( m_OpToEdit, frequencyVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(frequencyVal,
+						static_cast<unsigned int>(POT_CHANNEL::FREQUENCY)) );
+		}
 
 			break;
 		case POT_CHANNEL::DETUNE:
@@ -524,12 +530,23 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::AMPLITUDE:
+		{
+			float amplitudeVal = percentage * ARMOR8_AMPLITUDE_MAX;
 			this->setOperatorAmplitude( m_OpToEdit, percentage * ARMOR8_AMPLITUDE_MAX );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(amplitudeVal,
+						static_cast<unsigned int>(POT_CHANNEL::AMPLITUDE)) );
+		}
 
 			break;
 		case POT_CHANNEL::FILT_FREQ:
-			this->setOperatorFilterFreq( m_OpToEdit, (percentage *
-							(ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN)) + ARMOR8_FILT_FREQ_MIN );
+		{
+			float filtFreqVal = (percentage * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN)) + ARMOR8_FILT_FREQ_MIN;
+			this->setOperatorFilterFreq( m_OpToEdit, filtFreqVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(filtFreqVal,
+						static_cast<unsigned int>(POT_CHANNEL::FILT_FREQ)) );
+		}
 
 			break;
 		case POT_CHANNEL::FILT_RES:

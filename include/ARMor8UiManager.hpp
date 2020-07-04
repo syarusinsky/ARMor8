@@ -19,7 +19,8 @@
 enum class ARMOR8_MENUS : unsigned int
 {
 	LOADING,
-	STATUS
+	STATUS,
+	ADDITIONAL
 };
 
 class Font;
@@ -92,6 +93,7 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		char 		m_FreqStr[12];
 		char 		m_FiltFreqStr[12];
 		char 		m_MonoPolyStr[7];
+		char 		m_WaveStr[5];
 		char 		m_RatioFixedStr[8];
 
 		// pot cached values for parameter thresholds (so preset parameters don't change unless moved by a certain amount)
@@ -136,6 +138,7 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void updateOpNumberStr (char* buffer, unsigned int bufferLen);
 		void updatePrstNumberStr (char* buffer, unsigned int bufferLen);
 		void updateMonoPolyStr();
+		void updateWaveStr();
 		void updateRatioFixedStr();
 		void updateAmplitudeStr (float amplitude, char* buffer, unsigned int bufferLen);
 		void updateFrequencyStr (float frequency, char* buffer, unsigned int bufferLen);
@@ -145,6 +148,11 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void updateDecayStr (float decayAmount, char* buffer, unsigned int bufferLen);
 		void updateSustainStr (float sustainAmount, char* buffer, unsigned int bufferLen);
 		void updateReleaseStr (float releaseAmount, char* buffer, unsigned int bufferLen);
+
+		void refreshEGDest();
+		void refreshRatioFixed();
+		void refreshMonoPoly();
+		void refreshWave();
 
 		// note: this truncates ungracefully if bufferLen is smaller than then needed
 		void intToCString (int val, char* buffer, unsigned int bufferLen);
