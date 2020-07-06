@@ -443,7 +443,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::DETUNE:
-			this->setOperatorDetune( m_OpToEdit, std::round((percentage * ARMOR8_DETUNE_MAX * 2.0f) - ARMOR8_DETUNE_MAX) );
+		{
+			int detuneVal = std::round( (percentage * ARMOR8_DETUNE_MAX * 2.0f) - ARMOR8_DETUNE_MAX );
+			this->setOperatorDetune( m_OpToEdit, detuneVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(*reinterpret_cast<float*>(&detuneVal),
+						static_cast<unsigned int>(POT_CHANNEL::DETUNE)) );
+		}
 
 			break;
 		case POT_CHANNEL::ATTACK:
@@ -457,8 +463,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::ATTACK_EXPO:
-			this->setOperatorEGAttack( m_OpToEdit, m_Voices[0]->getOperatorAttack(m_OpToEdit),
-					(percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN );
+		{
+			float attackExpoVal = (percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN;
+			this->setOperatorEGAttack( m_OpToEdit, m_Voices[0]->getOperatorAttack(m_OpToEdit), attackExpoVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(attackExpoVal,
+						static_cast<unsigned int>(POT_CHANNEL::ATTACK_EXPO)) );
+		}
 
 			break;
 		case POT_CHANNEL::DECAY:
@@ -472,8 +483,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::DECAY_EXPO:
-			this->setOperatorEGDecay( m_OpToEdit, m_Voices[0]->getOperatorDecay(m_OpToEdit),
-					(percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN );
+		{
+			float decayExpoVal = (percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN;
+			this->setOperatorEGDecay( m_OpToEdit, m_Voices[0]->getOperatorDecay(m_OpToEdit), decayExpoVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(decayExpoVal,
+						static_cast<unsigned int>(POT_CHANNEL::DECAY_EXPO)) );
+		}
 
 			break;
 		case POT_CHANNEL::SUSTAIN:
@@ -497,8 +513,13 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::RELEASE_EXPO:
-			this->setOperatorEGRelease( m_OpToEdit, m_Voices[0]->getOperatorRelease(m_OpToEdit),
-					(percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN );
+		{
+			float releaseExpoVal = (percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN;
+			this->setOperatorEGRelease( m_OpToEdit, m_Voices[0]->getOperatorRelease(m_OpToEdit), releaseExpoVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(releaseExpoVal,
+						static_cast<unsigned int>(POT_CHANNEL::RELEASE_EXPO)) );
+		}
 
 			break;
 		case POT_CHANNEL::OP1_MOD_AMT:
@@ -550,25 +571,50 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 
 			break;
 		case POT_CHANNEL::FILT_RES:
-			this->setOperatorFilterRes( m_OpToEdit, percentage * ARMOR8_FILT_RES_MAX );
+		{
+			float filtResVal = percentage * ARMOR8_FILT_RES_MAX;
+			this->setOperatorFilterRes( m_OpToEdit, filtResVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(filtResVal,
+						static_cast<unsigned int>(POT_CHANNEL::FILT_RES)) );
+		}
 
 			break;
 		case POT_CHANNEL::VEL_AMP:
 			this->setOperatorAmpVelSens( m_OpToEdit, percentage );
 
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
+						static_cast<unsigned int>(POT_CHANNEL::VEL_AMP)) );
+
 			break;
 		case POT_CHANNEL::VEL_FILT:
 			this->setOperatorFiltVelSens( m_OpToEdit, percentage );
 
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
+						static_cast<unsigned int>(POT_CHANNEL::VEL_FILT)) );
+
 			break;
 		case POT_CHANNEL::PITCH_BEND:
-			this->setPitchBendSemitones( std::round(percentage *
-							(ARMOR8_PITCH_BEND_MAX - ARMOR8_PITCH_BEND_MIN) + ARMOR8_PITCH_BEND_MIN) );
+		{
+			unsigned int pitchBendSemitonesVal = std::round(percentage *
+							(ARMOR8_PITCH_BEND_MAX - ARMOR8_PITCH_BEND_MIN) + ARMOR8_PITCH_BEND_MIN);
+			this->setPitchBendSemitones( pitchBendSemitonesVal );
 			m_MidiHandler->setNumberOfSemitonesToPitchBend( m_PitchBendSemitones );
+
+			IARMor8ParameterEventListener::PublishEvent(
+						ARMor8ParameterEvent(*reinterpret_cast<float*>(&m_PitchBendSemitones),
+						static_cast<unsigned int>(POT_CHANNEL::PITCH_BEND)) );
+		}
 
 			break;
 		case POT_CHANNEL::GLIDE_TIME:
-			this->setGlideTime( percentage * ARMOR8_GLIDE_TIME_MAX );
+		{
+			float glideTimeVal = percentage * ARMOR8_GLIDE_TIME_MAX;
+			this->setGlideTime( glideTimeVal );
+
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(glideTimeVal,
+						static_cast<unsigned int>(POT_CHANNEL::GLIDE_TIME)) );
+		}
 
 			break;
 		default:

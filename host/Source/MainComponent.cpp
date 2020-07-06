@@ -583,13 +583,15 @@ void MainComponent::timerCallback()
 
 		// force UI to refresh
 		op1Btn.triggerClick();
-
-		this->stopTimer();
 	}
 	else if ( fakeLoadingCounter < 100 )
 	{
 		uiSim.drawLoadingLogo();
 		fakeLoadingCounter++;
+	}
+	else
+	{
+		uiSim.tickForChangingBackToStatus();
 	}
 }
 

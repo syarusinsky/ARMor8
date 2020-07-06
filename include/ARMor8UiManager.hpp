@@ -38,6 +38,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void draw() override;
 		void drawLoadingLogo();
 
+		void tickForChangingBackToStatus();
+
 		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
 
 		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
@@ -72,6 +74,9 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 
 		ARMOR8_MENUS 	m_CurrentMenu;
 
+		unsigned int    m_TicksForChangingBackToStatus;
+		const unsigned int m_MaxTicksForChangingBackToStatus = 300;
+
 		unsigned int 	m_CurrentPresetNum;
 		unsigned int 	m_OpCurrentlyBeingEdited; 	// 1 for op1, 2 for op2, 3 for op3, 4 for op4
 		unsigned int 	m_WaveNumCurrentlyBeingEdited; 	// 1 for sine, 2 for triangle, 3 for square, 4 for sawtooth
@@ -95,8 +100,18 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		char 		m_MonoPolyStr[7];
 		char 		m_WaveStr[5];
 		char 		m_RatioFixedStr[8];
+		char 		m_DetuneStr[19];
+		char 		m_AttackExpoStr[12];
+		char 		m_DecayExpoStr[12];
+		char 		m_ReleaseExpoStr[12];
+		char 		m_AmplitudeVelStr[12];
+		char 		m_FiltVelStr[12];
+		char 		m_GlideStr[18];
+		char 		m_PitchBendStr[18];
+		char 		m_FiltResStr[5];
 
 		// pot cached values for parameter thresholds (so preset parameters don't change unless moved by a certain amount)
+		const float     m_PotChangeThreshold = 0.4f; // the pot value needs to break out of this threshold to be applied
 		float 		m_FreqPotCached;
 		float 		m_DetunePotCached;
 		float 		m_AttackPotCached;
@@ -117,6 +132,27 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		float 		m_FiltVelPotCached;
 		float 		m_PitchBendPotCached;
 		float 		m_GlidePotCached;
+		// these keep track of whether the given pots are 'locked' by the threshold when switching prsts or ops
+		bool 		m_FreqPotLocked;
+		bool 		m_DetunePotLocked;
+		bool 		m_AttackPotLocked;
+		bool 		m_AttackExpoPotLocked;
+		bool 		m_Op1ModPotLocked;
+		bool 		m_DecayPotLocked;
+		bool 		m_DecayExpoPotLocked;
+		bool 		m_Op2ModPotLocked;
+		bool 		m_SustainPotLocked;
+		bool 		m_Op3ModPotLocked;
+		bool 		m_ReleasePotLocked;
+		bool 		m_ReleaseExpoPotLocked;
+		bool 		m_Op4ModPotLocked;
+		bool 		m_AmplitudePotLocked;
+		bool 		m_AmplitudeVelPotLocked;
+		bool 		m_FiltFreqPotLocked;
+		bool 		m_FiltResPotLocked;
+		bool 		m_FiltVelPotLocked;
+		bool 		m_PitchBendPotLocked;
+		bool 		m_GlidePotLocked;
 
 		// button states for managing when button events are processed
 		BUTTON_STATE 	m_Alt1State;
@@ -135,6 +171,10 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void updateEGDestState();
 		void publishPartialLCDRefreshEvent (float xStart, float yStart, float xEnd, float yEnd);
 
+		void lockAllPots();
+
+		bool hasBrokenLock (bool& potLockedVal, float& potCachedVal, float newPotVal);
+
 		void updateOpNumberStr (char* buffer, unsigned int bufferLen);
 		void updatePrstNumberStr (char* buffer, unsigned int bufferLen);
 		void updateMonoPolyStr();
@@ -148,11 +188,21 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void updateDecayStr (float decayAmount, char* buffer, unsigned int bufferLen);
 		void updateSustainStr (float sustainAmount, char* buffer, unsigned int bufferLen);
 		void updateReleaseStr (float releaseAmount, char* buffer, unsigned int bufferLen);
+		void updateDetuneStr (int detuneAmount, char* buffer, unsigned int bufferLen);
+		void updateAttackExpoStr (float attackExpoAmount, char* buffer, unsigned int bufferLen);
+		void updateDecayExpoStr (float decayExpoAmount, char* buffer, unsigned int bufferLen);
+		void updateReleaseExpoStr (float releaseExpoAmount, char* buffer, unsigned int bufferLen);
+		void updateAmplitudeVelStr (float amplitudeVelAmount, char* buffer, unsigned int bufferLen);
+		void updateFilterVelStr (float filterVelAmount, char* buffer, unsigned int bufferLen);
+		void updateGlideStr (float glideAmount, char* buffer, unsigned int bufferLen);
+		void updatePitchBendStr (unsigned int pitchBendAmount, char* buffer, unsigned int bufferLen);
+		void updateFiltResStr (float filtResAmount, char* buffer, unsigned int bufferLen);
 
 		void refreshEGDest();
 		void refreshRatioFixed();
 		void refreshMonoPoly();
 		void refreshWave();
+		void refreshGlideRetrig();
 
 		// note: this truncates ungracefully if bufferLen is smaller than then needed
 		void intToCString (int val, char* buffer, unsigned int bufferLen);
