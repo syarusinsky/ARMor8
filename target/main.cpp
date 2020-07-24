@@ -1,9 +1,5 @@
 #include "../lib/STM32f302x8-HAL/llpd/include/LLPD.hpp"
 
-#include <math.h>
-#include <vector>
-#include <set>
-
 const int SYS_CLOCK_FREQUENCY = 32000000;
 const int EEPROM_SIZE = 8192; // EEPROM is CAT24C64
 const int SRAM_SIZE = 65536; // SRAM is 23A256/23K256
@@ -11,7 +7,8 @@ const int SRAM_SIZE = 65536; // SRAM is 23A256/23K256
 volatile float someFloat = 0.0f;
 volatile bool isOn = false;
 volatile bool keepBlinking = true; // a test variable, will be set to false if peripheral operations are invalid
-volatile int ledIncr = 0; // should flash led every time this value is equal to 20000
+volatile int ledIncr = 0; // should flash led every time this value is equal to ledMax
+volatile int ledMax = 20000;
 volatile uint16_t dacVal = 0;
 
 void writeDataToSRAM (uint16_t address, uint8_t data)
@@ -117,7 +114,9 @@ int main(void)
 	// LED pin
 	LLPD::gpio_output_setup( GPIO_PORT::A, GPIO_PIN::PIN_0, GPIO_PUPD::NONE, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::HIGH );
-	LLPD::gpio_input_setup( GPIO_PORT::A, GPIO_PIN::PIN_1, GPIO_PUPD::PULL_DOWN );
+
+	// pushbutton setup example
+	LLPD::gpio_digital_input_setup( GPIO_PORT::A, GPIO_PIN::PIN_1, GPIO_PUPD::PULL_DOWN );
 
 	// audio timer setup (for 40 kHz sampling rate at 32 MHz system clock)
 	LLPD::tim6_counter_setup( 1, 800, 40000 );
@@ -130,20 +129,21 @@ int main(void)
 	LLPD::tim6_counter_start();
 
 	// ADC setup (note, this must be done after the tim6_counter_start() call since it uses the delay function)
+	LLPD::gpio_analog_setup( GPIO_PORT::A, GPIO_PIN::PIN_1 ); // channel 2
+	LLPD::gpio_analog_setup( GPIO_PORT::A, GPIO_PIN::PIN_2 ); // channel 3
+	LLPD::gpio_analog_setup( GPIO_PORT::A, GPIO_PIN::PIN_3 ); // channel 4
+	LLPD::gpio_analog_setup( GPIO_PORT::A, GPIO_PIN::PIN_6 ); // channel 10
 	LLPD::adc_init( ADC_CYCLES_PER_SAMPLE::CPS_601p5 );
-	LLPD::adc_set_channel_order( 4, ADC_CHANNEL::CHAN_2, ADC_CHANNEL::CHAN_3, ADC_CHANNEL::CHAN_4, ADC_CHANNEL::CHAN_5 );
+	LLPD::adc_set_channel_order( 4, ADC_CHANNEL::CHAN_2, ADC_CHANNEL::CHAN_3, ADC_CHANNEL::CHAN_4, ADC_CHANNEL::CHAN_10 );
 
-	// do conversion on 4 channels
-	LLPD::adc_perform_conversion_sequence();
-	uint16_t chan2Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_2 );
-	uint16_t chan3Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_3 );
-	uint16_t chan4Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_4 );
-	uint16_t chan5Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_5 );
-
-	dacVal = chan2Val;
-	dacVal = chan3Val;
-	dacVal = chan4Val;
-	dacVal = chan5Val;
+	// USART setup
+	LLPD::usart_init( USART_NUM::USART_3, USART_WORD_LENGTH::BITS_8, USART_PARITY::EVEN, USART_CONF::TX_AND_RX,
+				USART_STOP_BITS::BITS_1, SYS_CLOCK_FREQUENCY, 9600 );
+	// quick usart transmission test
+	for ( uint16_t val = 0; val < 256; val++ )
+	{
+		LLPD::usart_transmit( USART_NUM::USART_3, val );
+	}
 
 	/*
 	// test all addresses in SRAM
@@ -187,8 +187,18 @@ int main(void)
 
 	while (1)
 	{
+		// do conversion on 4 channels (note: even though we set channel order, adc_gets can be called in any order)
+		LLPD::adc_perform_conversion_sequence();
+		// uint16_t chan2Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_2 );
+		// uint16_t chan3Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_3 );
+		// uint16_t chan4Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_4 );
+		uint16_t chan10Val = LLPD::adc_get_channel_value( ADC_CHANNEL::CHAN_10 );
+
+		ledMax = chan10Val;
+
 		/*
-		if ( LLPD::gpio_input_get(GPIO_PORT::A, GPIO_PIN::PIN_1) )
+		// test pushbutton
+		if ( LLPD::gpio_digital_input_get(GPIO_PORT::A, GPIO_PIN::PIN_1) )
 		{
 			LLPD::gpio_output_set( GPIO_PORT::A, GPIO_PIN::PIN_0, false );
 		}
@@ -203,7 +213,7 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 		LLPD::dac_send( dacVal );
 		dacVal = (dacVal + 100) % 4096;
 
-		if ( keepBlinking && ledIncr > 20000 )
+		if ( keepBlinking && ledIncr > ledMax )
 		{
 			if ( isOn )
 			{
@@ -225,4 +235,11 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 	}
 
 	LLPD::tim6_counter_clear_interrupt_flag();
+}
+
+extern "C" void USART3_IRQHandler (void)
+{
+	// loopback test code for usart recieve
+	uint16_t data = LLPD::usart_receive( USART_NUM::USART_3 );
+	LLPD::usart_transmit( USART_NUM::USART_3, data );
 }

@@ -9,9 +9,27 @@ LLPD_FILES_DIR = ../lib/STM32f302x8-HAL/llpd
 LLPD_INCLUDE_DIR = $(LLPD_FILES_DIR)/include
 LLPD_SRC_DIR = $(LLPD_FILES_DIR)/src
 
+# ARMor8 files directory
+ARMOR8_FILES_DIR = ../
+ARMOR8_INCLUDE_DIR = $(ARMOR8_FILES_DIR)/include
+ARMOR8_SRC_DIR = $(ARMOR8_FILES_DIR)/src
+
+# SAL files directory
+SAL_FILES_DIR = ../lib/SAL
+SAL_INCLUDE_DIR = $(SAL_FILES_DIR)/include
+SAL_SRC_DIR = $(SAL_FILES_DIR)/src
+
+# SIGL files directory
+SIGL_FILES_DIR = ../lib/SIGL
+SIGL_INCLUDE_DIR = $(SIGL_FILES_DIR)/include
+SIGL_SRC_DIR = $(SIGL_FILES_DIR)/src
+
 # include directories
 INCLUDE =  -I$(STM32_CUBE_INCLUDE_DIR)
 INCLUDE += -I$(LLPD_INCLUDE_DIR)
+INCLUDE += -I$(ARMOR8_INCLUDE_DIR)
+INCLUDE += -I$(SAL_INCLUDE_DIR)
+INCLUDE += -I$(SIGL_INCLUDE_DIR)
 
 # linker script
 LD_SCRIPT = $(STM32_CUBE_FILES_DIR)/ld/STM32F302R8Tx_FLASH.ld
@@ -42,7 +60,7 @@ ASFLAGS += -Wall
 ASFLAGS += -fmessage-length=0
 
 # c/c++ compilation directives
-CFLAGS =  -std=c++11
+CFLAGS =  -std=gnu++11
 CFLAGS += -mcpu=$(MCU_SPEC)
 CFLAGS += -mthumb
 CFLAGS += -mhard-float
@@ -54,6 +72,11 @@ CFLAGS += -fmessage-length=0
 # (set system to ignore semihosted junk)
 CFLAGS += -specs=nosys.specs
 CFLAGS += -fno-exceptions
+CFLAGS += -fno-rtti
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+# (allow SIGL to use software rendering)
+CFLAGS += -DSOFTWARE_RENDERING
 
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)
@@ -66,7 +89,7 @@ LFLAGS += -mthumb
 LFLAGS += -Wall
 LFLAGS += -specs=nosys.specs
 LFLAGS += -lstdc++_nano
-LFLAGS += -fno-exceptions
+LFLAGS += -Wl,--gc-sections
 LFLAGS += -T$(LSCRIPT)
 
 # assembly files to compile
@@ -78,6 +101,9 @@ C_SRC += ./$(LLPD_SRC_DIR)/LLPD.c
 
 # c++ files to compile
 CPP_SRC = ./main.cpp
+CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
+CPP_SRC += $(wildcard $(SAL_SRC_DIR)/*.cpp)
+CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
 
 RELEASE_OBJS =  $(AS_SRC:.s=_release.o)
 RELEASE_OBJS += $(C_SRC:.c=_release.o)
