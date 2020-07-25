@@ -67,6 +67,9 @@ CFLAGS += -mhard-float
 CFLAGS += -mfloat-abi=hard
 CFLAGS += -mfpu=fpv4-sp-d16
 CFLAGS += -Wall
+CFLAGS += -Wdouble-promotion
+CFLAGS += -Wfloat-conversion
+CFLAGS += -fsingle-precision-constant
 # (set error messages to appear on a single line.)
 CFLAGS += -fmessage-length=0
 # (set system to ignore semihosted junk)
@@ -80,14 +83,7 @@ CFLAGS += -DSOFTWARE_RENDERING
 
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)
-LFLAGS =  -std=c++11
-LFLAGS += -mcpu=$(MCU_SPEC)
-LFLAGS += -mhard-float
-LFLAGS += -mfloat-abi=hard
-LFLAGS += -mfpu=fpv4-sp-d16
-LFLAGS += -mthumb
-LFLAGS += -Wall
-LFLAGS += -specs=nosys.specs
+LFLAGS =  $(CFLAGS)
 LFLAGS += -lstdc++_nano
 LFLAGS += -Wl,--gc-sections
 LFLAGS += -T$(LSCRIPT)
@@ -101,9 +97,9 @@ C_SRC += ./$(LLPD_SRC_DIR)/LLPD.c
 
 # c++ files to compile
 CPP_SRC = ./main.cpp
-CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
+# CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
 CPP_SRC += $(wildcard $(SAL_SRC_DIR)/*.cpp)
-CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
+# CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
 
 RELEASE_OBJS =  $(AS_SRC:.s=_release.o)
 RELEASE_OBJS += $(C_SRC:.c=_release.o)

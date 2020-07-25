@@ -1,5 +1,8 @@
 #include "../lib/STM32f302x8-HAL/llpd/include/LLPD.hpp"
 
+#include "PolyBLEPOsc.hpp"
+#include "OnePoleFilter.hpp"
+
 const int SYS_CLOCK_FREQUENCY = 32000000;
 const int EEPROM_SIZE = 8192; // EEPROM is CAT24C64
 const int SRAM_SIZE = 65536; // SRAM is 23A256/23K256
@@ -10,6 +13,10 @@ volatile bool keepBlinking = true; // a test variable, will be set to false if p
 volatile int ledIncr = 0; // should flash led every time this value is equal to ledMax
 volatile int ledMax = 20000;
 volatile uint16_t dacVal = 0;
+
+PolyBLEPOsc* osc;
+float oscFreq = 500.0f;
+OnePoleFilter* filt;
 
 void writeDataToSRAM (uint16_t address, uint8_t data)
 {
@@ -88,6 +95,14 @@ uint8_t readDataFromEEPROM (uint16_t address)
 
 int main(void)
 {
+	PolyBLEPOsc polyBlepOsc;
+	osc = &polyBlepOsc;
+	osc->setFrequency( 500.0f );
+	osc->setOscillatorMode( OscillatorMode::SAWTOOTH );
+	OnePoleFilter onePFilt;
+	filt = &onePFilt;
+	filt->setCoefficients( oscFreq );
+
 	// clock setup
 	LLPD::rcc_clock_setup( RCC_CLOCK_SOURCE::EXTERNAL, false );
 	LLPD::rcc_pll_setup( RCC_CLOCK_SOURCE::EXTERNAL, false, RCC_PLL_MULTIPLY::BY_2 );
@@ -208,10 +223,16 @@ int main(void)
 
 extern "C" void TIM6_DAC_IRQHandler (void)
 {
+
 	if ( !LLPD::tim6_isr_handle_delay() ) // if not currently in a delay function,...
 	{
+		oscFreq += 0.1f;
+		if ( oscFreq > 2000.0f ) oscFreq = 50.0f;
+		filt->setCoefficients( oscFreq );
+		float sampleVal = filt->processSample( osc->nextSample() );
+		dacVal = static_cast<uint16_t>( sampleVal * 1000.0f );
+
 		LLPD::dac_send( dacVal );
-		dacVal = (dacVal + 100) % 4096;
 
 		if ( keepBlinking && ledIncr > ledMax )
 		{
