@@ -1,5 +1,8 @@
 TARGET = main
 
+VARIANT = STM32F302XC
+# change this to STM32F302XC for that variant
+
 # stm32cube files directory
 STM32_CUBE_FILES_DIR = ../lib/STM32f302x8-HAL/stm32cubef3
 STM32_CUBE_INCLUDE_DIR = $(STM32_CUBE_FILES_DIR)/include
@@ -32,7 +35,7 @@ INCLUDE += -I$(SAL_INCLUDE_DIR)
 INCLUDE += -I$(SIGL_INCLUDE_DIR)
 
 # linker script
-LD_SCRIPT = $(STM32_CUBE_FILES_DIR)/ld/STM32F302R8Tx_FLASH.ld
+LD_SCRIPT = $(STM32_CUBE_FILES_DIR)/ld/$(VARIANT)_FLASH.ld
 
 # mcu definition
 MCU_SPEC = cortex-m4
@@ -78,6 +81,7 @@ CFLAGS += -fno-exceptions
 CFLAGS += -fno-rtti
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+CFLAGS += -D$(VARIANT)
 # (allow SIGL to use software rendering)
 CFLAGS += -DSOFTWARE_RENDERING
 
@@ -89,7 +93,7 @@ LFLAGS += -Wl,--gc-sections
 LFLAGS += -T$(LSCRIPT)
 
 # assembly files to compile
-AS_SRC = ./$(STM32_CUBE_FILES_DIR)/startup_stm32f302x8.s
+AS_SRC = ./$(STM32_CUBE_FILES_DIR)/startup_$(VARIANT).s
 
 # c files to compile
 C_SRC =  ./$(STM32_CUBE_FILES_DIR)/system_stm32f3xx.c
@@ -98,6 +102,11 @@ C_SRC += ./$(LLPD_SRC_DIR)/LLPD.c
 # c++ files to compile
 CPP_SRC = ./main.cpp
 # CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
+CPP_SRC += $(ARMOR8_SRC_DIR)/ARMor8Filter.cpp
+CPP_SRC += $(ARMOR8_SRC_DIR)/ARMor8Voice.cpp
+CPP_SRC += $(ARMOR8_SRC_DIR)/ARMor8VoiceManager.cpp
+CPP_SRC += $(ARMOR8_SRC_DIR)/IARMor8PresetEventListener.cpp
+CPP_SRC += $(ARMOR8_SRC_DIR)/IARMor8ParameterEventListener.cpp
 CPP_SRC += $(wildcard $(SAL_SRC_DIR)/*.cpp)
 # CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
 

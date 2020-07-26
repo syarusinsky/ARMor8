@@ -1,7 +1,9 @@
 #include "../lib/STM32f302x8-HAL/llpd/include/LLPD.hpp"
 
-#include "PolyBLEPOsc.hpp"
-#include "OnePoleFilter.hpp"
+#include "ARMor8VoiceManager.hpp"
+#include "MidiHandler.hpp"
+#include "PresetManager.hpp"
+#include "AudioBuffer.hpp"
 
 const int SYS_CLOCK_FREQUENCY = 32000000;
 const int EEPROM_SIZE = 8192; // EEPROM is CAT24C64
@@ -14,9 +16,29 @@ volatile int ledIncr = 0; // should flash led every time this value is equal to 
 volatile int ledMax = 20000;
 volatile uint16_t dacVal = 0;
 
+/*
+class FakeStorageMedia : public IStorageMedia
+{
+public:
+	FakeStorageMedia() {}
+	~FakeStorageMedia() override {}
+
+	void writeToMedia (const Variant& data, const unsigned int sizeInBytes, const unsigned int offsetInBytes) override {}
+	Variant readFromMedia (const unsigned int sizeInBytes, const unsigned int offsetInBytes) override { return Variant(nullptr); }
+
+	bool needsInitialization() override { return false; };
+	void initialize() override {}
+	void afterInitialize() override {}
+};
+
+AudioBuffer audioBuffer;
+MidiHandler midiHandler;
+PresetManager presetManager( sizeof(ARMor8PresetHeader), 20, new FakeStorageMedia() );
+// ARMor8VoiceManager armor8VoiceManager( &midiHandler, &presetManager );
+*/
+
+ARMor8Voice* voice;
 PolyBLEPOsc* osc;
-float oscFreq = 500.0f;
-OnePoleFilter* filt;
 
 void writeDataToSRAM (uint16_t address, uint8_t data)
 {
@@ -95,17 +117,129 @@ uint8_t readDataFromEEPROM (uint16_t address)
 
 int main(void)
 {
-	PolyBLEPOsc polyBlepOsc;
-	osc = &polyBlepOsc;
+	ARMor8VoiceState state =
+	{
+		// operator 1
+		500.0f, // freq1
+		false, // useRatio
+		OscillatorMode::SAWTOOTH,// wave
+		0.02f, // attack
+		0.0f, // attack expo
+		0.02f, // decay
+		0.0f, // decay expo
+		1.0f, // sustain
+		0.02f, // release
+		0.0f, // release expo
+		false, // amp mod
+		false, // freq mod
+		false, // filter mod
+		0.0f, // op1 mod
+		0.0f, // op2 mod
+		0.0f, // op3 mod
+		0.0f, // op4 mod
+		1.0f, // amplitude
+		20000.0f, // filter freq
+		0.0f, // filter res
+		0.0f, // amp vel sens
+		0.0f, // filt vel res
+		0, // detune
+
+		// operator 2
+		500.0f, // freq
+		false, // useRatio
+		OscillatorMode::SINE,// wave
+		0.02f, // attack
+		0.0f, // attack expo
+		0.02f, // decay
+		0.0f, // decay expo
+		1.0f, // sustain
+		0.02f, // release
+		0.0f, // release expo
+		false, // amp mod
+		false, // freq mod
+		false, // filter mod
+		0.0f, // op1 mod
+		0.0f, // op2 mod
+		0.0f, // op3 mod
+		0.0f, // op4 mod
+		0.0f, // amplitude
+		20000.0f, // filter freq
+		0.0f, // filter res
+		0.0f, // amp vel sens
+		0.0f, // filt vel res
+		0, // detune
+
+		// operator 3
+		500.0f, // freq
+		false, // useRatio
+		OscillatorMode::SINE,// wave
+		0.02f, // attack
+		0.0f, // attack expo
+		0.02f, // decay
+		0.0f, // decay expo
+		1.0f, // sustain
+		0.02f, // release
+		0.0f, // release expo
+		false, // amp mod
+		false, // freq mod
+		false, // filter mod
+		0.0f, // op1 mod
+		0.0f, // op2 mod
+		0.0f, // op3 mod
+		0.0f, // op4 mod
+		0.0f, // amplitude
+		20000.0f, // filter freq
+		0.0f, // filter res
+		0.0f, // amp vel sens
+		0.0f, // filt vel res
+		0, // detune
+
+		// operator 4
+		500.0f, // freq
+		false, // useRatio
+		OscillatorMode::SINE,// wave
+		0.02f, // attack
+		0.0f, // attack expo
+		0.02f, // decay
+		0.0f, // decay expo
+		1.0f, // sustain
+		0.02f, // release
+		0.0f, // release expo
+		false, // amp mod
+		false, // freq mod
+		false, // filter mod
+		0.0f, // op1 mod
+		0.0f, // op2 mod
+		0.0f, // op3 mod
+		0.0f, // op4 mod
+		0.0f, // amplitude
+		20000.0f, // filter freq
+		0.0f, // filter res
+		0.0f, // amp vel sens
+		0.0f, // filt vel res
+		0, // detune
+
+		// global
+		false, // monophonic
+		0, // pitch bend semitones
+		0.0f, // glide time
+		false // glide retrigger
+	};
+
+	ARMor8Voice armVoiceThing;
+	voice = &armVoiceThing;
+
+	voice->setState( state );
+
+	PolyBLEPOsc polyBlepThing;
+	osc = &polyBlepThing;
+
 	osc->setFrequency( 500.0f );
 	osc->setOscillatorMode( OscillatorMode::SAWTOOTH );
-	OnePoleFilter onePFilt;
-	filt = &onePFilt;
-	filt->setCoefficients( oscFreq );
 
 	// clock setup
 	LLPD::rcc_clock_setup( RCC_CLOCK_SOURCE::EXTERNAL, false );
-	LLPD::rcc_pll_setup( RCC_CLOCK_SOURCE::EXTERNAL, false, RCC_PLL_MULTIPLY::BY_2 );
+	LLPD::rcc_pll_setup( RCC_CLOCK_SOURCE::EXTERNAL, RCC_PLL_MULTIPLY::BY_2 );
 
 	// enable all gpio clocks directly after clock setup
 	LLPD::gpio_enable_clock( GPIO_PORT::A );
@@ -226,14 +360,16 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 
 	if ( !LLPD::tim6_isr_handle_delay() ) // if not currently in a delay function,...
 	{
-		oscFreq += 0.1f;
-		if ( oscFreq > 2000.0f ) oscFreq = 50.0f;
-		filt->setCoefficients( oscFreq );
-		float sampleVal = filt->processSample( osc->nextSample() );
-		dacVal = static_cast<uint16_t>( sampleVal * 1000.0f );
+		float sampleVal = ( voice->nextSample() + 1.0f ) * 2000.0f;
+		if ( sampleVal < 0.0f || sampleVal > 4000.0f )
+		{
+			while ( true ) {}
+		}
+		dacVal = static_cast<uint16_t>( sampleVal );
 
 		LLPD::dac_send( dacVal );
 
+		/*
 		if ( keepBlinking && ledIncr > ledMax )
 		{
 			if ( isOn )
@@ -253,6 +389,7 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 		{
 			ledIncr++;
 		}
+		*/
 	}
 
 	LLPD::tim6_counter_clear_interrupt_flag();
