@@ -9,7 +9,7 @@
       <FILE id="qbrrWM" name="AudioBuffer.cpp" compile="1" resource="0" file="../lib/SAL/src/AudioBuffer.cpp"/>
       <FILE id="qbrrWM" name="PresetManager.cpp" compile="1" resource="0"
             file="../lib/SAL/src/PresetManager.cpp"/>
-      <FILE id="tLruld" name="CPPFile.cpp" compile="1" resource="0" file="../lib/SAL/src/CPPFile.cpp"/>
+      <FILE id="tLruld" name="CPPFile.cpp" compile="1" resource="0" file="../lib/StorageMediaInterfaces/src/CPPFile.cpp"/>
       <FILE id="SOibfh" name="ExponentialResponse.cpp" compile="1" resource="0"
             file="../lib/SAL/src/ExponentialResponse.cpp"/>
       <FILE id="SOibfh" name="IPotEventListener.cpp" compile="1" resource="0"
@@ -36,7 +36,7 @@
       <FILE id="tEwTz9" name="AudioBuffer.hpp" compile="0" resource="0" file="../lib/SAL/include/AudioBuffer.hpp"/>
       <FILE id="MoUbH8" name="AudioConstants.hpp" compile="0" resource="0"
             file="../lib/SAL/include/AudioConstants.hpp"/>
-      <FILE id="kOX25H" name="CPPFile.hpp" compile="0" resource="0" file="../lib/SAL/include/CPPFile.hpp"/>
+      <FILE id="kOX25H" name="CPPFile.hpp" compile="0" resource="0" file="../lib/StorageMediaInterfaces/include/CPPFile.hpp"/>
       <FILE id="WgTcZj" name="ExponentialResponse.hpp" compile="0" resource="0"
             file="../lib/SAL/include/ExponentialResponse.hpp"/>
       <FILE id="qxccIN" name="IBufferCallback.hpp" compile="0" resource="0"
@@ -57,7 +57,7 @@
             file="../lib/SAL/include/IPitchEventListener.hpp"/>
       <FILE id="RpCg3r" name="IResponse.hpp" compile="0" resource="0" file="../lib/SAL/include/IResponse.hpp"/>
       <FILE id="Fa9kZw" name="IStorageMedia.hpp" compile="0" resource="0"
-            file="../lib/SAL/include/IStorageMedia.hpp"/>
+            file="../lib/StorageMediaInterfaces/include/IStorageMedia.hpp"/>
       <FILE id="Fa9kZw" name="IPotEventListener.hpp" compile="0" resource="0"
             file="../lib/SAL/include/IPotEventListener.hpp"/>
       <FILE id="Fa9kZw" name="IButtonEventListener.hpp" compile="0" resource="0"
@@ -75,7 +75,7 @@
       <FILE id="fuh0sM" name="PolyBLEPOsc.hpp" compile="0" resource="0" file="../lib/SAL/include/PolyBLEPOsc.hpp"/>
       <FILE id="qeuWpH" name="PresetManager.hpp" compile="0" resource="0"
             file="../lib/SAL/include/PresetManager.hpp"/>
-      <FILE id="CUpz8d" name="Variant.hpp" compile="0" resource="0" file="../lib/SAL/include/Variant.hpp"/>
+      <FILE id="CUpz8d" name="Variant.hpp" compile="0" resource="0" file="../lib/StorageMediaInterfaces/include/Variant.hpp"/>
       <FILE id="wPWgYh" name="ARMor8VoiceManager.cpp" compile="1" resource="0"
             file="../src/ARMor8VoiceManager.cpp"/>
       <FILE id="wPWgYh" name="IARMor8PresetEventListener.cpp" compile="1"
@@ -136,7 +136,7 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraCompilerFlags="-I../../../lib/SAL/include -I../../../include -I../../../lib/SIGL/include -DSOFTWARE_RENDERING"
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraCompilerFlags="-I../../../lib/SAL/include -I../../../include -I../../../lib/SIGL/include -I../../../lib/StorageMediaInterfaces/include -DSOFTWARE_RENDERING"
                 extraDefs="DONT_SET_USING_JUCE_NAMESPACE">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>

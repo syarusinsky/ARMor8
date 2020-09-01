@@ -12,6 +12,8 @@
 
 #include "Surface.hpp"
 
+#include <stdint.h>
+
 #include "IARMor8PresetEventListener.hpp"
 #include "IARMor8ParameterEventListener.hpp"
 #include "IButtonEventListener.hpp"
