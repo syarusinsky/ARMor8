@@ -7,6 +7,6 @@
 [submodule "lib/SIGL"]
 	path = lib/SIGL
 	url = https://github.com/syarusinsky/SIGL.git
-[submodule "lib/StorageMediaInterfaces"]
-	path = lib/StorageMediaInterfaces
-	url = https://github.com/syarusinsky/StorageMediaInterfaces.git
+[submodule "lib/DevLib"]
+	path = lib/DevLib
+	url = https://github.com/syarusinsky/DevLib.git
