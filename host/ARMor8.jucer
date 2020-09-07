@@ -75,7 +75,7 @@
       <FILE id="fuh0sM" name="PolyBLEPOsc.hpp" compile="0" resource="0" file="../lib/SAL/include/PolyBLEPOsc.hpp"/>
       <FILE id="qeuWpH" name="PresetManager.hpp" compile="0" resource="0"
             file="../lib/SAL/include/PresetManager.hpp"/>
-      <FILE id="CUpz8d" name="Variant.hpp" compile="0" resource="0" file="../lib/DevLib/include/Variant.hpp"/>
+      <FILE id="CUpz8d" name="SharedData.hpp" compile="0" resource="0" file="../lib/DevLib/include/SharedData.hpp"/>
       <FILE id="wPWgYh" name="ARMor8VoiceManager.cpp" compile="1" resource="0"
             file="../src/ARMor8VoiceManager.cpp"/>
       <FILE id="wPWgYh" name="IARMor8PresetEventListener.cpp" compile="1"
