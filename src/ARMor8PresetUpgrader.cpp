@@ -359,7 +359,7 @@ void ARMor8PresetUpgrader::upgradePresets()
 					presetHeaderFromFile.versionPatch == 0 )
 			{
 				this->upgradeFrom0_1_0To1_0_0();
-				this->upgradePresets();
+				this->upgradePresets(); // recursive in case it needs to upgrade from more than one version
 			}
 			else if (
 					presetHeaderFromFile.versionMajor == 1 &&
@@ -367,7 +367,7 @@ void ARMor8PresetUpgrader::upgradePresets()
 					presetHeaderFromFile.versionPatch == 0 )
 			{
 				this->upgradeFrom1_0_0To1_1_0();
-				this->upgradePresets();
+				this->upgradePresets(); // recursive in case it needs to upgrade from more than one version
 			}
 		}
 	}

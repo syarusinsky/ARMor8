@@ -2044,7 +2044,7 @@ void ARMor8UiManager::concatDigitStr (int val, char* sourceBuffer, char* destBuf
 		sourceNumDigits += 1;
 	}
 
-	unsigned int numToSkip = abs( sourceNumDigits - digitWidth );
+	unsigned int numToSkip = abs( static_cast<int>(sourceNumDigits - digitWidth) );
 
 	// this needs to be set after skipping the decimal place so that source buffer index is still correct
 	unsigned int decimalPlaceOffset = 0;

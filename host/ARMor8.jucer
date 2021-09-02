@@ -29,7 +29,8 @@
       <FILE id="ZwVCIz" name="MidiHandler.cpp" compile="1" resource="0" file="../lib/SAL/src/MidiHandler.cpp"/>
       <FILE id="zgG80y" name="OnePoleFilter.cpp" compile="1" resource="0"
             file="../lib/SAL/src/OnePoleFilter.cpp"/>
-      <FILE id="vqK3RC" name="Operator.cpp" compile="1" resource="0" file="../lib/SAL/src/Operator.cpp"/>
+      <FILE id="vqK3RC" name="ARMor8Operator.cpp" compile="1" resource="0"
+            file="../src/ARMor8Operator.cpp"/>
       <FILE id="P9VnS0" name="PolyBLEPOsc.cpp" compile="1" resource="0" file="../lib/SAL/src/PolyBLEPOsc.cpp"/>
       <FILE id="QAOCmO" name="ADSREnvelopeGenerator.hpp" compile="0" resource="0"
             file="../lib/SAL/include/ADSREnvelopeGenerator.hpp"/>
@@ -50,8 +51,6 @@
             file="../lib/SAL/include/IKeyEventListener.hpp"/>
       <FILE id="vM6riO" name="IMidiEventListener.hpp" compile="0" resource="0"
             file="../lib/SAL/include/IMidiEventListener.hpp"/>
-      <FILE id="SivnNq" name="IModulationSource.hpp" compile="0" resource="0"
-            file="../lib/SAL/include/IModulationSource.hpp"/>
       <FILE id="Zlxcpj" name="IOscillator.hpp" compile="0" resource="0" file="../lib/SAL/include/IOscillator.hpp"/>
       <FILE id="lVtf42" name="IPitchEventListener.hpp" compile="0" resource="0"
             file="../lib/SAL/include/IPitchEventListener.hpp"/>
@@ -71,7 +70,8 @@
       <FILE id="J3AaOm" name="MidiHandler.hpp" compile="0" resource="0" file="../lib/SAL/include/MidiHandler.hpp"/>
       <FILE id="Cf1RgN" name="OnePoleFilter.hpp" compile="0" resource="0"
             file="../lib/SAL/include/OnePoleFilter.hpp"/>
-      <FILE id="OlQsWp" name="Operator.hpp" compile="0" resource="0" file="../lib/SAL/include/Operator.hpp"/>
+      <FILE id="OlQsWp" name="ARMor8Operator.hpp" compile="0" resource="0"
+            file="../include/ARMor8Operator.hpp"/>
       <FILE id="fuh0sM" name="PolyBLEPOsc.hpp" compile="0" resource="0" file="../lib/SAL/include/PolyBLEPOsc.hpp"/>
       <FILE id="qeuWpH" name="PresetManager.hpp" compile="0" resource="0"
             file="../lib/SAL/include/PresetManager.hpp"/>

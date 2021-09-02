@@ -1,10 +1,10 @@
 #include "ARMor8Filter.hpp"
 
 ARMor8Filter::ARMor8Filter() :
-	filter1(),
-	filter2(),
-	filter3(),
-	filter4(),
+	m_Filter1(),
+	m_Filter2(),
+	m_Filter3(),
+	m_Filter4(),
 	m_Resonance(0.0f),
 	m_PrevSample(0.0f)
 {
@@ -18,10 +18,10 @@ ARMor8Filter::~ARMor8Filter()
 float ARMor8Filter::processSample (float sample)
 {
 	m_PrevSample = (m_PrevSample * -m_Resonance) + sample;
-	float out1 = filter1.processSample(m_PrevSample);
-	float out2 = filter2.processSample(out1);
-	float out3 = filter3.processSample(out2);
-	float out4 = filter4.processSample(out3);
+	float out1 = m_Filter1.processSample(m_PrevSample);
+	float out2 = m_Filter2.processSample(out1);
+	float out3 = m_Filter3.processSample(out2);
+	float out4 = m_Filter4.processSample(out3);
 	m_PrevSample = out4;
 
 	// soft clipping
@@ -40,10 +40,10 @@ float ARMor8Filter::processSample (float sample)
 
 void ARMor8Filter::setCoefficients (float frequency)
 {
-	filter1.setCoefficients(frequency);
-	filter2.setCoefficients(frequency);
-	filter3.setCoefficients(frequency);
-	filter4.setCoefficients(frequency);
+	m_Filter1.setCoefficients(frequency);
+	m_Filter2.setCoefficients(frequency);
+	m_Filter3.setCoefficients(frequency);
+	m_Filter4.setCoefficients(frequency);
 }
 
 void ARMor8Filter::setResonance (float resonance)

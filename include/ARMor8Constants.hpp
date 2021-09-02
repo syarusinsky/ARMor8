@@ -1,34 +1,34 @@
 #ifndef ARMOR8CONSTANTS_HPP
 #define ARMOR8CONSTANTS_HPP
 
-const float ARMOR8_FREQUENCY_MIN  = 1.0f;
-const float ARMOR8_FREQUENCY_MAX  = 20000.0f;
-const int   ARMOR8_DETUNE_MIN     = -1200;
-const int   ARMOR8_DETUNE_MAX     = 1200;
-const float ARMOR8_EXPO_MIN       = 0.1f;
-const float ARMOR8_EXPO_MAX       = 100.0f;
-const float ARMOR8_ATTACK_MIN     = 0.002f;
-const float ARMOR8_ATTACK_MAX     = 2.0f;
-const float ARMOR8_DECAY_MIN      = 0.0f;
-const float ARMOR8_DECAY_MAX      = 2.0f;
-const float ARMOR8_SUSTAIN_MIN    = 0.0f;
-const float ARMOR8_SUSTAIN_MAX    = 1.0f;
-const float ARMOR8_RELEASE_MIN    = 0.002f;
-const float ARMOR8_RELEASE_MAX    = 3.0f;
-const float ARMOR8_OP_MOD_MIN     = 0.0f;
-const float ARMOR8_OP_MOD_MAX     = 20000.0f;
-const float ARMOR8_AMPLITUDE_MIN  = 0.0f;
-const float ARMOR8_AMPLITUDE_MAX  = 5.0f;
-const float ARMOR8_FILT_FREQ_MIN  = 1.0f;
-const float ARMOR8_FILT_FREQ_MAX  = 20000.0f;
-const float ARMOR8_FILT_RES_MIN   = 0.0f;
-const float ARMOR8_FILT_RES_MAX   = 3.5f;
-const float ARMOR8_VELOCITY_MIN   = 0.0f;
-const float ARMOR8_VELOCITY_MAX   = 1.0f;
-const int   ARMOR8_PITCH_BEND_MIN = 1;
-const int   ARMOR8_PITCH_BEND_MAX = 12;
-const float ARMOR8_GLIDE_TIME_MIN = 0.0f;
-const float ARMOR8_GLIDE_TIME_MAX = 1.0f;
+constexpr float ARMOR8_FREQUENCY_MIN  = 1.0f;
+constexpr float ARMOR8_FREQUENCY_MAX  = 20000.0f;
+constexpr int   ARMOR8_DETUNE_MIN     = -1200;
+constexpr int   ARMOR8_DETUNE_MAX     = 1200;
+constexpr float ARMOR8_EXPO_MIN       = 0.1f;
+constexpr float ARMOR8_EXPO_MAX       = 100.0f;
+constexpr float ARMOR8_ATTACK_MIN     = 0.002f;
+constexpr float ARMOR8_ATTACK_MAX     = 2.0f;
+constexpr float ARMOR8_DECAY_MIN      = 0.0f;
+constexpr float ARMOR8_DECAY_MAX      = 2.0f;
+constexpr float ARMOR8_SUSTAIN_MIN    = 0.0f;
+constexpr float ARMOR8_SUSTAIN_MAX    = 1.0f;
+constexpr float ARMOR8_RELEASE_MIN    = 0.002f;
+constexpr float ARMOR8_RELEASE_MAX    = 3.0f;
+constexpr float ARMOR8_OP_MOD_MIN     = 0.0f;
+constexpr float ARMOR8_OP_MOD_MAX     = 20000.0f;
+constexpr float ARMOR8_AMPLITUDE_MIN  = 0.0f;
+constexpr float ARMOR8_AMPLITUDE_MAX  = 5.0f;
+constexpr float ARMOR8_FILT_FREQ_MIN  = 1.0f;
+constexpr float ARMOR8_FILT_FREQ_MAX  = 20000.0f;
+constexpr float ARMOR8_FILT_RES_MIN   = 0.0f;
+constexpr float ARMOR8_FILT_RES_MAX   = 3.5f;
+constexpr float ARMOR8_VELOCITY_MIN   = 0.0f;
+constexpr float ARMOR8_VELOCITY_MAX   = 1.0f;
+constexpr int   ARMOR8_PITCH_BEND_MIN = 1;
+constexpr int   ARMOR8_PITCH_BEND_MAX = 12;
+constexpr float ARMOR8_GLIDE_TIME_MIN = 0.0f;
+constexpr float ARMOR8_GLIDE_TIME_MAX = 1.0f;
 
 enum class POT_CHANNEL : unsigned int
 {

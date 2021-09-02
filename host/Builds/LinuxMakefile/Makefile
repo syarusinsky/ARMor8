@@ -82,7 +82,7 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/LinearResponse_a01fa030.o \
   $(JUCE_OBJDIR)/MidiHandler_d1acf949.o \
   $(JUCE_OBJDIR)/OnePoleFilter_1f5d4f76.o \
-  $(JUCE_OBJDIR)/Operator_1db9530e.o \
+  $(JUCE_OBJDIR)/ARMor8Operator_bb4d848c.o \
   $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o \
   $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o \
   $(JUCE_OBJDIR)/IARMor8PresetEventListener_71c133bc.o \
@@ -198,9 +198,9 @@ $(JUCE_OBJDIR)/OnePoleFilter_1f5d4f76.o: ../../../lib/SAL/src/OnePoleFilter.cpp
 	@echo "Compiling OnePoleFilter.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
-$(JUCE_OBJDIR)/Operator_1db9530e.o: ../../../lib/SAL/src/Operator.cpp
+$(JUCE_OBJDIR)/ARMor8Operator_bb4d848c.o: ../../../src/ARMor8Operator.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling Operator.cpp"
+	@echo "Compiling ARMor8Operator.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o: ../../../lib/SAL/src/PolyBLEPOsc.cpp

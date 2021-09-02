@@ -9,7 +9,7 @@
  * store a serializable preset for the synth.
 *******************************************************************************/
 
-#include "Operator.hpp"
+#include "ARMor8Operator.hpp"
 #include "KeyEventServer.hpp"
 #include "ADSREnvelopeGenerator.hpp"
 #include "ExponentialResponse.hpp"
@@ -155,7 +155,7 @@ class ARMor8Voice
 		void setOperatorFreq (unsigned int opNum, float freq);
 		void setOperatorDetune (unsigned int opNum, int cents);
 		void setOperatorWave (unsigned int opNum, const OscillatorMode& wave);
-		void setOperatorEG (unsigned int opNum, IEnvelopeGenerator* eg);
+		void setOperatorEG (unsigned int opNum, ADSREnvelopeGenerator<EG_RESPONSE>* eg);
 		void setOperatorEGAttack (unsigned int opNum, float seconds, float expo);
 		void setOperatorEGDecay (unsigned int opNum, float seconds, float expo);
 		void setOperatorEGSustain (unsigned int opNum, float lvl);
@@ -202,38 +202,38 @@ class ARMor8Voice
 		void onPitchEvent (const PitchEvent& pitchEvent);
 
 	private:
-		PolyBLEPOsc       	m_Osc1;
-		PolyBLEPOsc             m_Osc2;
-		PolyBLEPOsc             m_Osc3;
-		PolyBLEPOsc             m_Osc4;
-		ExponentialResponse    	m_AtkResponse1;
-		ExponentialResponse    	m_AtkResponse2;
-		ExponentialResponse    	m_AtkResponse3;
-		ExponentialResponse    	m_AtkResponse4;
-		ExponentialResponse 	m_DecResponse1;
-		ExponentialResponse 	m_DecResponse2;
-		ExponentialResponse 	m_DecResponse3;
-		ExponentialResponse 	m_DecResponse4;
-		ExponentialResponse 	m_RelResponse1;
-		ExponentialResponse 	m_RelResponse2;
-		ExponentialResponse 	m_RelResponse3;
-		ExponentialResponse 	m_RelResponse4;
-		ADSREnvelopeGenerator 	m_Eg1;
-		ADSREnvelopeGenerator 	m_Eg2;
-		ADSREnvelopeGenerator 	m_Eg3;
-		ADSREnvelopeGenerator 	m_Eg4;
-		ARMor8Filter            m_Filt1;
-		ARMor8Filter            m_Filt2;
-		ARMor8Filter            m_Filt3;
-		ARMor8Filter            m_Filt4;
-		KeyEventServer 		m_KeyEventServer;
-		Operator 		m_Op1;
-		Operator 		m_Op2;
-		Operator 		m_Op3;
-		Operator 		m_Op4;
-		Operator* 		m_Operators[4];
+		PolyBLEPOsc       			m_Osc1;
+		PolyBLEPOsc             		m_Osc2;
+		PolyBLEPOsc             		m_Osc3;
+		PolyBLEPOsc             		m_Osc4;
+		ExponentialResponse    			m_AtkResponse1;
+		ExponentialResponse    			m_AtkResponse2;
+		ExponentialResponse    			m_AtkResponse3;
+		ExponentialResponse    			m_AtkResponse4;
+		ExponentialResponse 			m_DecResponse1;
+		ExponentialResponse 			m_DecResponse2;
+		ExponentialResponse 			m_DecResponse3;
+		ExponentialResponse 			m_DecResponse4;
+		ExponentialResponse 			m_RelResponse1;
+		ExponentialResponse 			m_RelResponse2;
+		ExponentialResponse 			m_RelResponse3;
+		ExponentialResponse 			m_RelResponse4;
+		ADSREnvelopeGenerator<EG_RESPONSE> 	m_Eg1;
+		ADSREnvelopeGenerator<EG_RESPONSE> 	m_Eg2;
+		ADSREnvelopeGenerator<EG_RESPONSE> 	m_Eg3;
+		ADSREnvelopeGenerator<EG_RESPONSE> 	m_Eg4;
+		ARMor8Filter            		m_Filt1;
+		ARMor8Filter            		m_Filt2;
+		ARMor8Filter            		m_Filt3;
+		ARMor8Filter            		m_Filt4;
+		KeyEventServer 				m_KeyEventServer;
+		ARMor8Operator 				m_Op1;
+		ARMor8Operator 				m_Op2;
+		ARMor8Operator 				m_Op3;
+		ARMor8Operator 				m_Op4;
+		ARMor8Operator* 			m_Operators[4];
 
-		KeyEvent                m_ActiveKeyEvent;
+		KeyEvent                		m_ActiveKeyEvent;
 };
 
 #endif // ARMOR8VOICE_HPP

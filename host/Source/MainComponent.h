@@ -64,7 +64,7 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		PresetManager presetManager;
 		MidiHandler midiHandler;
 		int lastInputIndex;
-		::AudioBuffer sAudioBuffer;
+		::AudioBuffer<float> sAudioBuffer;
 		ARMor8VoiceManager armor8VoiceManager;
 		bool keyButtonRelease;
 

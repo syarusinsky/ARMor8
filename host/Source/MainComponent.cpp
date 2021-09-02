@@ -1756,7 +1756,8 @@ void MainComponent::copyFrameBufferToImage (unsigned int xStart, unsigned int yS
 	{
 		for ( unsigned int pixelX = xStart; pixelX < xEnd + 1; pixelX++ )
 		{
-			if ( ! colorProfile->getPixel(frameBuffer->getPixels(), (pixelY * frameBufferWidth) + pixelX).m_M )
+			if ( ! colorProfile->getPixel(frameBuffer->getPixels(), frameBuffer->getWidth() * frameBuffer->getHeight(),
+						(pixelY * frameBufferWidth) + pixelX).m_M )
 			{
 				screenRep.setPixelAt( (pixelX * 2),     (pixelY * 2),     juce::Colour(0, 0, 0) );
 				screenRep.setPixelAt( (pixelX * 2) + 1, (pixelY * 2),     juce::Colour(0, 0, 0) );

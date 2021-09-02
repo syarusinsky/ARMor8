@@ -1,7 +1,5 @@
 #include "ARMor8Voice.hpp"
 
-#include "IEnvelopeGenerator.hpp"
-
 const unsigned int numOps = 4;
 
 ARMor8Voice::ARMor8Voice() :
@@ -21,20 +19,20 @@ ARMor8Voice::ARMor8Voice() :
 	m_RelResponse2(),
 	m_RelResponse3(),
 	m_RelResponse4(),
-	m_Eg1 (0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse1, &m_DecResponse1, &m_RelResponse1),
-	m_Eg2 (0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse2, &m_DecResponse2, &m_RelResponse2),
-	m_Eg3 (0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse3, &m_DecResponse3, &m_RelResponse3),
-	m_Eg4 (0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse4, &m_DecResponse4, &m_RelResponse4),
+	m_Eg1( 0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse1, &m_DecResponse1, &m_RelResponse1 ),
+	m_Eg2( 0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse2, &m_DecResponse2, &m_RelResponse2 ),
+	m_Eg3( 0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse3, &m_DecResponse3, &m_RelResponse3 ),
+	m_Eg4( 0.0f, 0.0f, 1.0f, 0.0f, &m_AtkResponse4, &m_DecResponse4, &m_RelResponse4 ),
 	m_Filt1(),
 	m_Filt2(),
 	m_Filt3(),
 	m_Filt4(),
 	m_KeyEventServer(),
-	m_Op1 (&m_Osc1, &m_Eg1, &m_Filt1, 1.0f, 1000.0f),
-	m_Op2 (&m_Osc2, &m_Eg2, &m_Filt2, 1.0f, 1000.0f),
-	m_Op3 (&m_Osc3, &m_Eg3, &m_Filt3, 1.0f, 1000.0f),
-	m_Op4 (&m_Osc4, &m_Eg4, &m_Filt4, 1.0f, 1000.0f),
-	m_Operators { &m_Op1, &m_Op2, &m_Op3, &m_Op4 },
+	m_Op1( &m_Osc1, &m_Eg1, &m_Filt1, 1.0f, 1000.0f ),
+	m_Op2( &m_Osc2, &m_Eg2, &m_Filt2, 1.0f, 1000.0f ),
+	m_Op3( &m_Osc3, &m_Eg3, &m_Filt3, 1.0f, 1000.0f ),
+	m_Op4( &m_Osc4, &m_Eg4, &m_Filt4, 1.0f, 1000.0f ),
+	m_Operators{ &m_Op1, &m_Op2, &m_Op3, &m_Op4 },
 	m_ActiveKeyEvent()
 {
 	m_KeyEventServer.registerListener(&m_Op1);
@@ -49,39 +47,39 @@ ARMor8Voice::~ARMor8Voice()
 
 void ARMor8Voice::setOperatorFreq (unsigned int opNum, float freq)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setFrequency(freq);
+		m_Operators[opNum]->setFrequency( freq );
 	}
 }
 
 void ARMor8Voice::setOperatorDetune (unsigned int opNum, int cents)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setDetune(cents);
+		m_Operators[opNum]->setDetune( cents );
 	}
 }
 
 void ARMor8Voice::setOperatorWave (unsigned int opNum, const OscillatorMode& wave)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
 		m_Operators[opNum]->setWave( wave );
 	}
 }
 
-void ARMor8Voice::setOperatorEG (unsigned int opNum, IEnvelopeGenerator* eg)
+void ARMor8Voice::setOperatorEG (unsigned int opNum, ADSREnvelopeGenerator<EG_RESPONSE>* eg)
 {
-	if (eg && opNum < numOps)
+	if ( eg && opNum < numOps )
 	{
-		IEnvelopeGenerator* egToDelete = m_Operators[opNum]->getEnvelopeGenerator();
-		if (egToDelete)
+		ADSREnvelopeGenerator<EG_RESPONSE>* egToDelete = m_Operators[opNum]->getEnvelopeGenerator();
+		if ( egToDelete )
 		{
 			delete egToDelete;
 		}
 
-		m_Operators[opNum]->setEnvelopeGenerator(eg);
+		m_Operators[opNum]->setEnvelopeGenerator( eg );
 	}
 }
 
@@ -89,7 +87,7 @@ void ARMor8Voice::setOperatorEGAttack (unsigned int opNum, float seconds, float 
 {
 	if (opNum < numOps)
 	{
-		( (ADSREnvelopeGenerator*) m_Operators[opNum]->getEnvelopeGenerator() )->setAttack(seconds, expo);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setAttack(seconds, expo);
 	}
 }
 
@@ -97,7 +95,7 @@ void ARMor8Voice::setOperatorEGDecay (unsigned int opNum, float seconds, float e
 {
 	if (opNum < numOps)
 	{
-		( (ADSREnvelopeGenerator*) m_Operators[opNum]->getEnvelopeGenerator() )->setDecay(seconds, expo);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setDecay(seconds, expo);
 	}
 }
 
@@ -105,7 +103,7 @@ void ARMor8Voice::setOperatorEGSustain (unsigned int opNum, float lvl)
 {
 	if (opNum < numOps)
 	{
-		( (ADSREnvelopeGenerator*) m_Operators[opNum]->getEnvelopeGenerator() )->setSustain(lvl);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setSustain(lvl);
 	}
 }
 
@@ -113,7 +111,7 @@ void ARMor8Voice::setOperatorEGRelease (unsigned int opNum, float seconds, float
 {
 	if (opNum < numOps)
 	{
-		( (ADSREnvelopeGenerator*) m_Operators[opNum]->getEnvelopeGenerator() )->setRelease(seconds, expo);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setRelease(seconds, expo);
 	}
 }
 
@@ -267,7 +265,7 @@ OscillatorMode ARMor8Voice::getOperatorWave (unsigned int opNum)
 
 bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest)
 {
-	Operator* op = nullptr;
+	ARMor8Operator* op = nullptr;
 
 	switch (opNum)
 	{

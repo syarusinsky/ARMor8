@@ -9,7 +9,7 @@
 
 #include "OnePoleFilter.hpp"
 
-class ARMor8Filter : public IFilter
+class ARMor8Filter : public IFilter<float>
 {
 	public:
 		ARMor8Filter();
@@ -22,12 +22,12 @@ class ARMor8Filter : public IFilter
 		float getResonance() override;
 
 	private:
-		OnePoleFilter filter1;
-		OnePoleFilter filter2;
-		OnePoleFilter filter3;
-		OnePoleFilter filter4;
-		float m_Resonance;
-		float m_PrevSample;
+		OnePoleFilter<float> 	m_Filter1;
+		OnePoleFilter<float> 	m_Filter2;
+		OnePoleFilter<float> 	m_Filter3;
+		OnePoleFilter<float> 	m_Filter4;
+		float 			m_Resonance;
+		float 			m_PrevSample;
 };
 
 #endif // ARMOR8FILTER_HPP

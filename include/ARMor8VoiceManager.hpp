@@ -20,7 +20,7 @@ class PresetManager;
 
 const unsigned int MAX_VOICES = 6;
 
-class ARMor8VoiceManager : public IBufferCallback, public IKeyEventListener, public IPitchEventListener,
+class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListener, public IPitchEventListener,
 				public IPotEventListener, public IButtonEventListener
 {
 	public:
