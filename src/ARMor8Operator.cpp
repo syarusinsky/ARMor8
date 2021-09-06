@@ -5,7 +5,7 @@
 #include "PolyBLEPOsc.hpp"
 #include <math.h>
 
-ARMor8Operator::ARMor8Operator(PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude, float frequency) :
+ARMor8Operator::ARMor8Operator (PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude, float frequency) :
 	m_Osc( wave ),
 	m_EG( eg ),
 	m_Filter( filt ),
@@ -45,7 +45,7 @@ float ARMor8Operator::nextSample()
 			egValue = m_EG->nextValue();
 		}
 
-		float currentValAmplitude = 1.0f - (m_AmpVelSens * m_CurrentVelocity);
+		float currentValAmplitude = 1.0f - ( m_AmpVelSens * m_CurrentVelocity );
 
 		if ( m_EGModDestinations.count(EGModDestination::AMPLITUDE) )
 		{
@@ -57,7 +57,7 @@ float ARMor8Operator::nextSample()
 			m_GlideFrequency += m_GlideIncr;
 		}
 
-		float frequency = (m_UseRatio) ? m_GlideFrequency : m_Frequency;
+		float frequency = ( m_UseRatio ) ? m_GlideFrequency : m_Frequency;
 		frequency += m_FrequencyOffset;
 		frequency = frequency * powf( 2.0f, (m_Detune / 1200.0f) );
 
@@ -88,7 +88,7 @@ float ARMor8Operator::nextSample()
 				frequency *= egValue;
 			}
 
-			m_Filter->setCoefficients( frequency );
+			m_Filter->setCoefficients( frequency ); // TODO huge performance problem, we should call this only once per call()
 			m_CurrentValue = m_Filter->processSample( m_CurrentValue );
 		}
 

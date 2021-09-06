@@ -9,10 +9,10 @@
 #include <cmath>
 
 ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
-	m_MidiHandler (midiHandler),
-	m_PresetManager (presetManager),
-	m_OpToEdit (0),
-	m_Monophonic (false),
+	m_MidiHandler( midiHandler ),
+	m_PresetManager( presetManager ),
+	m_OpToEdit( 0 ),
+	m_Monophonic( false ),
 	m_Voice1(),
 	m_Voice2(),
 	m_Voice3(),
@@ -20,9 +20,9 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 	m_Voice5(),
 	m_Voice6(),
 	m_Voices { &m_Voice1, &m_Voice2, &m_Voice3, &m_Voice4, &m_Voice5, &m_Voice6 },
-	m_ActiveKeyEventIndex (0),
-	m_PitchBendSemitones (1),
-	m_PresetHeader ({1, 1, 0, true})
+	m_ActiveKeyEventIndex( 0 ),
+	m_PitchBendSemitones( 1 ),
+	m_PresetHeader( {1, 1, 0, true} )
 {
 }
 
@@ -69,128 +69,128 @@ unsigned int ARMor8VoiceManager::getCurrentWaveNum()
 
 void ARMor8VoiceManager::setOperatorFreq (unsigned int opNum, float freq)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorFreq(opNum, freq);
+		m_Voices[voice]->setOperatorFreq( opNum, freq );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorDetune (unsigned int opNum, int cents)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorDetune(opNum, cents);
+		m_Voices[voice]->setOperatorDetune( opNum, cents );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorWave (unsigned int opNum, const OscillatorMode& wave)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorWave(opNum, wave);
+		m_Voices[voice]->setOperatorWave( opNum, wave );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorEGAttack (unsigned int opNum, float seconds, float expo)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorEGAttack(opNum, seconds, expo);
+		m_Voices[voice]->setOperatorEGAttack( opNum, seconds, expo );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorEGDecay (unsigned int opNum, float seconds, float expo)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorEGDecay(opNum, seconds, expo);
+		m_Voices[voice]->setOperatorEGDecay( opNum, seconds, expo );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorEGSustain (unsigned int opNum, float lvl)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
 
-		m_Voices[voice]->setOperatorEGSustain(opNum, lvl);
+		m_Voices[voice]->setOperatorEGSustain( opNum, lvl );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorEGRelease (unsigned int opNum, float seconds, float expo)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorEGRelease(opNum, seconds, expo);
+		m_Voices[voice]->setOperatorEGRelease( opNum, seconds, expo );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest, const bool on)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorEGModDestination(opNum, modDest, on);
+		m_Voices[voice]->setOperatorEGModDestination( opNum, modDest, on );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorModulation (unsigned int sourceOpNum, unsigned int destOpNum, float modulationAmount)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorModulation(sourceOpNum, destOpNum, modulationAmount);
+		m_Voices[voice]->setOperatorModulation( sourceOpNum, destOpNum, modulationAmount );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorAmplitude (unsigned int opNum, float amplitude)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorAmplitude(opNum, amplitude);
+		m_Voices[voice]->setOperatorAmplitude( opNum, amplitude );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorFilterFreq (unsigned int opNum, float frequency)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorFilterFreq(opNum, frequency);
+		m_Voices[voice]->setOperatorFilterFreq( opNum, frequency );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorFilterRes (unsigned int opNum, float resonance)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorFilterRes(opNum, resonance);
+		m_Voices[voice]->setOperatorFilterRes( opNum, resonance );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorRatio (unsigned int opNum, bool useRatio)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorRatio(opNum, useRatio);
+		m_Voices[voice]->setOperatorRatio( opNum, useRatio );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorAmpVelSens (unsigned int opNum, float ampVelSens)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorAmpVelSens(opNum, ampVelSens);
+		m_Voices[voice]->setOperatorAmpVelSens( opNum, ampVelSens );
 	}
 }
 
 void ARMor8VoiceManager::setOperatorFiltVelSens (unsigned int opNum, float filtVelSens)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
-		m_Voices[voice]->setOperatorFiltVelSens(opNum, filtVelSens);
+		m_Voices[voice]->setOperatorFiltVelSens( opNum, filtVelSens );
 	}
 }
 
 void ARMor8VoiceManager::setGlideTime (const float glideTime)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
 		m_Voices[voice]->setGlideTime( glideTime );
 	}
@@ -198,7 +198,7 @@ void ARMor8VoiceManager::setGlideTime (const float glideTime)
 
 void ARMor8VoiceManager::setGlideRetrigger (const bool useRetrigger)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
 		m_Voices[voice]->setGlideRetrigger( useRetrigger );
 	}
@@ -206,7 +206,7 @@ void ARMor8VoiceManager::setGlideRetrigger (const bool useRetrigger)
 
 void ARMor8VoiceManager::setUseGlide (const bool useGlide)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
 		m_Voices[voice]->setUseGlide( useGlide );
 	}
@@ -220,15 +220,15 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
 	// first clear write buffer
-	memset(writeBuffer, 0, sizeof(float) * ABUFFER_SIZE);
+	memset( writeBuffer, 0, sizeof(float) * ABUFFER_SIZE );
 
-	if (!m_Monophonic) // if polyphonic, we sum the voices
+	if ( ! m_Monophonic ) // if polyphonic, we sum the voices
 	{
-		for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+		for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 		{
 			ARMor8Voice& currentVoice = *m_Voices[voice];
 
-			for (unsigned int sample = 0; sample < ABUFFER_SIZE; sample++)
+			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 			{
 				writeBuffer[sample] += currentVoice.nextSample();
 			}
@@ -236,7 +236,7 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 	}
 	else // if monophonic, we only output the first voice
 	{
-		for (unsigned int sample = 0; sample < ABUFFER_SIZE; sample++)
+		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 		{
 			ARMor8Voice& voice = *m_Voices[0];
 			writeBuffer[sample] += voice.nextSample();
@@ -251,30 +251,30 @@ void ARMor8VoiceManager::setMonophonic (bool on)
 
 void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 {
-	if ( !m_Monophonic ) // polyphonic implementation
+	if ( ! m_Monophonic ) // polyphonic implementation
 	{
 		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
 		{
 			bool containsKeyEvent = false;
-			for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 			{
 				if ( m_ActiveKeyEvents[voice].isNoteAndType( keyEvent ) )
 				{
 					containsKeyEvent = true;
 					m_ActiveKeyEvents[voice] = keyEvent;
-					m_Voices[voice]->onKeyEvent(keyEvent);
+					m_Voices[voice]->onKeyEvent( keyEvent );
 
 					return;
 				}
 			}
 
-			if (!containsKeyEvent)
+			if ( ! containsKeyEvent )
 			{
 				// ensure we aren't overwriting a pressed key
 				unsigned int initialActiveKeyEventIndex = m_ActiveKeyEventIndex;
 				while ( m_ActiveKeyEvents[m_ActiveKeyEventIndex].pressed() == KeyPressedEnum::PRESSED )
 				{
-					m_ActiveKeyEventIndex = (m_ActiveKeyEventIndex + 1) % MAX_VOICES;
+					m_ActiveKeyEventIndex = ( m_ActiveKeyEventIndex + 1 ) % MAX_VOICES;
 
 					if ( m_ActiveKeyEventIndex == initialActiveKeyEventIndex )
 					{
@@ -282,18 +282,18 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 					}
 				}
 				m_ActiveKeyEvents[m_ActiveKeyEventIndex] = keyEvent;
-				m_Voices[m_ActiveKeyEventIndex]->onKeyEvent(keyEvent);
+				m_Voices[m_ActiveKeyEventIndex]->onKeyEvent( keyEvent );
 
-				m_ActiveKeyEventIndex = (m_ActiveKeyEventIndex + 1) % MAX_VOICES;
+				m_ActiveKeyEventIndex = ( m_ActiveKeyEventIndex + 1 ) % MAX_VOICES;
 
 				return;
 			}
 		}
 		else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED )
 		{
-			for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 			{
-				if ( m_ActiveKeyEvents[voice].isNoteAndType( keyEvent, KeyPressedEnum::PRESSED ) )
+				if ( m_ActiveKeyEvents[voice].isNoteAndType(keyEvent, KeyPressedEnum::PRESSED) )
 				{
 					m_ActiveKeyEvents[voice] = keyEvent;
 					m_Voices[voice]->onKeyEvent( keyEvent );
@@ -319,7 +319,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 					KeyEvent oldKeyEvent( KeyPressedEnum::HELD, m_ActiveKeyEvents[0].note(), m_ActiveKeyEvents[0].velocity() );
 
 					// look for a place to store the old key event, since we only want to play the highest note
-					for (unsigned int voice = 1; voice < MAX_VOICES; voice++)
+					for ( unsigned int voice = 1; voice < MAX_VOICES; voice++ )
 					{
 						if ( m_ActiveKeyEvents[voice].pressed() == KeyPressedEnum::RELEASED )
 						{
@@ -336,7 +336,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 				else if ( m_ActiveKeyEvents[0].note() > newKeyEvent.note() )
 				{
 					// look for a place to store this key event, since we only want to play the highest note
-					for (unsigned int voice = 1; voice < MAX_VOICES; voice++)
+					for ( unsigned int voice = 1; voice < MAX_VOICES; voice++ )
 					{
 						if ( m_ActiveKeyEvents[voice].pressed() == KeyPressedEnum::RELEASED )
 						{
@@ -359,7 +359,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 		else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED )
 		{
 			// look for this note in the active key events array
-			for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 			{
 				// if there is a note that matches and isn't released
 				KeyPressedEnum voiceKeyPressed = m_ActiveKeyEvents[voice].pressed();
@@ -367,10 +367,10 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 				if ( voiceKeyPressed != KeyPressedEnum::RELEASED && voiceKeyNote == keyEvent.note() )
 				{
 					// if the main active voice is released, replace with lower note
-					if (voice == 0)
+					if ( voice == 0 )
 					{
 						int highestNote = -1; // negative 1 means no highest note found
-						for (unsigned int voice2 = 1; voice2 < MAX_VOICES; voice2++)
+						for ( unsigned int voice2 = 1; voice2 < MAX_VOICES; voice2++ )
 						{
 							KeyPressedEnum voice2KeyPressed = m_ActiveKeyEvents[voice2].pressed();
 							int voice2KeyNote = m_ActiveKeyEvents[voice2].note();
@@ -419,7 +419,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 
 void ARMor8VoiceManager::onPitchEvent (const PitchEvent& pitchEvent)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
 		m_Voices[voice]->onPitchEvent( pitchEvent );
 	}
@@ -454,7 +454,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::ATTACK:
 		{
-			float attackVal = (percentage * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN)) + ARMOR8_ATTACK_MIN;
+			float attackVal = ( percentage * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) ) + ARMOR8_ATTACK_MIN;
 			this->setOperatorEGAttack( m_OpToEdit, attackVal, m_Voices[0]->getOperatorAttackExpo(m_OpToEdit) );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(attackVal,
@@ -464,7 +464,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::ATTACK_EXPO:
 		{
-			float attackExpoVal = (percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN;
+			float attackExpoVal = ( percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
 			this->setOperatorEGAttack( m_OpToEdit, m_Voices[0]->getOperatorAttack(m_OpToEdit), attackExpoVal );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(attackExpoVal,
@@ -474,7 +474,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::DECAY:
 		{
-			float decayVal = (percentage * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN)) + ARMOR8_DECAY_MIN;
+			float decayVal = ( percentage * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) ) + ARMOR8_DECAY_MIN;
 			this->setOperatorEGDecay( m_OpToEdit, decayVal, m_Voices[0]->getOperatorDecayExpo(m_OpToEdit) );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(decayVal,
@@ -484,7 +484,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::DECAY_EXPO:
 		{
-			float decayExpoVal = (percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN;
+			float decayExpoVal = ( percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
 			this->setOperatorEGDecay( m_OpToEdit, m_Voices[0]->getOperatorDecay(m_OpToEdit), decayExpoVal );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(decayExpoVal,
@@ -504,7 +504,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::RELEASE:
 		{
-			float releaseVal = (percentage * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN)) + ARMOR8_RELEASE_MIN;
+			float releaseVal = ( percentage * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) ) + ARMOR8_RELEASE_MIN;
 			this->setOperatorEGRelease( m_OpToEdit, releaseVal, m_Voices[0]->getOperatorReleaseExpo(m_OpToEdit) );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(releaseVal,
@@ -514,7 +514,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::RELEASE_EXPO:
 		{
-			float releaseExpoVal = (percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN)) + ARMOR8_EXPO_MIN;
+			float releaseExpoVal = ( percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
 			this->setOperatorEGRelease( m_OpToEdit, m_Voices[0]->getOperatorRelease(m_OpToEdit), releaseExpoVal );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(releaseExpoVal,
@@ -562,7 +562,7 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 		case POT_CHANNEL::FILT_FREQ:
 		{
-			float filtFreqVal = (percentage * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN)) + ARMOR8_FILT_FREQ_MIN;
+			float filtFreqVal = ( percentage * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) ) + ARMOR8_FILT_FREQ_MIN;
 			this->setOperatorFilterFreq( m_OpToEdit, filtFreqVal );
 
 			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(filtFreqVal,
@@ -737,6 +737,8 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, true );
 
 				break;
+			default:
+				break;
 		}
 	}
 	else if ( buttonEvent.getButtonState() == BUTTON_STATE::FLOATING )
@@ -767,6 +769,8 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, false );
 
 				break;
+			default:
+				break;
 		}
 	}
 }
@@ -782,7 +786,7 @@ ARMor8VoiceState ARMor8VoiceManager::getState()
 
 void ARMor8VoiceManager::setState (const ARMor8VoiceState& state)
 {
-	for (unsigned int voice = 0; voice < MAX_VOICES; voice++)
+	for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 	{
 		m_Voices[voice]->setState( state );
 	}

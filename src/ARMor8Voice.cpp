@@ -85,56 +85,56 @@ void ARMor8Voice::setOperatorEG (unsigned int opNum, ADSREnvelopeGenerator<EG_RE
 
 void ARMor8Voice::setOperatorEGAttack (unsigned int opNum, float seconds, float expo)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setAttack(seconds, expo);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setAttack( seconds, expo );
 	}
 }
 
 void ARMor8Voice::setOperatorEGDecay (unsigned int opNum, float seconds, float expo)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setDecay(seconds, expo);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setDecay( seconds, expo );
 	}
 }
 
 void ARMor8Voice::setOperatorEGSustain (unsigned int opNum, float lvl)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setSustain(lvl);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setSustain( lvl );
 	}
 }
 
 void ARMor8Voice::setOperatorEGRelease (unsigned int opNum, float seconds, float expo)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setRelease(seconds, expo);
+		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setRelease( seconds, expo );
 	}
 }
 
 void ARMor8Voice::setOperatorEGModDestination (unsigned int opNum, const EGModDestination& modDest, const bool on)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		if (on)
+		if ( on )
 		{
-			m_Operators[opNum]->setEGModDestination(modDest, true);
+			m_Operators[opNum]->setEGModDestination( modDest, true );
 		}
 		else
 		{
-			m_Operators[opNum]->setEGModDestination(modDest, false);
+			m_Operators[opNum]->setEGModDestination( modDest, false );
 		}
 	}
 }
 
 void ARMor8Voice::setOperatorModulation (unsigned int sourceOpNum, unsigned int destOpNum, float modulationAmount)
 {
-	if (sourceOpNum < numOps && destOpNum < numOps)
+	if ( sourceOpNum < numOps && destOpNum < numOps )
 	{
-		m_Operators[destOpNum]->setModSourceAmplitude(m_Operators[sourceOpNum], modulationAmount);
+		m_Operators[destOpNum]->setModSourceAmplitude( m_Operators[sourceOpNum], modulationAmount );
 	}
 }
 
@@ -152,7 +152,7 @@ float ARMor8Voice::nextSample()
 void ARMor8Voice::onKeyEvent (const KeyEvent& keyEvent)
 {
 	m_ActiveKeyEvent = keyEvent;
-	m_KeyEventServer.propagateKeyEvent(keyEvent);
+	m_KeyEventServer.propagateKeyEvent( keyEvent );
 }
 
 void ARMor8Voice::onPitchEvent (const PitchEvent& pitchEvent)
@@ -170,63 +170,63 @@ const KeyEvent& ARMor8Voice::getActiveKeyEvent()
 
 void ARMor8Voice::setOperatorAmplitude (unsigned int opNum, const float amplitude)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setAmplitude(amplitude);
+		m_Operators[opNum]->setAmplitude( amplitude );
 	}
 }
 
 void ARMor8Voice::setOperatorFilterFreq (unsigned int opNum, float frequency)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setFilterFreq(frequency);
+		m_Operators[opNum]->setFilterFreq( frequency );
 	}
 }
 
 void ARMor8Voice::setOperatorFilterRes (unsigned int opNum, float resonance)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setFilterRes(resonance);
+		m_Operators[opNum]->setFilterRes( resonance );
 	}
 }
 
 void ARMor8Voice::setOperatorRatio (unsigned int opNum, bool useRatio)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setRatio(useRatio);
+		m_Operators[opNum]->setRatio( useRatio );
 	}
 }
 
 void ARMor8Voice::setOperatorAmpVelSens (unsigned int opNum, float ampVelSens)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setAmpVelSens(ampVelSens);
+		m_Operators[opNum]->setAmpVelSens( ampVelSens );
 	}
 }
 
 void ARMor8Voice::setOperatorFiltVelSens (unsigned int opNum, float filtVelSens)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setFiltVelSens(filtVelSens);
+		m_Operators[opNum]->setFiltVelSens( filtVelSens );
 	}
 }
 
 void ARMor8Voice::setOperatorFrequencyOffset (unsigned int opNum, const float freqOffset)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
-		m_Operators[opNum]->setFrequencyOffset(freqOffset);
+		m_Operators[opNum]->setFrequencyOffset( freqOffset );
 	}
 }
 
 void ARMor8Voice::setGlideTime (const float glideTime)
 {
-	for (unsigned int op = 0; op < numOps; op++)
+	for ( unsigned int op = 0; op < numOps; op++ )
 	{
 		m_Operators[op]->setGlideTime( glideTime );
 	}
@@ -234,7 +234,7 @@ void ARMor8Voice::setGlideTime (const float glideTime)
 
 void ARMor8Voice::setGlideRetrigger (const bool useRetrigger)
 {
-	for (unsigned int op = 0; op < numOps; op++)
+	for ( unsigned int op = 0; op < numOps; op++ )
 	{
 		m_Operators[op]->setGlideRetrigger( useRetrigger );
 	}
@@ -247,7 +247,7 @@ bool ARMor8Voice::getGlideRetrigger()
 
 void ARMor8Voice::setUseGlide (const bool useGlide)
 {
-	for (unsigned int op = 0; op < numOps; op++)
+	for ( unsigned int op = 0; op < numOps; op++ )
 	{
 		m_Operators[op]->setUseGlide( useGlide );
 	}
@@ -267,7 +267,7 @@ bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDe
 {
 	ARMor8Operator* op = nullptr;
 
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			op = &m_Op1;
@@ -289,7 +289,7 @@ bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDe
 			return false;
 	}
 
-	switch (modDest)
+	switch ( modDest )
 	{
 		case EGModDestination::AMPLITUDE:
 			return op->egModAmplitudeSet();
@@ -304,7 +304,7 @@ bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDe
 
 float ARMor8Voice::getOperatorAttack (unsigned int opNum)
 {
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			return m_Eg1.getAttack();
@@ -321,7 +321,7 @@ float ARMor8Voice::getOperatorAttack (unsigned int opNum)
 
 float ARMor8Voice::getOperatorDecay (unsigned int opNum)
 {
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			return m_Eg1.getDecay();
@@ -338,7 +338,7 @@ float ARMor8Voice::getOperatorDecay (unsigned int opNum)
 
 float ARMor8Voice::getOperatorRelease (unsigned int opNum)
 {
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			return m_Eg1.getRelease();
@@ -355,7 +355,7 @@ float ARMor8Voice::getOperatorRelease (unsigned int opNum)
 
 float ARMor8Voice::getOperatorAttackExpo (unsigned int opNum)
 {
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			return m_AtkResponse1.getSlope();
@@ -372,7 +372,7 @@ float ARMor8Voice::getOperatorAttackExpo (unsigned int opNum)
 
 float ARMor8Voice::getOperatorDecayExpo (unsigned int opNum)
 {
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			return m_DecResponse1.getSlope();
@@ -389,7 +389,7 @@ float ARMor8Voice::getOperatorDecayExpo (unsigned int opNum)
 
 float ARMor8Voice::getOperatorReleaseExpo (unsigned int opNum)
 {
-	switch (opNum)
+	switch ( opNum )
 	{
 		case 0:
 			return m_RelResponse1.getSlope();
@@ -406,7 +406,7 @@ float ARMor8Voice::getOperatorReleaseExpo (unsigned int opNum)
 
 float ARMor8Voice::getOperatorRatioFrequency (unsigned int opNum)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
 		return m_Operators[opNum]->getRatioFrequency();
 	}
@@ -416,7 +416,7 @@ float ARMor8Voice::getOperatorRatioFrequency (unsigned int opNum)
 
 bool ARMor8Voice::getOperatorUseRatio (unsigned int opNum)
 {
-	if (opNum < numOps)
+	if ( opNum < numOps )
 	{
 		return m_Operators[opNum]->getRatio();
 	}
@@ -441,10 +441,10 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.egAmplitudeMod1 = m_Op1.egModAmplitudeSet();
 	state.egFrequencyMod1 = m_Op1.egModFrequencySet();
 	state.egFilterMod1 = m_Op1.egModFilterSet();
-	state.op1ModAmount1 = m_Op1.getModulationAmount(&m_Op1);
-	state.op2ModAmount1 = m_Op1.getModulationAmount(&m_Op2);
-	state.op3ModAmount1 = m_Op1.getModulationAmount(&m_Op3);
-	state.op4ModAmount1 = m_Op1.getModulationAmount(&m_Op4);
+	state.op1ModAmount1 = m_Op1.getModulationAmount( &m_Op1 );
+	state.op2ModAmount1 = m_Op1.getModulationAmount( &m_Op2 );
+	state.op3ModAmount1 = m_Op1.getModulationAmount( &m_Op3 );
+	state.op4ModAmount1 = m_Op1.getModulationAmount( &m_Op4 );
 	state.amplitude1 = m_Op1.getAmplitude();
 	state.filterFreq1 = m_Op1.getFilterFreq();
 	state.filterRes1 = m_Op1.getFilterRes();
@@ -466,10 +466,10 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.egAmplitudeMod2 = m_Op2.egModAmplitudeSet();
 	state.egFrequencyMod2 = m_Op2.egModFrequencySet();
 	state.egFilterMod2 = m_Op2.egModFilterSet();
-	state.op1ModAmount2 = m_Op2.getModulationAmount(&m_Op1);
-	state.op2ModAmount2 = m_Op2.getModulationAmount(&m_Op2);
-	state.op3ModAmount2 = m_Op2.getModulationAmount(&m_Op3);
-	state.op4ModAmount2 = m_Op2.getModulationAmount(&m_Op4);
+	state.op1ModAmount2 = m_Op2.getModulationAmount( &m_Op1 );
+	state.op2ModAmount2 = m_Op2.getModulationAmount( &m_Op2 );
+	state.op3ModAmount2 = m_Op2.getModulationAmount( &m_Op3 );
+	state.op4ModAmount2 = m_Op2.getModulationAmount( &m_Op4 );
 	state.amplitude2 = m_Op2.getAmplitude();
 	state.filterFreq2 = m_Op2.getFilterFreq();
 	state.filterRes2 = m_Op2.getFilterRes();
@@ -491,10 +491,10 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.egAmplitudeMod3 = m_Op3.egModAmplitudeSet();
 	state.egFrequencyMod3 = m_Op3.egModFrequencySet();
 	state.egFilterMod3 = m_Op3.egModFilterSet();
-	state.op1ModAmount3 = m_Op3.getModulationAmount(&m_Op1);
-	state.op2ModAmount3 = m_Op3.getModulationAmount(&m_Op2);
-	state.op3ModAmount3 = m_Op3.getModulationAmount(&m_Op3);
-	state.op4ModAmount3 = m_Op3.getModulationAmount(&m_Op4);
+	state.op1ModAmount3 = m_Op3.getModulationAmount( &m_Op1 );
+	state.op2ModAmount3 = m_Op3.getModulationAmount( &m_Op2 );
+	state.op3ModAmount3 = m_Op3.getModulationAmount( &m_Op3 );
+	state.op4ModAmount3 = m_Op3.getModulationAmount( &m_Op4 );
 	state.amplitude3 = m_Op3.getAmplitude();
 	state.filterFreq3 = m_Op3.getFilterFreq();
 	state.filterRes3 = m_Op3.getFilterRes();
@@ -516,10 +516,10 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.egAmplitudeMod4 = m_Op4.egModAmplitudeSet();
 	state.egFrequencyMod4 = m_Op4.egModFrequencySet();
 	state.egFilterMod4 = m_Op4.egModFilterSet();
-	state.op1ModAmount4 = m_Op4.getModulationAmount(&m_Op1);
-	state.op2ModAmount4 = m_Op4.getModulationAmount(&m_Op2);
-	state.op3ModAmount4 = m_Op4.getModulationAmount(&m_Op3);
-	state.op4ModAmount4 = m_Op4.getModulationAmount(&m_Op4);
+	state.op1ModAmount4 = m_Op4.getModulationAmount( &m_Op1 );
+	state.op2ModAmount4 = m_Op4.getModulationAmount( &m_Op2 );
+	state.op3ModAmount4 = m_Op4.getModulationAmount( &m_Op3 );
+	state.op4ModAmount4 = m_Op4.getModulationAmount( &m_Op4 );
 	state.amplitude4 = m_Op4.getAmplitude();
 	state.filterFreq4 = m_Op4.getFilterFreq();
 	state.filterRes4 = m_Op4.getFilterRes();
@@ -545,7 +545,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Eg1.setDecay( state.decay1, state.decayExpo1 );
 	m_Eg1.setSustain( state.sustain1 );
 	m_Eg1.setRelease( state.release1, state.releaseExpo1 );
-	if (state.egAmplitudeMod1)
+	if ( state.egAmplitudeMod1 )
 	{
 		m_Op1.setEGModDestination( EGModDestination::AMPLITUDE, true );
 	}
@@ -553,7 +553,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op1.setEGModDestination( EGModDestination::AMPLITUDE, false );
 	}
-	if (state.egFrequencyMod1)
+	if ( state.egFrequencyMod1 )
 	{
 		m_Op1.setEGModDestination( EGModDestination::FREQUENCY, true );
 	}
@@ -561,7 +561,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op1.setEGModDestination( EGModDestination::FREQUENCY, false );
 	}
-	if (state.egFilterMod1)
+	if ( state.egFilterMod1 )
 	{
 		m_Op1.setEGModDestination( EGModDestination::FILT_FREQUENCY, true );
 	}
@@ -589,7 +589,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Eg2.setDecay( state.decay2, state.decayExpo2 );
 	m_Eg2.setSustain( state.sustain2 );
 	m_Eg2.setRelease( state.release2, state.releaseExpo2 );
-	if (state.egAmplitudeMod2)
+	if ( state.egAmplitudeMod2 )
 	{
 		m_Op2.setEGModDestination( EGModDestination::AMPLITUDE, true );
 	}
@@ -597,7 +597,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op2.setEGModDestination( EGModDestination::AMPLITUDE, false );
 	}
-	if (state.egFrequencyMod2)
+	if ( state.egFrequencyMod2 )
 	{
 		m_Op2.setEGModDestination( EGModDestination::FREQUENCY, true );
 	}
@@ -605,7 +605,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op2.setEGModDestination( EGModDestination::FREQUENCY, false );
 	}
-	if (state.egFilterMod2)
+	if ( state.egFilterMod2 )
 	{
 		m_Op2.setEGModDestination( EGModDestination::FILT_FREQUENCY, true );
 	}
@@ -633,7 +633,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Eg3.setDecay( state.decay3, state.decayExpo3 );
 	m_Eg3.setSustain( state.sustain3 );
 	m_Eg3.setRelease( state.release3, state.releaseExpo3 );
-	if (state.egAmplitudeMod3)
+	if ( state.egAmplitudeMod3 )
 	{
 		m_Op3.setEGModDestination( EGModDestination::AMPLITUDE, true );
 	}
@@ -641,7 +641,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op3.setEGModDestination( EGModDestination::AMPLITUDE, false );
 	}
-	if (state.egFrequencyMod3)
+	if ( state.egFrequencyMod3 )
 	{
 		m_Op3.setEGModDestination( EGModDestination::FREQUENCY, true );
 	}
@@ -649,7 +649,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op3.setEGModDestination( EGModDestination::FREQUENCY, false );
 	}
-	if (state.egFilterMod3)
+	if ( state.egFilterMod3 )
 	{
 		m_Op3.setEGModDestination( EGModDestination::FILT_FREQUENCY, true );
 	}
@@ -677,7 +677,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Eg4.setDecay( state.decay4, state.decayExpo4 );
 	m_Eg4.setSustain( state.sustain4 );
 	m_Eg4.setRelease( state.release4, state.releaseExpo4 );
-	if (state.egAmplitudeMod4)
+	if ( state.egAmplitudeMod4 )
 	{
 		m_Op4.setEGModDestination( EGModDestination::AMPLITUDE, true );
 	}
@@ -685,7 +685,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op4.setEGModDestination( EGModDestination::AMPLITUDE, false );
 	}
-	if (state.egFrequencyMod4)
+	if ( state.egFrequencyMod4 )
 	{
 		m_Op4.setEGModDestination( EGModDestination::FREQUENCY, true );
 	}
@@ -693,7 +693,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	{
 		m_Op4.setEGModDestination( EGModDestination::FREQUENCY, false );
 	}
-	if (state.egFilterMod4)
+	if ( state.egFilterMod4 )
 	{
 		m_Op4.setEGModDestination( EGModDestination::FILT_FREQUENCY, true );
 	}
@@ -713,7 +713,7 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op4.setDetune( state.detune4 );
 
 	// global states
-	for (unsigned int op = 0; op < numOps; op++)
+	for ( unsigned int op = 0; op < numOps; op++ )
 	{
 		m_Operators[op]->setGlideTime( state.glideTime );
 		m_Operators[op]->setGlideRetrigger( state.glideRetrigger );

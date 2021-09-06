@@ -8,8 +8,6 @@
 #include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
-#include <iostream>
-
 ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format) :
 	Surface( width, height, format ),
 	m_Logo( nullptr ),
@@ -492,13 +490,6 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 	this->updatePitchBendStr( pitchBendSemitones, buffer, bufferLen );
 
 	this->updateFiltResStr( filterRes, buffer, bufferLen );
-
-	std::cout << "OP TO EDIT: " << m_OpCurrentlyBeingEdited << std::endl;
-	std::cout << "PRESET NUM: " << m_CurrentPresetNum << std::endl;
-	std::cout << "EG DEST: " << static_cast<unsigned int>(m_EGDestBitmask) << std::endl;
-	std::cout << "RATIO: " << std::to_string( m_UsingRatio ) << std::endl;
-	std::cout << "GLIDE RETRIG: " << std::to_string( m_UsingGlideRetrigger ) << std::endl;
-	std::cout << "MONO: " << std::to_string( m_UsingMono ) << std::endl;
 
 	m_CurrentMenu = ARMOR8_MENUS::STATUS;
 	this->draw();
@@ -1220,13 +1211,11 @@ void ARMor8UiManager::processRatioOrFixedBtn (bool pressed)
 
 		if ( m_UsingRatio )
 		{
-			std::cout << "SETTING RATIO FREQ ON" << std::endl;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
 							static_cast<unsigned int>(BUTTON_CHANNEL::RATIO)) );
 		}
 		else
 		{
-			std::cout << "SETTING FIXED FREQ ON" << std::endl;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 							static_cast<unsigned int>(BUTTON_CHANNEL::RATIO)) );
 		}
@@ -1244,28 +1233,24 @@ void ARMor8UiManager::processNextOpBtn (bool pressed)
 	{
 		if ( m_OpCurrentlyBeingEdited == 1 )
 		{
-			std::cout << "NOW ON OP2" << std::endl;
 			m_OpCurrentlyBeingEdited = 2;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::OP2)) );
 		}
 		else if ( m_OpCurrentlyBeingEdited == 2 )
 		{
-			std::cout << "NOW ON OP3" << std::endl;
 			m_OpCurrentlyBeingEdited = 3;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::OP3)) );
 		}
 		else if ( m_OpCurrentlyBeingEdited == 3 )
 		{
-			std::cout << "NOW ON OP4" << std::endl;
 			m_OpCurrentlyBeingEdited = 4;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::OP4)) );
 		}
 		else if ( m_OpCurrentlyBeingEdited == 4 )
 		{
-			std::cout << "NOW ON OP1" << std::endl;
 			m_OpCurrentlyBeingEdited = 1;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
@@ -1281,28 +1266,24 @@ void ARMor8UiManager::processNextWaveBtn (bool pressed)
 	{
 		if ( m_WaveNumCurrentlyBeingEdited == 1 )
 		{
-			std::cout << "NOW ON TRIANGLE" << std::endl;
 			m_WaveNumCurrentlyBeingEdited = 2;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::TRIANGLE)) );
 		}
 		else if ( m_WaveNumCurrentlyBeingEdited == 2 )
 		{
-			std::cout << "NOW ON SQUARE" << std::endl;
 			m_WaveNumCurrentlyBeingEdited = 3;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::SQUARE)) );
 		}
 		else if ( m_WaveNumCurrentlyBeingEdited == 3 )
 		{
-			std::cout << "NOW ON SAWTOOTH" << std::endl;
 			m_WaveNumCurrentlyBeingEdited = 4;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::SAWTOOTH)) );
 		}
 		else if ( m_WaveNumCurrentlyBeingEdited == 4 )
 		{
-			std::cout << "NOW ON SINE" << std::endl;
 			m_WaveNumCurrentlyBeingEdited = 1;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 								static_cast<unsigned int>(BUTTON_CHANNEL::SINE)) );
@@ -1323,13 +1304,11 @@ void ARMor8UiManager::processGlideRetrigBtn (bool pressed)
 
 		if ( m_UsingGlideRetrigger )
 		{
-			std::cout << "SETTING GLIDE RETRIGGER" << std::endl;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
 								static_cast<unsigned int>(BUTTON_CHANNEL::GLIDE_RETRIG)) );
 		}
 		else
 		{
-			std::cout << "DISABLING GLIDE RETRIGGER" << std::endl;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 								static_cast<unsigned int>(BUTTON_CHANNEL::GLIDE_RETRIG)) );
 		}
@@ -1348,13 +1327,11 @@ void ARMor8UiManager::processMonoBtn (bool pressed)
 
 		if ( m_UsingMono )
 		{
-			std::cout << "SETTING MONOPHONIC" << std::endl;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
 								static_cast<unsigned int>(BUTTON_CHANNEL::MONOPHONIC)) );
 		}
 		else
 		{
-			std::cout << "SETTING POLYPHONIC" << std::endl;
 			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 								static_cast<unsigned int>(BUTTON_CHANNEL::MONOPHONIC)) );
 		}
@@ -1385,7 +1362,6 @@ void ARMor8UiManager::processPrevPresetBtn (bool pressed)
 
 	if ( m_PrevPresetBtnState == BUTTON_STATE::RELEASED )
 	{
-		std::cout << "PREVIOUS PRESET BUTTON PRESSED" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::PREV_PRESET)) );
 	}
@@ -1397,7 +1373,6 @@ void ARMor8UiManager::processNextPresetBtn (bool pressed)
 
 	if ( m_NextPresetBtnState == BUTTON_STATE::RELEASED )
 	{
-		std::cout << "NEXT PRESET BUTTON PRESSED" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::NEXT_PRESET)) );
 	}
@@ -1409,7 +1384,6 @@ void ARMor8UiManager::processWritePresetBtn (bool pressed)
 
 	if ( m_WritePresetBtnState == BUTTON_STATE::RELEASED )
 	{
-		std::cout << "WRITE PRESET BUTTON PRESSED" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::WRITE_PRESET)) );
 	}
@@ -1449,39 +1423,33 @@ void ARMor8UiManager::updateEGDestState()
 
 	if ( amplitudeActive )
 	{
-		std::cout << "SETTING EG DEST TO AMPLITUDE" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_AMP)) );
 	}
 	else
 	{
-		std::cout << "DISABLING EG DEST TO AMPLITUDE" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_AMP)) );
 	}
 
 	if ( frequencyActive )
 	{
-		std::cout << "SETTING EG DEST TO FREQUENCY" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FREQ)) );
 	}
 	else
 	{
-		std::cout << "DISABLING EG DEST TO FREQUENCY" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FREQ)) );
 	}
 
 	if ( filtrFreqActive )
 	{
-		std::cout << "SETTING EG DEST TO FILTER" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FILT)) );
 	}
 	else
 	{
-		std::cout << "DISABLING EG DEST TO FILTER" << std::endl;
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FILT)) );
 	}

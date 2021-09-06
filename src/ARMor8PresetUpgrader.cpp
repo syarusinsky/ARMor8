@@ -380,7 +380,7 @@ void ARMor8PresetUpgrader::upgradeFrom0_1_0To1_0_0()
 	m_PresetManager->writeHeader<ARMor8PresetHeader>( presetHeader );
 
 	// TODO this takes up a lottttt of memory, figure out a good way to manage this memory
-	// store all old presets in an array
+	// store all old presets in an array, IStorageMedia and use SRAM???
 	ARMor8VoiceState_VERSION_0_1_0 oldPresets[m_PresetManager->getMaxNumPresets()];
 
 	for (unsigned int presetNum = 0; presetNum < m_PresetManager->getMaxNumPresets(); presetNum++)
@@ -507,7 +507,7 @@ void ARMor8PresetUpgrader::upgradeFrom1_0_0To1_1_0()
 	m_PresetManager->writeHeader<ARMor8PresetHeader>( presetHeader );
 
 	// TODO this takes up a lottttt of memory, figure out a good way to manage this memory
-	// store all old presets in an array
+	// store all old presets in an array, IStorageMedia and use SRAM???
 	ARMor8VoiceState_VERSION_1_0_0 oldPresets[m_PresetManager->getMaxNumPresets()];
 
 	for (unsigned int presetNum = 0; presetNum < m_PresetManager->getMaxNumPresets(); presetNum++)
