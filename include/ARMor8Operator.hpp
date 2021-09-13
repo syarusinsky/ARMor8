@@ -38,6 +38,8 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener
 		float nextSample();
 		float currentValue();
 
+		void setFilterCoefficients(); // sets the filter coefficients internally, to be called once per call()
+
 		void onKeyEvent (const KeyEvent& keyEvent) override;
 
 		void onPitchEvent (const PitchEvent& pitchEvent) override;

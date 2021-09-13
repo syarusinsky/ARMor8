@@ -149,6 +149,14 @@ float ARMor8Voice::nextSample()
 	return output;
 }
 
+void ARMor8Voice::setFilterCoefficients()
+{
+	m_Op1.setFilterCoefficients();
+	m_Op2.setFilterCoefficients();
+	m_Op3.setFilterCoefficients();
+	m_Op4.setFilterCoefficients();
+}
+
 void ARMor8Voice::onKeyEvent (const KeyEvent& keyEvent)
 {
 	m_ActiveKeyEvent = keyEvent;

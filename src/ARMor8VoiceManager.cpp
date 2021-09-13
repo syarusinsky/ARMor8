@@ -227,6 +227,7 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 		for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 		{
 			ARMor8Voice& currentVoice = *m_Voices[voice];
+			currentVoice.setFilterCoefficients();
 
 			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 			{
@@ -236,9 +237,11 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 	}
 	else // if monophonic, we only output the first voice
 	{
+		ARMor8Voice& voice = *m_Voices[0];
+		voice.setFilterCoefficients();
+
 		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 		{
-			ARMor8Voice& voice = *m_Voices[0];
 			writeBuffer[sample] += voice.nextSample();
 		}
 	}

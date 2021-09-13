@@ -195,6 +195,7 @@ class ARMor8Voice
 		void setState (const ARMor8VoiceState& state);
 
 		float nextSample();
+		void setFilterCoefficients(); // sets the filter coefficients internally, to be called once per call()
 
 		void onKeyEvent (const KeyEvent& keyEvent);
 		const KeyEvent& getActiveKeyEvent();

@@ -80,15 +80,6 @@ float ARMor8Operator::nextSample()
 
 		if ( m_Filter )
 		{
-			float frequency = m_FilterCenterFreq;
-			frequency *= ( 1.0f - (m_FiltVelSens * m_CurrentVelocity) );
-
-			if ( m_EGModDestinations.count(EGModDestination::FILT_FREQUENCY) )
-			{
-				frequency *= egValue;
-			}
-
-			m_Filter->setCoefficients( frequency ); // TODO huge performance problem, we should call this only once per call()
 			m_CurrentValue = m_Filter->processSample( m_CurrentValue );
 		}
 
@@ -101,6 +92,25 @@ float ARMor8Operator::nextSample()
 float ARMor8Operator::currentValue()
 {
 	return m_CurrentValue;
+}
+
+void ARMor8Operator::setFilterCoefficients()
+{
+	float egValue = 1.0f;
+	if ( m_EG )
+	{
+		egValue = m_EG->currentValue();
+	}
+
+	float frequency = m_FilterCenterFreq;
+	frequency *= ( 1.0f - (m_FiltVelSens * m_CurrentVelocity) );
+	
+	if ( m_EGModDestinations.count(EGModDestination::FILT_FREQUENCY) )
+	{
+		frequency *= egValue;
+	}
+	
+	m_Filter->setCoefficients( frequency );
 }
 
 void ARMor8Operator::onKeyEvent (const KeyEvent& keyEvent)
