@@ -8,6 +8,9 @@
 #include <string.h>
 #include <cmath>
 
+// TODO remove this after testing
+#include <iostream>
+
 ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
 	m_MidiHandler( midiHandler ),
 	m_PresetManager( presetManager ),
@@ -428,8 +431,30 @@ void ARMor8VoiceManager::onPitchEvent (const PitchEvent& pitchEvent)
 	}
 }
 
+/*
 void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 {
+	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
+	float percentage = potEvent.getPercentage();
+
+	switch ( channel )
+	{
+		case POT_CHANNEL::EFFECT1:
+			std::cout << "Effect1 Pot: " << std::to_string( percentage ) << std::endl;
+
+			break;
+		case POT_CHANNEL::EFFECT2:
+
+			std::cout << "Effect2 Pot: " << std::to_string( percentage ) << std::endl;
+			break;
+		case POT_CHANNEL::EFFECT3:
+
+			std::cout << "Effect2 Pot: " << std::to_string( percentage ) << std::endl;
+			break;
+		default:
+			break;
+	}
+
 	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
 	float percentage = potEvent.getPercentage();
 
@@ -624,9 +649,11 @@ void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
 			break;
 	}
 }
+*/
 
 void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 {
+	/*
 	if ( buttonEvent.getButtonState() == BUTTON_STATE::RELEASED )
 	{
 		switch ( static_cast<BUTTON_CHANNEL>(buttonEvent.getChannel()) )
@@ -776,6 +803,7 @@ void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				break;
 		}
 	}
+	*/
 }
 
 ARMor8VoiceState ARMor8VoiceManager::getState()

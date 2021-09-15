@@ -12,7 +12,6 @@
 #include "IBufferCallback.hpp"
 #include "IMidiEventListener.hpp"
 #include "IPitchEventListener.hpp"
-#include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
 class MidiHandler;
@@ -21,7 +20,7 @@ class PresetManager;
 const unsigned int MAX_VOICES = 6;
 
 class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListener, public IPitchEventListener,
-				public IPotEventListener, public IButtonEventListener
+				public IButtonEventListener
 {
 	public:
 		ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager);
@@ -68,8 +67,6 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 		void onKeyEvent (const KeyEvent& keyEvent) override;
 
 		void onPitchEvent (const PitchEvent& pitchEvent) override;
-
-		void onPotEvent (const PotEvent& potEvent) override;
 
 		void onButtonEvent (const ButtonEvent& buttonEvent) override;
 

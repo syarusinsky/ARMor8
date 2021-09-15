@@ -41,62 +41,17 @@ MainComponent::MainComponent() :
 	armor8VoiceManager( &midiHandler, &presetManager ),
 	keyButtonRelease( false ),
 	writer(),
-	freqSldr(),
-	freqLbl(),
-	detuneSldr(),
-	detuneLbl(),
-	ratioBtn( "Ratio" ),
-	editLbl(),
-	op1Btn( "Op 1" ),
-	op2Btn( "Op 2" ),
-	op3Btn( "Op 3" ),
-	op4Btn( "Op 4" ),
-	waveLbl(),
-	sineBtn( "Sine" ),
-	triangleBtn( "Triangle" ),
-	squareBtn( "Square" ),
-	sawBtn( "Saw" ),
-	attackSldr(),
-	attackLbl(),
-	attackExpoSldr(),
-	attackExpoLbl(),
-	decaySldr(),
-	decayLbl(),
-	decayExpoSldr(),
-	decayExpoLbl(),
-	sustainSldr(),
-	sustainLbl(),
-	releaseSldr(),
-	releaseLbl(),
-	releaseExpoSldr(),
-	releaseExpoLbl(),
-	egDestLbl(),
-	amplitudeDestBtn( "Amplitude" ),
-	frequencyDestBtn( "Frequency" ),
-	filterDestBtn( "Filter" ),
-	amplitudeSldr(),
-	amplitudeLbl(),
-	filterFreqSldr(),
-	filterFreqLbl(),
-	filterResSldr(),
-	filterResLbl(),
-	ampVelSldr(),
-	ampVelLbl(),
-	filtVelSldr(),
-	filtVelLbl(),
-	pitchBendSldr(),
-	pitchBendLbl(),
-	glideSldr(),
-	glideLbl(),
-	egRetriggerBtn( "Glide Retrigger" ),
+	effect1Sldr(),
+	effect1Lbl(),
+	effect2Sldr(),
+	effect2Lbl(),
+	effect3Sldr(),
+	effect3Lbl(),
+	effect1Btn( "Effect 1" ),
+	effect2Btn( "Effect 2" ),
 	audioSettingsBtn( "Audio Settings" ),
 	midiInputList(),
 	midiInputListLbl(),
-	monoBtn( "Global: Monophonic" ),
-	prevPresetBtn( "Prev Preset" ),
-	presetNumLbl( "Preset Number", "1" ),
-	nextPresetBtn( "Next Preset" ),
-	writePresetBtn( "Write Preset" ),
 	audioSettingsComponent( deviceManager, 2, 2, &audioSettingsBtn ),
 	uiSim( 128, 64, CP_FORMAT::MONOCHROME_1BIT ),
 	screenRep( juce::Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
@@ -110,8 +65,8 @@ MainComponent::MainComponent() :
 	this->bindToARMor8LCDRefreshEventSystem();
 	armor8VoiceManager.bindToKeyEventSystem();
 	armor8VoiceManager.bindToPitchEventSystem();
-	armor8VoiceManager.bindToPotEventSystem();
 	armor8VoiceManager.bindToButtonEventSystem();
+	uiSim.bindToPotEventSystem();
 
 	// load font and logo from file
 	char* fontBytes = new char[FONT_FILE_SIZE];
@@ -206,205 +161,32 @@ MainComponent::MainComponent() :
 	testFile.open( "JuceMainComponentOutput.txt" );
 
 	// adding all child components
-	addAndMakeVisible( freqSldr );
-	freqSldr.setRange( ARMOR8_FREQUENCY_MIN, ARMOR8_FREQUENCY_MAX );
-	freqSldr.setTextValueSuffix( "Hz" );
-	freqSldr.setSkewFactorFromMidPoint( 500 );
-	freqSldr.addListener( this );
-	addAndMakeVisible( freqLbl );
-	freqLbl.setText( "Frequency", juce::dontSendNotification );
-	freqLbl.attachToComponent( &freqSldr, true );
+	addAndMakeVisible( effect1Sldr );
+	effect1Sldr.setRange( 0.0f, 1.0f );
+	effect1Sldr.addListener( this );
+	addAndMakeVisible( effect1Lbl );
+	effect1Lbl.setText( "Effect 1 Pot", juce::dontSendNotification );
+	effect1Lbl.attachToComponent( &effect1Sldr, true );
 
-	addAndMakeVisible( detuneSldr );
-	detuneSldr.setRange( ARMOR8_DETUNE_MIN, ARMOR8_DETUNE_MAX, 1 );
-	detuneSldr.setTextValueSuffix( "Cents" );
-	detuneSldr.addListener( this );
-	addAndMakeVisible( detuneLbl );
-	detuneLbl.setText( "Detune", juce::dontSendNotification );
-	detuneLbl.attachToComponent( &detuneSldr, true );
+	addAndMakeVisible( effect2Sldr );
+	effect2Sldr.setRange( 0.0f, 1.0f );
+	effect2Sldr.addListener( this );
+	addAndMakeVisible( effect2Lbl );
+	effect2Lbl.setText( "Effect 2 Pot", juce::dontSendNotification );
+	effect2Lbl.attachToComponent( &effect2Sldr, true );
 
-	addAndMakeVisible( ratioBtn );
-	ratioBtn.onClick = [this] { updateToggleState(&ratioBtn); };
-	ratioBtn.addListener( this );
+	addAndMakeVisible( effect3Sldr );
+	effect3Sldr.setRange( 0.0f, 1.0f );
+	effect3Sldr.addListener( this );
+	addAndMakeVisible( effect3Lbl );
+	effect3Lbl.setText( "Effect 3 Pot", juce::dontSendNotification );
+	effect3Lbl.attachToComponent( &effect3Sldr, true );
 
-	addAndMakeVisible( editLbl );
-	editLbl.setText( "Editing:", juce::dontSendNotification );
+	addAndMakeVisible( effect1Btn );
+	effect1Btn.addListener( this );
 
-	addAndMakeVisible( op1Btn );
-	op1Btn.setRadioGroupId( OpRadioId );
-	op1Btn.onClick = [this] { updateToggleState(&op1Btn); };
-	addAndMakeVisible( op2Btn );
-	op2Btn.setRadioGroupId( OpRadioId );
-	op2Btn.onClick = [this] { updateToggleState(&op2Btn); };
-	addAndMakeVisible( op3Btn );
-	op3Btn.setRadioGroupId( OpRadioId );
-	op3Btn.onClick = [this] { updateToggleState(&op3Btn); };
-	addAndMakeVisible( op4Btn );
-	op4Btn.setRadioGroupId( OpRadioId );
-	op4Btn.onClick = [this] { updateToggleState(&op4Btn); };
-
-	addAndMakeVisible( waveLbl );
-	waveLbl.setText( "Waveform:", juce::dontSendNotification );
-
-	addAndMakeVisible( sineBtn );
-	sineBtn.setRadioGroupId( WaveRadioId );
-	sineBtn.onClick = [this] { updateToggleState(&sineBtn); };
-	addAndMakeVisible( triangleBtn );
-	triangleBtn.setRadioGroupId( WaveRadioId );
-	triangleBtn.onClick = [this] { updateToggleState(&triangleBtn); };
-	addAndMakeVisible( squareBtn );
-	squareBtn.setRadioGroupId( WaveRadioId );
-	squareBtn.onClick = [this] { updateToggleState(&squareBtn); };
-	addAndMakeVisible( sawBtn );
-	sawBtn.setRadioGroupId( WaveRadioId );
-	sawBtn.onClick = [this] { updateToggleState(&sawBtn); };
-
-	addAndMakeVisible( attackSldr );
-	attackSldr.setRange( ARMOR8_ATTACK_MIN, ARMOR8_ATTACK_MAX );
-	attackSldr.setTextValueSuffix( "Seconds" );
-	attackSldr.addListener( this );
-	addAndMakeVisible( attackLbl );
-	attackLbl.setText( "Attack", juce::dontSendNotification );
-	attackLbl.attachToComponent( &attackSldr, true );
-
-	addAndMakeVisible( attackExpoSldr );
-	attackExpoSldr.setRange( ARMOR8_EXPO_MIN, ARMOR8_EXPO_MAX );
-	attackExpoSldr.setTextValueSuffix( "%" );
-	attackExpoSldr.addListener( this );
-	addAndMakeVisible( attackExpoLbl );
-	attackExpoLbl.setText( "Attack Expo Amount", juce::dontSendNotification );
-	attackExpoLbl.attachToComponent( &attackExpoSldr, true );
-
-	addAndMakeVisible( decaySldr );
-	decaySldr.setRange( ARMOR8_DECAY_MIN, ARMOR8_DECAY_MAX );
-	decaySldr.setTextValueSuffix( "Seconds" );
-	decaySldr.addListener( this );
-	addAndMakeVisible( decayLbl );
-	decayLbl.setText( "Decay", juce::dontSendNotification );
-	decayLbl.attachToComponent( &decaySldr, true );
-
-	addAndMakeVisible( decayExpoSldr );
-	decayExpoSldr.setRange( ARMOR8_EXPO_MIN, ARMOR8_EXPO_MAX );
-	decayExpoSldr.setTextValueSuffix( "%" );
-	decayExpoSldr.addListener( this );
-	addAndMakeVisible( decayExpoLbl );
-	decayExpoLbl.setText( "Decay Expo Amount", juce::dontSendNotification );
-	decayExpoLbl.attachToComponent( &decayExpoSldr, true );
-
-	addAndMakeVisible( sustainSldr );
-	sustainSldr.setRange( ARMOR8_SUSTAIN_MIN, ARMOR8_SUSTAIN_MAX );
-	sustainSldr.setTextValueSuffix( "%" );
-	sustainSldr.addListener( this );
-	addAndMakeVisible( sustainLbl );
-	sustainLbl.setText( "Sustain", juce::dontSendNotification );
-	sustainLbl.attachToComponent( &sustainSldr, true );
-
-	addAndMakeVisible( releaseSldr );
-	releaseSldr.setRange( ARMOR8_RELEASE_MIN, ARMOR8_RELEASE_MAX );
-	releaseSldr.setTextValueSuffix( "Seconds" );
-	releaseSldr.addListener( this );
-	addAndMakeVisible( releaseLbl );
-	releaseLbl.setText( "Release", juce::dontSendNotification );
-	releaseLbl.attachToComponent( &releaseSldr, true );
-
-	addAndMakeVisible( releaseExpoSldr );
-	releaseExpoSldr.setRange( ARMOR8_EXPO_MIN, ARMOR8_EXPO_MAX );
-	releaseExpoSldr.setTextValueSuffix( "%" );
-	releaseExpoSldr.addListener( this );
-	addAndMakeVisible( releaseExpoLbl );
-	releaseExpoLbl.setText( "Release Expo Amount", juce::dontSendNotification );
-	releaseExpoLbl.attachToComponent( &releaseExpoSldr, true );
-
-	addAndMakeVisible( egDestLbl );
-	egDestLbl.setText( "EG Destinations:", juce::dontSendNotification );
-
-	addAndMakeVisible( amplitudeDestBtn );
-	amplitudeDestBtn.onClick = [this] { updateToggleState(&amplitudeDestBtn); };
-	addAndMakeVisible( frequencyDestBtn );
-	frequencyDestBtn.onClick = [this] { updateToggleState(&frequencyDestBtn); };
-	addAndMakeVisible( filterDestBtn );
-	filterDestBtn.onClick = [this] { updateToggleState(&filterDestBtn); };
-
-	addAndMakeVisible( op1ModAmountSldr );
-	op1ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
-	op1ModAmountSldr.addListener( this );
-	addAndMakeVisible( op1ModAmountLbl );
-	op1ModAmountLbl.setText( "Op1 Mod Amount", juce::dontSendNotification );
-	op1ModAmountLbl.attachToComponent( &op1ModAmountSldr, true );
-
-	addAndMakeVisible( op2ModAmountSldr );
-	op2ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
-	op2ModAmountSldr.addListener( this );
-	addAndMakeVisible( op2ModAmountLbl );
-	op2ModAmountLbl.setText( "Op2 Mod Amount", juce::dontSendNotification );
-	op2ModAmountLbl.attachToComponent( &op2ModAmountSldr, true );
-
-	addAndMakeVisible( op3ModAmountSldr );
-	op3ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
-	op3ModAmountSldr.addListener( this );
-	addAndMakeVisible( op3ModAmountLbl );
-	op3ModAmountLbl.setText( "Op3 Mod Amount", juce::dontSendNotification );
-	op3ModAmountLbl.attachToComponent( &op3ModAmountSldr, true );
-
-	addAndMakeVisible( op4ModAmountSldr );
-	op4ModAmountSldr.setRange( ARMOR8_OP_MOD_MIN, ARMOR8_OP_MOD_MAX );
-	op4ModAmountSldr.addListener( this );
-	addAndMakeVisible( op4ModAmountLbl );
-	op4ModAmountLbl.setText( "Op4 Mod Amount", juce::dontSendNotification );
-	op4ModAmountLbl.attachToComponent( &op4ModAmountSldr, true );
-
-	addAndMakeVisible( amplitudeSldr );
-	amplitudeSldr.setRange( ARMOR8_AMPLITUDE_MIN, ARMOR8_AMPLITUDE_MAX );
-	amplitudeSldr.addListener( this );
-	addAndMakeVisible( amplitudeLbl );
-	amplitudeLbl.setText( "Amplitude", juce::dontSendNotification );
-	amplitudeLbl.attachToComponent( &amplitudeSldr, true );
-
-	addAndMakeVisible( filterFreqSldr );
-	filterFreqSldr.setRange( ARMOR8_FILT_FREQ_MIN, ARMOR8_FILT_FREQ_MAX );
-	filterFreqSldr.setSkewFactorFromMidPoint( 500 );
-	filterFreqSldr.addListener( this );
-	addAndMakeVisible( filterFreqLbl );
-	filterFreqLbl.setText( "Filter Freq", juce::dontSendNotification );
-	filterFreqLbl.attachToComponent( &filterFreqSldr, true );
-
-	addAndMakeVisible( filterResSldr );
-	filterResSldr.setRange( ARMOR8_FILT_RES_MIN, ARMOR8_FILT_RES_MAX );
-	filterResSldr.addListener( this );
-	addAndMakeVisible( filterResLbl );
-	filterResLbl.setText( "Filter Res", juce::dontSendNotification );
-	filterResLbl.attachToComponent( &filterResSldr, true );
-
-	addAndMakeVisible( ampVelSldr );
-	ampVelSldr.setRange( ARMOR8_VELOCITY_MIN, ARMOR8_VELOCITY_MAX );
-	ampVelSldr.addListener( this );
-	addAndMakeVisible( ampVelLbl );
-	ampVelLbl.setText( "Vel Sens Amplitude", juce::dontSendNotification );
-	ampVelLbl.attachToComponent( &ampVelSldr, true );
-
-	addAndMakeVisible( filtVelSldr );
-	filtVelSldr.setRange( ARMOR8_VELOCITY_MIN, ARMOR8_VELOCITY_MAX );
-	filtVelSldr.addListener( this );
-	addAndMakeVisible( filtVelLbl );
-	filtVelLbl.setText( "Vel Sens Filter", juce::dontSendNotification );
-	filtVelLbl.attachToComponent( &filtVelSldr, true );
-
-	addAndMakeVisible( pitchBendSldr );
-	pitchBendSldr.setRange( ARMOR8_PITCH_BEND_MIN, ARMOR8_PITCH_BEND_MAX, 1);
-	pitchBendSldr.addListener( this );
-	addAndMakeVisible( pitchBendLbl );
-	pitchBendLbl.setText( "Pitch Bend", juce::dontSendNotification );
-	pitchBendLbl.attachToComponent( &pitchBendSldr, true );
-
-	addAndMakeVisible( glideSldr );
-	glideSldr.setRange( ARMOR8_GLIDE_TIME_MIN, ARMOR8_GLIDE_TIME_MAX );
-	glideSldr.addListener( this );
-	addAndMakeVisible( glideLbl );
-	glideLbl.setText( "Glide Time", juce::dontSendNotification );
-	glideLbl.attachToComponent( &glideSldr, true );
-
-	addAndMakeVisible( egRetriggerBtn );
-	egRetriggerBtn.onClick = [this] { updateToggleState(&egRetriggerBtn); };
+	addAndMakeVisible( effect2Btn );
+	effect2Btn.addListener( this );
 
 	addAndMakeVisible( audioSettingsBtn );
 	audioSettingsBtn.addListener( this );
@@ -430,21 +212,6 @@ MainComponent::MainComponent() :
 	addAndMakeVisible( midiInputListLbl );
 	midiInputListLbl.setText( "Midi Input Device", juce::dontSendNotification );
 	midiInputListLbl.attachToComponent( &midiInputList, true );
-
-	addAndMakeVisible( monoBtn );
-	monoBtn.onClick = [this] { updateToggleState(&monoBtn); };
-	monoBtn.addListener( this );
-
-	addAndMakeVisible( prevPresetBtn );
-	prevPresetBtn.addListener( this );
-
-	addAndMakeVisible( presetNumLbl );
-
-	addAndMakeVisible( nextPresetBtn );
-	nextPresetBtn.addListener( this );
-
-	addAndMakeVisible( writePresetBtn );
-	writePresetBtn.addListener( this );
 
 	// Make sure you set the size of the component after
 	// you add any child components.
@@ -568,6 +335,9 @@ MainComponent::MainComponent() :
 
 	// start timer for fake loading
 	this->startTimer( 33 );
+
+	// grab keyboard focus
+	this->setWantsKeyboardFocus( true );
 }
 
 MainComponent::~MainComponent()
@@ -576,6 +346,29 @@ MainComponent::~MainComponent()
 	shutdownAudio();
 	delete writer;
 	testFile.close();
+}
+
+bool MainComponent::keyPressed (const juce::KeyPress& k)
+{
+	// for holding both buttons down at the same time
+	if ( k.getTextCharacter() == 'z' )
+	{
+		effect1Btn.setState( juce::Button::ButtonState::buttonDown );
+		effect2Btn.setState( juce::Button::ButtonState::buttonDown );
+	}
+
+	return true;
+}
+
+bool MainComponent::keyStateChanged (bool isKeyDown)
+{
+	if ( ! isKeyDown ) // if a key has been released
+	{
+		effect1Btn.setState( juce::Button::ButtonState::buttonNormal );
+		effect2Btn.setState( juce::Button::ButtonState::buttonNormal );
+	}
+
+	return true;
 }
 
 void MainComponent::timerCallback()
@@ -590,7 +383,7 @@ void MainComponent::timerCallback()
 		armor8VoiceManager.setState( presetManager.retrievePreset<ARMor8VoiceState>(0) );
 
 		// force UI to refresh
-		op1Btn.triggerClick();
+		// op1Btn.triggerClick();
 	}
 	else if ( fakeLoadingCounter < 100 )
 	{
@@ -600,6 +393,22 @@ void MainComponent::timerCallback()
 	else
 	{
 		uiSim.tickForChangingBackToStatus();
+		uiSim.processEffect1Btn( effect1Btn.isDown() );
+		uiSim.processEffect2Btn( effect2Btn.isDown() );
+
+		double effect1Val = effect1Sldr.getValue();
+		float effect1Percentage = ( effect1Sldr.getValue() - effect1Sldr.getMinimum() )
+						/ ( effect1Sldr.getMaximum() - effect1Sldr.getMinimum() );
+		double effect2Val = effect2Sldr.getValue();
+		float effect2Percentage = ( effect2Sldr.getValue() - effect2Sldr.getMinimum() )
+						/ ( effect2Sldr.getMaximum() - effect2Sldr.getMinimum() );
+		double effect3Val = effect3Sldr.getValue();
+		float effect3Percentage = ( effect3Sldr.getValue() - effect3Sldr.getMinimum() )
+						/ ( effect3Sldr.getMaximum() - effect3Sldr.getMinimum() );
+
+		IPotEventListener::PublishEvent( PotEvent(effect1Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT1)) );
+		IPotEventListener::PublishEvent( PotEvent(effect2Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT2)) );
+		IPotEventListener::PublishEvent( PotEvent(effect3Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT3)) );
 	}
 }
 
@@ -670,55 +479,20 @@ void MainComponent::resized()
 	// If you add any child components, this is where you should
 	// update their positions.
 	int sliderLeft = 120;
-	freqSldr.setBounds        (sliderLeft, 20, getWidth() - sliderLeft - 10, 20);
-	detuneSldr.setBounds      (sliderLeft, 60, getWidth() - sliderLeft - 10, 20);
-	ratioBtn.setBounds        (sliderLeft, 90, getWidth() - sliderLeft - 10, 20);
-	editLbl.setBounds         (sliderLeft, 120, (getWidth() / 3) - sliderLeft, 20);
-	waveLbl.setBounds         ((getWidth() / 3) * 2, 120, (getWidth() / 3) - sliderLeft, 20);
-	op1Btn.setBounds          (sliderLeft, 150, (getWidth() / 2) - sliderLeft, 20);
-	sineBtn.setBounds         ((getWidth() / 3) * 2, 150, (getWidth() / 3) - sliderLeft, 20);
-	op2Btn.setBounds          (sliderLeft, 180, (getWidth() / 2) - sliderLeft, 20);
-	triangleBtn.setBounds     ((getWidth() / 3) * 2, 180, (getWidth() / 3) - sliderLeft, 20);
-	op3Btn.setBounds          (sliderLeft, 210, (getWidth() / 2) - sliderLeft, 20);
-	squareBtn.setBounds       ((getWidth() / 3) * 2, 210, (getWidth() / 3) - sliderLeft, 20);
-	op4Btn.setBounds          (sliderLeft, 240, (getWidth() / 2) - sliderLeft, 20);
-	sawBtn.setBounds          ((getWidth() / 3) * 2, 240, (getWidth() / 3) - sliderLeft, 20);
-	attackSldr.setBounds      (sliderLeft, 280, getWidth() - sliderLeft - 10, 20);
-	attackExpoSldr.setBounds  (sliderLeft, 310, getWidth() - sliderLeft - 10, 20);
-	decaySldr.setBounds       (sliderLeft, 340, getWidth() - sliderLeft - 10, 20);
-	decayExpoSldr.setBounds   (sliderLeft, 370, getWidth() - sliderLeft - 10, 20);
-	sustainSldr.setBounds     (sliderLeft, 400, getWidth() - sliderLeft - 10, 20);
-	releaseSldr.setBounds     (sliderLeft, 430, getWidth() - sliderLeft - 10, 20);
-	releaseExpoSldr.setBounds (sliderLeft, 460, getWidth() - sliderLeft - 10, 20);
-	egDestLbl.setBounds       (sliderLeft, 490, getWidth() - sliderLeft - 10, 20);
-	amplitudeDestBtn.setBounds(sliderLeft, 520, getWidth() - sliderLeft - 10, 20);
-	frequencyDestBtn.setBounds(sliderLeft, 550, getWidth() - sliderLeft - 10, 20);
-	filterDestBtn.setBounds   (sliderLeft, 580, getWidth() - sliderLeft - 10, 20);
-	op1ModAmountSldr.setBounds(sliderLeft, 620, getWidth() - sliderLeft - 10, 20);
-	op2ModAmountSldr.setBounds(sliderLeft, 650, getWidth() - sliderLeft - 10, 20);
-	op3ModAmountSldr.setBounds(sliderLeft, 680, getWidth() - sliderLeft - 10, 20);
-	op4ModAmountSldr.setBounds(sliderLeft, 710, getWidth() - sliderLeft - 10, 20);
-	amplitudeSldr.setBounds   (sliderLeft, 740, getWidth() - sliderLeft - 10, 20);
-	filterFreqSldr.setBounds  (sliderLeft, 770, getWidth() - sliderLeft - 10, 20);
-	filterResSldr.setBounds   (sliderLeft, 800, getWidth() - sliderLeft - 10, 20);
-	ampVelSldr.setBounds      (sliderLeft, 830, getWidth() - sliderLeft - 10, 20);
-	filtVelSldr.setBounds     (sliderLeft, 860, getWidth() - sliderLeft - 10, 20);
-	pitchBendSldr.setBounds   (sliderLeft, 890, getWidth() - sliderLeft - 10, 20);
-	glideSldr.setBounds       (sliderLeft + (getWidth() / 5) * 0, 920, (getWidth() / 5) * 4 - sliderLeft - 10, 20);
-	egRetriggerBtn.setBounds  (sliderLeft + (getWidth() / 5) * 4, 920, (getWidth() / 5) * 1 - sliderLeft - 10, 20);
+	effect1Sldr.setBounds     (sliderLeft + (getWidth() / 2), 300, (getWidth() / 2) - (sliderLeft * 2), 20);
+	effect2Sldr.setBounds     (sliderLeft + (getWidth() / 2), 340, (getWidth() / 2) - (sliderLeft * 2), 20);
+	effect3Sldr.setBounds     (sliderLeft + (getWidth() / 2), 380, (getWidth() / 2) - (sliderLeft * 2), 20);
+	effect1Btn.setBounds      (sliderLeft, 300, (getWidth() / 2) - sliderLeft - 10, 20);
+	effect2Btn.setBounds      (sliderLeft, 340, (getWidth() / 2) - sliderLeft - 10, 20);
 	audioSettingsBtn.setBounds(sliderLeft, 950, getWidth() - sliderLeft - 10, 20);
 	midiInputList.setBounds   (sliderLeft, 980, getWidth() - sliderLeft - 10, 20);
-	monoBtn.setBounds         (sliderLeft + (getWidth() / 5) * 0, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
-	prevPresetBtn.setBounds   (sliderLeft + (getWidth() / 5) * 1, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
-	presetNumLbl.setBounds    (sliderLeft + (getWidth() / 5) * 2, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
-	nextPresetBtn.setBounds   ((getWidth() / 5) * 3, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
-	writePresetBtn.setBounds  ((getWidth() / 5) * 4, 1010, ((getWidth() - sliderLeft - 10) / 5), 20);
 }
 
 void MainComponent::sliderValueChanged (juce::Slider* slider)
 {
 	try
 	{
+		/*
 		double val = slider->getValue();
 		float percentage = (slider->getValue() - slider->getMinimum()) / (slider->getMaximum() - slider->getMinimum());
 
@@ -850,6 +624,7 @@ void MainComponent::sliderValueChanged (juce::Slider* slider)
 		{
 			uiSim.processPitchBendOrGlidePot( percentage );
 		}
+		*/
 	}
 	catch (std::exception& e)
 	{
@@ -861,6 +636,7 @@ void MainComponent::buttonClicked (juce::Button* button)
 {
 	try
 	{
+		/*
 		if (button == &prevPresetBtn)
 		{
 			uiSim.processPrevPresetBtn( true ); // pressed
@@ -879,6 +655,7 @@ void MainComponent::buttonClicked (juce::Button* button)
 			uiSim.processWritePresetBtn( false ); // released
 			uiSim.processWritePresetBtn( false ); // floating
 		}
+		*/
 	}
 	catch (std::exception& e)
 	{
@@ -890,6 +667,7 @@ void MainComponent::updateToggleState (juce::Button* button)
 {
 	try
 	{
+		/*
 		bool isPressed = button->getToggleState();
 
 		if (button == &op1Btn)
@@ -1295,6 +1073,7 @@ void MainComponent::updateToggleState (juce::Button* button)
 			uiSim.processGlideRetrigBtn( false ); // released
 			uiSim.processGlideRetrigBtn( false ); // floating
 		}
+		*/
 	}
 	catch (std::exception& e)
 	{
@@ -1318,6 +1097,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 {
 	try
 	{
+		/*
 		// set preset num label
 		juce::String presetNumStr( presetNum + 1 );
 		presetNumLbl.setText( presetNumStr, juce::dontSendNotification );
@@ -1747,6 +1527,7 @@ void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsi
 			default:
 				std::cout << "Something is terribly, terribly wrong in setFromARMor8VoiceState..." << std::endl;
 		}
+		*/
 	}
 	catch (std::exception& e)
 	{

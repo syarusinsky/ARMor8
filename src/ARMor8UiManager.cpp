@@ -1,12 +1,14 @@
 #include "ARMor8UiManager.hpp"
 
 #include "AudioConstants.hpp"
-#include "ARMor8Constants.hpp"
 #include "Graphics.hpp"
 #include "Sprite.hpp"
 #include "IARMor8LCDRefreshEventListener.hpp"
 #include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
+
+// TODO remove this after testing
+#include <iostream>
 
 ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format) :
 	Surface( width, height, format ),
@@ -93,10 +95,19 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_EGDestBtnState( BUTTON_STATE::FLOATING ),
 	m_PrevPresetBtnState( BUTTON_STATE::FLOATING ),
 	m_NextPresetBtnState( BUTTON_STATE::FLOATING ),
-	m_WritePresetBtnState( BUTTON_STATE::FLOATING )
+	m_WritePresetBtnState( BUTTON_STATE::FLOATING ),
+	m_Effect1BtnState( BUTTON_STATE::FLOATING ),
+	m_Effect2BtnState( BUTTON_STATE::FLOATING ),
+	m_Pot1StabilizerBuf{ 0.0f },
+	m_Pot2StabilizerBuf{ 0.0f },
+	m_Pot3StabilizerBuf{ 0.0f },
+	m_Pot1StabilizerIndex( 0 ),
+	m_Pot2StabilizerIndex( 0 ),
+	m_Pot3StabilizerIndex( 0 ),
+	m_Pot1StabilizerValue( 0.0f ),
+	m_Pot2StabilizerValue( 0.0f ),
+	m_Pot3StabilizerValue( 0.0f )
 {
-	this->bindToARMor8PresetEventSystem();
-	this->bindToARMor8ParameterEventSystem();
 }
 
 ARMor8UiManager::~ARMor8UiManager()
@@ -497,6 +508,7 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 
 void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent)
 {
+	/*
 	POT_CHANNEL channel = static_cast<POT_CHANNEL>( paramEvent.getChannel() );
 
 	unsigned int bufferLen = 20;
@@ -949,6 +961,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 		default:
 			break;
 	}
+	*/
 }
 
 void ARMor8UiManager::setEGDestAmplitude (bool on)
@@ -998,6 +1011,7 @@ void ARMor8UiManager::setEGDestFiltrFreq (bool on)
 
 void ARMor8UiManager::processFreqOrDetunePot (float percentage)
 {
+	/*
 	if ( m_Alt1State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_DetunePotLocked, m_DetunePotCached, percentage) )
@@ -1017,10 +1031,12 @@ void ARMor8UiManager::processFreqOrDetunePot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::FREQUENCY)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processAtkOrAtkExpoOrOp1ModPot (float percentage)
 {
+	/*
 	if ( m_Alt2State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_Op1ModPotLocked, m_Op1ModPotCached, percentage) )
@@ -1045,10 +1061,12 @@ void ARMor8UiManager::processAtkOrAtkExpoOrOp1ModPot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::ATTACK)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processDecOrDecExpoOrOp2ModPot (float percentage)
 {
+	/*
 	if ( m_Alt2State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_Op2ModPotLocked, m_Op2ModPotCached, percentage) )
@@ -1073,10 +1091,12 @@ void ARMor8UiManager::processDecOrDecExpoOrOp2ModPot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::DECAY)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processSusOrOp3ModPot (float percentage)
 {
+	/*
 	if ( m_Alt2State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_Op3ModPotLocked, m_Op3ModPotCached, percentage) )
@@ -1093,10 +1113,12 @@ void ARMor8UiManager::processSusOrOp3ModPot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::SUSTAIN)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processRelOrRelExpoOrOp4ModPot (float percentage)
 {
+	/*
 	if ( m_Alt2State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_Op4ModPotLocked, m_Op4ModPotCached, percentage) )
@@ -1121,10 +1143,12 @@ void ARMor8UiManager::processRelOrRelExpoOrOp4ModPot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::RELEASE)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processAmpOrAmpVelPot (float percentage)
 {
+	/*
 	if ( m_Alt2State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_AmplitudeVelPotLocked, m_AmplitudeVelPotCached, percentage) )
@@ -1141,10 +1165,12 @@ void ARMor8UiManager::processAmpOrAmpVelPot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::AMPLITUDE)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processFiltFreqOrFiltResOrFiltVelPot (float percentage)
 {
+	/*
 	if ( m_Alt2State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_FiltVelPotLocked, m_FiltVelPotCached, percentage) )
@@ -1169,10 +1195,12 @@ void ARMor8UiManager::processFiltFreqOrFiltResOrFiltVelPot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::FILT_FREQ)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processPitchBendOrGlidePot (float percentage)
 {
+	/*
 	if ( m_Alt1State == BUTTON_STATE::HELD )
 	{
 		if ( this->hasBrokenLock(m_PitchBendPotLocked, m_PitchBendPotCached, percentage) )
@@ -1189,6 +1217,7 @@ void ARMor8UiManager::processPitchBendOrGlidePot (float percentage)
 			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::GLIDE_TIME)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processAlt1Btn (bool pressed)
@@ -1203,6 +1232,7 @@ void ARMor8UiManager::processAlt2Btn (bool pressed)
 
 void ARMor8UiManager::processRatioOrFixedBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_RatioOrFixedBtnState, pressed );
 
 	if ( m_RatioOrFixedBtnState == BUTTON_STATE::RELEASED )
@@ -1223,10 +1253,12 @@ void ARMor8UiManager::processRatioOrFixedBtn (bool pressed)
 		this->updateRatioFixedStr();
 		this->refreshRatioFixed();
 	}
+	*/
 }
 
 void ARMor8UiManager::processNextOpBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_NextOpBtnState, pressed );
 
 	if ( m_NextOpBtnState == BUTTON_STATE::RELEASED )
@@ -1256,10 +1288,12 @@ void ARMor8UiManager::processNextOpBtn (bool pressed)
 								static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
 		}
 	}
+	*/
 }
 
 void ARMor8UiManager::processNextWaveBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_NextWaveBtnState, pressed );
 
 	if ( m_NextWaveBtnState == BUTTON_STATE::RELEASED )
@@ -1292,10 +1326,81 @@ void ARMor8UiManager::processNextWaveBtn (bool pressed)
 		this->updateWaveStr();
 		this->refreshWave();
 	}
+	*/
+}
+
+void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
+{
+	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
+	float percentage = potEvent.getPercentage();
+
+	float* potStabilizerBuf = nullptr;
+	unsigned int* potStabilizerIndex = nullptr;
+	float* potStabilizerValue = nullptr;
+	float allowedScatterLeft = ARMOR8_POT_STABIL_ALLOWED_SCATTER;
+	float allowedScatterRight = ARMOR8_POT_STABIL_ALLOWED_SCATTER;
+
+	switch ( channel )
+	{
+		case POT_CHANNEL::EFFECT1:
+			potStabilizerBuf = m_Pot1StabilizerBuf;
+			potStabilizerIndex = &m_Pot1StabilizerIndex;
+			potStabilizerValue = &m_Pot1StabilizerValue;
+
+			break;
+		case POT_CHANNEL::EFFECT2:
+			potStabilizerBuf = m_Pot2StabilizerBuf;
+			potStabilizerIndex = &m_Pot2StabilizerIndex;
+			potStabilizerValue = &m_Pot2StabilizerValue;
+
+			break;
+		case POT_CHANNEL::EFFECT3:
+			potStabilizerBuf = m_Pot3StabilizerBuf;
+			potStabilizerIndex = &m_Pot3StabilizerIndex;
+			potStabilizerValue = &m_Pot3StabilizerValue;
+
+			break;
+		default:
+			break;
+	}
+
+	// stabilize the potentiometer value by averaging all the values in the stabilizer buffers
+	float averageValue = percentage;
+	for ( unsigned int index = 0; index < ARMOR8_POT_STABIL_NUM; index++ )
+	{
+		averageValue += potStabilizerBuf[index];
+	}
+	averageValue = averageValue / ( static_cast<float>(ARMOR8_POT_STABIL_NUM) + 1.0f );
+
+	// only if the current value breaks our 'hysteresis' do we actually set a new pot value
+	if ( percentage < (averageValue - allowedScatterLeft) || percentage > (averageValue + allowedScatterRight) )
+	{
+		*potStabilizerValue = averageValue;
+		if ( channel == POT_CHANNEL::EFFECT1 )
+		{
+			// TODO send a parameter event based on what is the current parameter channel assigned to this pot, update ui
+			std::cout << "Effect1 Pot: " << std::to_string(*potStabilizerValue) << std::endl;
+		}
+		else if ( channel == POT_CHANNEL::EFFECT2 )
+		{
+			// TODO send a parameter event based on what is the current parameter channel assigned to this pot, update ui
+			std::cout << "Effect2 Pot: " << std::to_string(*potStabilizerValue) << std::endl;
+		}
+		else if ( channel == POT_CHANNEL::EFFECT3 )
+		{
+			// TODO send a parameter event based on what is the current parameter channel assigned to this pot, update ui
+			std::cout << "Effect3 Pot: " << std::to_string(*potStabilizerValue) << std::endl;
+		}
+	}
+
+	// write value to buffer and increment index
+	potStabilizerBuf[*potStabilizerIndex] = percentage;
+	*potStabilizerIndex = ( *potStabilizerIndex + 1 ) % ARMOR8_POT_STABIL_NUM;
 }
 
 void ARMor8UiManager::processGlideRetrigBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_GlideRetrigBtnState, pressed );
 
 	if ( m_GlideRetrigBtnState == BUTTON_STATE::RELEASED )
@@ -1315,10 +1420,12 @@ void ARMor8UiManager::processGlideRetrigBtn (bool pressed)
 
 		this->refreshGlideRetrig();
 	}
+	*/
 }
 
 void ARMor8UiManager::processMonoBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_MonoBtnState, pressed );
 
 	if ( m_MonoBtnState == BUTTON_STATE::RELEASED )
@@ -1339,10 +1446,12 @@ void ARMor8UiManager::processMonoBtn (bool pressed)
 		this->updateMonoPolyStr();
 		this->refreshMonoPoly();
 	}
+	*/
 }
 
 void ARMor8UiManager::processEGDestBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_EGDestBtnState, pressed );
 
 	if ( m_EGDestBtnState == BUTTON_STATE::RELEASED )
@@ -1354,10 +1463,12 @@ void ARMor8UiManager::processEGDestBtn (bool pressed)
 		this->updateEGDestState();
 		this->refreshEGDest();
 	}
+	*/
 }
 
 void ARMor8UiManager::processPrevPresetBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_PrevPresetBtnState, pressed );
 
 	if ( m_PrevPresetBtnState == BUTTON_STATE::RELEASED )
@@ -1365,10 +1476,12 @@ void ARMor8UiManager::processPrevPresetBtn (bool pressed)
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::PREV_PRESET)) );
 	}
+	*/
 }
 
 void ARMor8UiManager::processNextPresetBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_NextPresetBtnState, pressed );
 
 	if ( m_NextPresetBtnState == BUTTON_STATE::RELEASED )
@@ -1376,16 +1489,47 @@ void ARMor8UiManager::processNextPresetBtn (bool pressed)
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::NEXT_PRESET)) );
 	}
+	*/
 }
 
 void ARMor8UiManager::processWritePresetBtn (bool pressed)
 {
+	/*
 	this->updateButtonState( m_WritePresetBtnState, pressed );
 
 	if ( m_WritePresetBtnState == BUTTON_STATE::RELEASED )
 	{
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
 							static_cast<unsigned int>(BUTTON_CHANNEL::WRITE_PRESET)) );
+	}
+	*/
+}
+
+void ARMor8UiManager::processEffect1Btn (bool pressed)
+{
+	static BUTTON_STATE prevState = BUTTON_STATE::FLOATING;
+	this->updateButtonState( m_Effect1BtnState, pressed );
+
+	if ( prevState != m_Effect1BtnState )
+	{
+		std::cout << "Effect1: " << static_cast<int>( m_Effect1BtnState ) << std::endl;
+		prevState = m_Effect1BtnState;
+		// TODO this should be managed by this class' onButtonEvent and should update the menu status or send parameter events
+		IButtonEventListener::PublishEvent( ButtonEvent(prevState, static_cast<unsigned int>(BUTTON_CHANNEL::EFFECT1)) );
+	}
+}
+
+void ARMor8UiManager::processEffect2Btn (bool pressed)
+{
+	static BUTTON_STATE prevState = BUTTON_STATE::FLOATING;
+	this->updateButtonState( m_Effect2BtnState, pressed );
+
+	if ( prevState != m_Effect2BtnState )
+	{
+		std::cout << "Effect2: " << static_cast<int>( m_Effect2BtnState ) << std::endl;
+		prevState = m_Effect2BtnState;
+		// TODO this should be managed by this class' onButtonEvent and should update the menu status or send parameter events
+		IButtonEventListener::PublishEvent( ButtonEvent(prevState, static_cast<unsigned int>(BUTTON_CHANNEL::EFFECT2)) );
 	}
 }
 
@@ -1417,6 +1561,7 @@ void ARMor8UiManager::updateButtonState (BUTTON_STATE& buttonState, bool pressed
 
 void ARMor8UiManager::updateEGDestState()
 {
+	/*
 	bool amplitudeActive = (m_EGDestBitmask >> 2);
 	bool frequencyActive = (m_EGDestBitmask >> 1) & 0b00000001;
 	bool filtrFreqActive = (m_EGDestBitmask >> 0) & 0b00000001;
@@ -1453,6 +1598,7 @@ void ARMor8UiManager::updateEGDestState()
 		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
 							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FILT)) );
 	}
+	*/
 }
 
 void ARMor8UiManager::publishPartialLCDRefreshEvent (float xStart, float yStart, float xEnd, float yEnd)

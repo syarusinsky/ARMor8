@@ -14,9 +14,11 @@
 
 #include <stdint.h>
 
+#include "ARMor8Constants.hpp"
 #include "IARMor8PresetEventListener.hpp"
 #include "IARMor8ParameterEventListener.hpp"
 #include "IButtonEventListener.hpp"
+#include "IPotEventListener.hpp"
 
 enum class ARMOR8_MENUS : unsigned int
 {
@@ -28,7 +30,7 @@ enum class ARMOR8_MENUS : unsigned int
 class Font;
 class Sprite;
 
-class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IARMor8ParameterEventListener
+class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IARMor8ParameterEventListener, public IPotEventListener
 {
 	public:
 		ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format);
@@ -45,6 +47,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
 
 		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
+
+		void onPotEvent (const PotEvent& potEvent) override;
 
 		void setEGDestAmplitude (bool on);
 		void setEGDestFrequency (bool on);
@@ -70,6 +74,9 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void processPrevPresetBtn   (bool pressed);
 		void processNextPresetBtn   (bool pressed);
 		void processWritePresetBtn  (bool pressed);
+
+		void processEffect1Btn (bool pressed);
+		void processEffect2Btn (bool pressed);
 
 	private:
 		Sprite* 	m_Logo;
@@ -168,6 +175,22 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		BUTTON_STATE 	m_PrevPresetBtnState;
 		BUTTON_STATE 	m_NextPresetBtnState;
 		BUTTON_STATE 	m_WritePresetBtnState;
+
+		BUTTON_STATE 	m_Effect1BtnState;
+		BUTTON_STATE 	m_Effect2BtnState;
+
+		float 		m_Pot1StabilizerBuf[ARMOR8_POT_STABIL_NUM];
+		float 		m_Pot2StabilizerBuf[ARMOR8_POT_STABIL_NUM];
+		float 		m_Pot3StabilizerBuf[ARMOR8_POT_STABIL_NUM];
+		unsigned int 	m_Pot1StabilizerIndex;
+		unsigned int 	m_Pot2StabilizerIndex;
+		unsigned int 	m_Pot3StabilizerIndex;
+		float 		m_Pot1StabilizerValue; // we use this as the actual value to send
+		float 		m_Pot2StabilizerValue;
+		float 		m_Pot3StabilizerValue;
+		float 		m_Pot1StabilizerCachedPer; // cached percentage for hysteresis
+		float 		m_Pot2StabilizerCachedPer;
+		float 		m_Pot3StabilizerCachedPer;
 
 		void updateButtonState (BUTTON_STATE& buttonState, bool pressed); // note: buttonState is an output variable
 		void updateEGDestState();
