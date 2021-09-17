@@ -67,6 +67,7 @@ MainComponent::MainComponent() :
 	armor8VoiceManager.bindToPitchEventSystem();
 	armor8VoiceManager.bindToButtonEventSystem();
 	uiSim.bindToPotEventSystem();
+	uiSim.bindToButtonEventSystem();
 
 	// load font and logo from file
 	char* fontBytes = new char[FONT_FILE_SIZE];
@@ -384,6 +385,9 @@ void MainComponent::timerCallback()
 
 		// force UI to refresh
 		// op1Btn.triggerClick();
+
+		// TODO remove this after testing
+		uiSim.enterSettingsMenu();
 	}
 	else if ( fakeLoadingCounter < 100 )
 	{

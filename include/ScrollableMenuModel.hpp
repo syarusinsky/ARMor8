@@ -1,0 +1,48 @@
+#ifndef SCROLLABLEMENUMODEL_HPP
+#define SCROLLABLEMENUMODEL_HPP
+
+/*************************************************************************
+ * The ScrollableMenuModel is a simple class that represents the entries
+ * in a scrollable menu as well as the cursor position and what entries
+ * should currently be displayed. The entries that should currently
+ * be displayed is based on the cursor position and the m_NumVisibleEntries,
+ * which is the number that the display can view at once. This whole class
+ * is pretty much just a simple model whose logic a UI manager can use to
+ * draw simple scrollable menus.
+*************************************************************************/
+
+#include <set>
+
+#define MAX_ENTRIES 20
+
+class ScrollableMenuModel
+{
+	public:
+		ScrollableMenuModel (unsigned int numVisibleEntries);
+		~ScrollableMenuModel();
+
+		void addEntry (const char* entry, bool tickable = false);
+
+		char** getEntries(); // returns a pointer to the first visible entry, with the next ones following until null terminated
+
+		void advanceCursor();
+		void reverseCursor();
+
+		unsigned int getFirstVisibleIndex();
+		unsigned int getCursorIndex();
+
+		bool indexIsTickable (unsigned int index);
+
+	private:
+		char* 			m_Entries[MAX_ENTRIES + 1]; // plus 1 so that we always null terminate the list
+		unsigned int 		m_TotalEntries;
+
+		unsigned int 		m_NumVisibleEntries;
+
+		unsigned int 		m_TopVisibleIndex;
+		unsigned int 		m_CursorIndex;
+
+		bool 			m_TickableIndices[MAX_ENTRIES];
+};
+
+#endif // SCROLLABLEMENUMODEL_HPP

@@ -19,18 +19,21 @@
 #include "IARMor8ParameterEventListener.hpp"
 #include "IButtonEventListener.hpp"
 #include "IPotEventListener.hpp"
+#include "ScrollableMenuModel.hpp"
 
 enum class ARMOR8_MENUS : unsigned int
 {
 	LOADING,
-	STATUS,
-	ADDITIONAL
+	STATUS_MAIN,
+	STATUS_ADDITIONAL,
+	SETTINGS_MAIN
 };
 
 class Font;
 class Sprite;
 
-class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IARMor8ParameterEventListener, public IPotEventListener
+class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IARMor8ParameterEventListener, public IPotEventListener,
+			public IButtonEventListener
 {
 	public:
 		ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format);
@@ -42,6 +45,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void draw() override;
 		void drawLoadingLogo();
 
+		void enterSettingsMenu(); // TODO should probably make this private
+
 		void tickForChangingBackToStatus();
 
 		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
@@ -49,6 +54,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
 
 		void onPotEvent (const PotEvent& potEvent) override;
+
+		void onButtonEvent (const ButtonEvent& buttonEvent) override;
 
 		void setEGDestAmplitude (bool on);
 		void setEGDestFrequency (bool on);
@@ -82,6 +89,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		Sprite* 	m_Logo;
 
 		ARMOR8_MENUS 	m_CurrentMenu;
+
+		ScrollableMenuModel m_SettingsMainModel;
 
 		unsigned int    m_TicksForChangingBackToStatus;
 		const unsigned int m_MaxTicksForChangingBackToStatus = 300;

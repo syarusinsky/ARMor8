@@ -7,6 +7,8 @@
 #include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
+constexpr unsigned int NUM_VISIBLE_MENU_ENTRIES = 6;
+
 // TODO remove this after testing
 #include <iostream>
 
@@ -14,6 +16,7 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	Surface( width, height, format ),
 	m_Logo( nullptr ),
 	m_CurrentMenu( ARMOR8_MENUS::LOADING ),
+	m_SettingsMainModel( NUM_VISIBLE_MENU_ENTRIES ),
 	m_CurrentPresetNum( 1 ),
 	m_OpCurrentlyBeingEdited( 1 ),
 	m_WaveNumCurrentlyBeingEdited( 1 ),
@@ -108,6 +111,19 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_Pot2StabilizerValue( 0.0f ),
 	m_Pot3StabilizerValue( 0.0f )
 {
+	// add entries to main settings menu
+	m_SettingsMainModel.addEntry( "Assign EFFECT1" );
+	m_SettingsMainModel.addEntry( "Assign EFFECT2" );
+	m_SettingsMainModel.addEntry( "Assign EFFECT3" );
+	m_SettingsMainModel.addEntry( "Select operator" );
+	m_SettingsMainModel.addEntry( "Select waveform" );
+	m_SettingsMainModel.addEntry( "Use ratio freq", true );
+	m_SettingsMainModel.addEntry( "EG Dest: AMP", true );
+	m_SettingsMainModel.addEntry( "EG Dest: FREQ", true );
+	m_SettingsMainModel.addEntry( "EG Dest: FILT", true );
+	m_SettingsMainModel.addEntry( "Glide retrig", true );
+	m_SettingsMainModel.addEntry( "Monophonic", true );
+	m_SettingsMainModel.addEntry( "> Exit menu" );
 }
 
 ARMor8UiManager::~ARMor8UiManager()
@@ -138,7 +154,7 @@ void ARMor8UiManager::draw()
 
 		m_Logo->setRotationAngle( m_Logo->getRotationAngle() + 5 );
 	}
-	else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+	else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->fill();
@@ -217,7 +233,7 @@ void ARMor8UiManager::draw()
 
 		m_Graphics->drawText( 0.625f, 0.93f, m_RatioFixedStr, 1.0f );
 	}
-	else if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+	else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->fill();
@@ -257,6 +273,42 @@ void ARMor8UiManager::draw()
 			m_Graphics->drawCircle( 0.81f, 0.67f, 0.03f );
 		}
 	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
+	{
+		m_Graphics->setColor( false );
+		m_Graphics->fill();
+
+		m_Graphics->setColor( true );
+
+		// draw cursor
+		float yOffset = (0.15f * m_SettingsMainModel.getCursorIndex());
+		m_Graphics->drawTriangleFilled( 0.075f, 0.1f + yOffset, 0.075f, 0.2f + yOffset, 0.125f, 0.15f + yOffset );
+
+		// draw entries
+		char** entries = m_SettingsMainModel.getEntries();
+		unsigned int firstEntryIndex = m_SettingsMainModel.getFirstVisibleIndex();
+		unsigned int entryNum = 0;
+		char* entry = entries[entryNum];
+		yOffset = 0.1f;
+		const float tickOffset = 0.1f;
+		while ( entry != nullptr && entryNum < NUM_VISIBLE_MENU_ENTRIES )
+		{
+			const unsigned int actualIndex = firstEntryIndex + entryNum;
+			if ( m_SettingsMainModel.indexIsTickable(actualIndex) )
+			{
+				// TODO draw filled or not filled based on state of field held in this class
+				m_Graphics->drawCircleFilled( 0.175f, 0.05f + yOffset, 0.025f );
+				m_Graphics->drawText( 0.15f + tickOffset, yOffset, entry, 1.0f );
+			}
+			else
+			{
+				m_Graphics->drawText( 0.15f, yOffset, entry, 1.0f );
+			}
+			yOffset += 0.15f;
+			entryNum++;
+			entry = entries[entryNum];
+		}
+	}
 
 	IARMor8LCDRefreshEventListener::PublishEvent(
 			ARMor8LCDRefreshEvent(0, 0, this->getFrameBuffer()->getWidth(), this->getFrameBuffer()->getHeight(), 0) );
@@ -278,11 +330,12 @@ void ARMor8UiManager::drawLoadingLogo()
 
 void ARMor8UiManager::tickForChangingBackToStatus()
 {
-	if ( m_CurrentMenu != ARMOR8_MENUS::STATUS )
+	if ( m_CurrentMenu != ARMOR8_MENUS::STATUS_MAIN
+			&& m_CurrentMenu != ARMOR8_MENUS::SETTINGS_MAIN )
 	{
 		if ( m_TicksForChangingBackToStatus >= m_MaxTicksForChangingBackToStatus )
 		{
-			m_CurrentMenu = ARMOR8_MENUS::STATUS;
+			m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 			this->draw();
 			m_TicksForChangingBackToStatus = 0;
 		}
@@ -502,7 +555,7 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 
 	this->updateFiltResStr( filterRes, buffer, bufferLen );
 
-	m_CurrentMenu = ARMOR8_MENUS::STATUS;
+	m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 	this->draw();
 }
 
@@ -521,7 +574,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float amplitudeAmount = paramEvent.getValue();
 			this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.65f, 0.62f, 0.73f );
@@ -532,7 +585,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -543,7 +596,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float filtFrequencyAmount = paramEvent.getValue();
 			this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.83f, 0.62f, 0.92f );
@@ -554,7 +607,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -565,7 +618,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float frequencyAmount = paramEvent.getValue();
 			this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.74f, 0.62f, 0.82f );
@@ -576,7 +629,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -587,7 +640,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float attackAmount = paramEvent.getValue();
 			this->updateAttackStr( attackAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.5f, 0.26f );
@@ -598,7 +651,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -609,7 +662,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float decayAmount = paramEvent.getValue();
 			this->updateDecayStr( decayAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.28f, 0.5f, 0.38f );
@@ -620,7 +673,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -630,7 +683,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float sustainAmount = paramEvent.getValue();
 			this->updateSustainStr( sustainAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.39f, 0.5f, 0.49f );
@@ -641,7 +694,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -652,7 +705,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float releaseAmount = paramEvent.getValue();
 			this->updateReleaseStr( releaseAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.5f, 0.5f, 0.6f );
@@ -663,7 +716,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -674,7 +727,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float op1ModAmount = paramEvent.getValue();
 			this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.52f, 0.16f, 1.1f, 0.26f );
@@ -685,7 +738,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -696,7 +749,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float op2ModAmount = paramEvent.getValue();
 			this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.52f, 0.28f, 1.1f, 0.38f );
@@ -707,7 +760,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -718,7 +771,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float op3ModAmount = paramEvent.getValue();
 			this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.52f, 0.39f, 1.1f, 0.49f );
@@ -729,7 +782,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -740,7 +793,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float op4ModAmount = paramEvent.getValue();
 			this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.52f, 0.50f, 1.1f, 0.60f );
@@ -751,7 +804,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 				this->draw();
 			}
 		}
@@ -763,7 +816,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			int detuneAmount = *reinterpret_cast<int*>( &detuneAmountF );
 			this->updateDetuneStr( detuneAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.0f, 1.0f, 0.08f );
@@ -774,7 +827,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -785,7 +838,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float attackExpoAmount = paramEvent.getValue();
 			this->updateAttackExpoStr( attackExpoAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.6f, 0.26f );
@@ -796,7 +849,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -807,7 +860,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float decayExpoAmount = paramEvent.getValue();
 			this->updateDecayExpoStr( decayExpoAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.3f, 0.6f, 0.4 );
@@ -818,7 +871,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -829,7 +882,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float releaseExpoAmount = paramEvent.getValue();
 			this->updateReleaseExpoStr( releaseExpoAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.42f, 0.6f, 0.52f );
@@ -840,7 +893,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -851,7 +904,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float amplitudeVelAmount = paramEvent.getValue();
 			this->updateAmplitudeVelStr( amplitudeVelAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.6f, 0.6f, 0.7f );
@@ -862,7 +915,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -873,7 +926,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float filterVelAmount = paramEvent.getValue();
 			this->updateFilterVelStr( filterVelAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.0f, 0.72f, 0.6f, 0.81f );
@@ -884,7 +937,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -895,7 +948,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float glideTimeAmount = paramEvent.getValue();
 			this->updateGlideStr( glideTimeAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.03f, 0.83f, 0.97f, 0.92f );
@@ -906,7 +959,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -919,7 +972,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			int pitchBendAmountInt = static_cast<int>( pitchBendAmountUInt );
 			this->updatePitchBendStr( pitchBendAmountInt, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.03f, 0.93f, 0.97f, 1.0f );
@@ -930,7 +983,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -941,7 +994,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			float filtResAmount = paramEvent.getValue();
 			this->updateFiltResStr( filtResAmount, buffer, bufferLen );
 
-			if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 			{
 				m_Graphics->setColor( false );
 				m_Graphics->drawBoxFilled( 0.71f, 0.3f, 0.93f, 0.4f );
@@ -952,7 +1005,7 @@ void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramE
 			}
 			else
 			{
-				m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 				this->draw();
 			}
 		}
@@ -1396,6 +1449,58 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 	// write value to buffer and increment index
 	potStabilizerBuf[*potStabilizerIndex] = percentage;
 	*potStabilizerIndex = ( *potStabilizerIndex + 1 ) % ARMOR8_POT_STABIL_NUM;
+}
+
+void ARMor8UiManager::onButtonEvent (const ButtonEvent& buttonEvent)
+{
+	static bool ignoreNextReleaseEffect1 = false;
+	static bool ignoreNextReleaseEffect2 = false;
+
+	if ( buttonEvent.getButtonState() == BUTTON_STATE::RELEASED )
+	{
+		if ( buttonEvent.getChannel() == static_cast<unsigned int>(BUTTON_CHANNEL::EFFECT1) )
+		{
+			if ( ignoreNextReleaseEffect1 )
+			{
+				ignoreNextReleaseEffect1 = false;
+			}
+			else
+			{
+				if ( m_Effect2BtnState == BUTTON_STATE::HELD ) // double button press
+				{
+					ignoreNextReleaseEffect2 = true;
+					// TODO handle double button press per menu
+				}
+				else // single button press
+				{
+					// TODO this is specific to settings menu, refactor later, should handle single press per menu
+					m_SettingsMainModel.reverseCursor();
+					this->draw();
+				}
+			}
+		}
+		else if ( buttonEvent.getChannel() == static_cast<unsigned int>(BUTTON_CHANNEL::EFFECT2) )
+		{
+			if ( ignoreNextReleaseEffect2 )
+			{
+				ignoreNextReleaseEffect2 = false;
+			}
+			else
+			{
+				if ( m_Effect1BtnState == BUTTON_STATE::HELD ) // double button press
+				{
+					ignoreNextReleaseEffect1 = true;
+					// TODO handle double button press per menu
+				}
+				else // single button press
+				{
+					// TODO this is specific to settings menu, refactor later, should handle single press per menu
+					m_SettingsMainModel.advanceCursor();
+					this->draw();
+				}
+			}
+		}
+	}
 }
 
 void ARMor8UiManager::processGlideRetrigBtn (bool pressed)
@@ -1957,7 +2062,7 @@ void ARMor8UiManager::updateFiltResStr (float filtResAmount, char* buffer, unsig
 
 void ARMor8UiManager::refreshEGDest()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->drawBoxFilled( 0.92f, 0.64f, 1.0f, 0.9f );
@@ -2000,14 +2105,14 @@ void ARMor8UiManager::refreshEGDest()
 	}
 	else
 	{
-		m_CurrentMenu = ARMOR8_MENUS::STATUS;
+		m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 		this->draw();
 	}
 }
 
 void ARMor8UiManager::refreshRatioFixed()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->drawBoxFilled( 0.625f, 0.93f, 1.0f, 1.0f );
@@ -2018,14 +2123,14 @@ void ARMor8UiManager::refreshRatioFixed()
 	}
 	else
 	{
-		m_CurrentMenu = ARMOR8_MENUS::STATUS;
+		m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 		this->draw();
 	}
 }
 
 void ARMor8UiManager::refreshMonoPoly()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->drawBoxFilled( 0.0f, 0.93f, 0.4f, 1.0f );
@@ -2036,14 +2141,14 @@ void ARMor8UiManager::refreshMonoPoly()
 	}
 	else
 	{
-		m_CurrentMenu = ARMOR8_MENUS::STATUS;
+		m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 		this->draw();
 	}
 }
 
 void ARMor8UiManager::refreshWave()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->drawBoxFilled( 0.37f, 0.94f, 0.63f, 1.0f );
@@ -2054,14 +2159,14 @@ void ARMor8UiManager::refreshWave()
 	}
 	else
 	{
-		m_CurrentMenu = ARMOR8_MENUS::STATUS;
+		m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 		this->draw();
 	}
 }
 
 void ARMor8UiManager::refreshGlideRetrig()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::ADDITIONAL )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 	{
 		m_Graphics->setColor( false );
 		m_Graphics->drawBoxFilled( 0.76f, 0.63f, 0.86f, 0.75f );
@@ -2081,7 +2186,7 @@ void ARMor8UiManager::refreshGlideRetrig()
 	}
 	else
 	{
-		m_CurrentMenu = ARMOR8_MENUS::ADDITIONAL;
+		m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 		this->draw();
 	}
 }
@@ -2181,4 +2286,10 @@ void ARMor8UiManager::concatDigitStr (int val, char* sourceBuffer, char* destBuf
 			decimalPlaceOffset = 1;
 		}
 	}
+}
+
+void ARMor8UiManager::enterSettingsMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::SETTINGS_MAIN;
+	this->draw();
 }
