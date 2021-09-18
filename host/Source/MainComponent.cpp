@@ -380,14 +380,14 @@ void MainComponent::timerCallback()
 	{
 		fakeLoadingCounter++;
 
+		// TODO we should actually do this through the uiSim
 		// set preset to first preset
 		armor8VoiceManager.setState( presetManager.retrievePreset<ARMor8VoiceState>(0) );
 
 		// force UI to refresh
 		// op1Btn.triggerClick();
 
-		// TODO remove this after testing
-		uiSim.enterSettingsMenu();
+		uiSim.endLoading();
 	}
 	else if ( fakeLoadingCounter < 100 )
 	{

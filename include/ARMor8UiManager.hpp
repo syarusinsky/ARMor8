@@ -26,7 +26,8 @@ enum class ARMOR8_MENUS : unsigned int
 	LOADING,
 	STATUS_MAIN,
 	STATUS_ADDITIONAL,
-	SETTINGS_MAIN
+	SETTINGS_MAIN,
+	WRITE_PRESET_CONFIRMATION
 };
 
 class Font;
@@ -45,7 +46,7 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void draw() override;
 		void drawLoadingLogo();
 
-		void enterSettingsMenu(); // TODO should probably make this private
+		void endLoading();
 
 		void tickForChangingBackToStatus();
 
@@ -185,9 +186,11 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		BUTTON_STATE 	m_NextPresetBtnState;
 		BUTTON_STATE 	m_WritePresetBtnState;
 
+		// button state handling
 		BUTTON_STATE 	m_Effect1BtnState;
 		BUTTON_STATE 	m_Effect2BtnState;
 
+		// potentiometer stabilization
 		float 		m_Pot1StabilizerBuf[ARMOR8_POT_STABIL_NUM];
 		float 		m_Pot2StabilizerBuf[ARMOR8_POT_STABIL_NUM];
 		float 		m_Pot3StabilizerBuf[ARMOR8_POT_STABIL_NUM];
@@ -200,6 +203,21 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		float 		m_Pot1StabilizerCachedPer; // cached percentage for hysteresis
 		float 		m_Pot2StabilizerCachedPer;
 		float 		m_Pot3StabilizerCachedPer;
+
+		// main settings menu indices
+		unsigned int 	m_SettingsMenuAssignEffect1Index;
+		unsigned int 	m_SettingsMenuAssignEffect2Index;
+		unsigned int 	m_SettingsMenuAssignEffect3Index;
+		unsigned int 	m_SettingsMenuSelectOperatorIndex;
+		unsigned int 	m_SettingsMenuSelectWaveformIndex;
+		unsigned int 	m_SettingsMenuUseRatioFreqIndex;
+		unsigned int 	m_SettingsMenuEGDestAmpIndex;
+		unsigned int 	m_SettingsMenuEGDestFreqIndex;
+		unsigned int 	m_SettingsMenuEGDestFiltIndex;
+		unsigned int 	m_SettingsMenuGlideRetrigIndex;
+		unsigned int 	m_SettingsMenuMonophonicIndex;
+		unsigned int 	m_SettingsMenuWritePresetIndex;
+		unsigned int 	m_SettingsMenuExitMenuIndex;
 
 		void updateButtonState (BUTTON_STATE& buttonState, bool pressed); // note: buttonState is an output variable
 		void updateEGDestState();
@@ -237,6 +255,15 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void refreshMonoPoly();
 		void refreshWave();
 		void refreshGlideRetrig();
+
+		void returnToStatusMenu();
+		void enterSettingsMenu();
+		void enterWritePresetConfirmation();
+
+		// logic to handle button presses (in this case, releases) for each menu case
+		void handleEffect1SinglePress();
+		void handleEffect2SinglePress();
+		void handleDoubleButtonPress();
 
 		// note: this truncates ungracefully if bufferLen is smaller than then needed
 		void intToCString (int val, char* buffer, unsigned int bufferLen);

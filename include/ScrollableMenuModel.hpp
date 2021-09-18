@@ -21,12 +21,13 @@ class ScrollableMenuModel
 		ScrollableMenuModel (unsigned int numVisibleEntries);
 		~ScrollableMenuModel();
 
-		void addEntry (const char* entry, bool tickable = false);
+		unsigned int addEntry (const char* entry, bool tickable = false); // returns the index of given entry, or max uint if invalid
 
 		char** getEntries(); // returns a pointer to the first visible entry, with the next ones following until null terminated
 
 		void advanceCursor();
 		void reverseCursor();
+		void returnToTop();
 
 		unsigned int getFirstVisibleIndex();
 		unsigned int getCursorIndex();

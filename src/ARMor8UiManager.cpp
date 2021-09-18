@@ -111,19 +111,20 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_Pot2StabilizerValue( 0.0f ),
 	m_Pot3StabilizerValue( 0.0f )
 {
-	// add entries to main settings menu
-	m_SettingsMainModel.addEntry( "Assign EFFECT1" );
-	m_SettingsMainModel.addEntry( "Assign EFFECT2" );
-	m_SettingsMainModel.addEntry( "Assign EFFECT3" );
-	m_SettingsMainModel.addEntry( "Select operator" );
-	m_SettingsMainModel.addEntry( "Select waveform" );
-	m_SettingsMainModel.addEntry( "Use ratio freq", true );
-	m_SettingsMainModel.addEntry( "EG Dest: AMP", true );
-	m_SettingsMainModel.addEntry( "EG Dest: FREQ", true );
-	m_SettingsMainModel.addEntry( "EG Dest: FILT", true );
-	m_SettingsMainModel.addEntry( "Glide retrig", true );
-	m_SettingsMainModel.addEntry( "Monophonic", true );
-	m_SettingsMainModel.addEntry( "> Exit menu" );
+	// add entries to main settings menu and store indices for comparision
+	m_SettingsMenuAssignEffect1Index = m_SettingsMainModel.addEntry( "Assign EFFECT1" );
+	m_SettingsMenuAssignEffect2Index = m_SettingsMainModel.addEntry( "Assign EFFECT2" );
+	m_SettingsMenuAssignEffect3Index = m_SettingsMainModel.addEntry( "Assign EFFECT3" );
+	m_SettingsMenuSelectOperatorIndex = m_SettingsMainModel.addEntry( "Select operator" );
+	m_SettingsMenuSelectWaveformIndex = m_SettingsMainModel.addEntry( "Select waveform" );
+	m_SettingsMenuUseRatioFreqIndex = m_SettingsMainModel.addEntry( "Use ratio freq", true );
+	m_SettingsMenuEGDestAmpIndex = m_SettingsMainModel.addEntry( "EG Dest: AMP", true );
+	m_SettingsMenuEGDestFreqIndex = m_SettingsMainModel.addEntry( "EG Dest: FREQ", true );
+	m_SettingsMenuEGDestFiltIndex = m_SettingsMainModel.addEntry( "EG Dest: FILT", true );
+	m_SettingsMenuGlideRetrigIndex = m_SettingsMainModel.addEntry( "Glide retrig", true );
+	m_SettingsMenuMonophonicIndex = m_SettingsMainModel.addEntry( "Monophonic", true );
+	m_SettingsMenuWritePresetIndex = m_SettingsMainModel.addEntry( "Write preset" );
+	m_SettingsMenuExitMenuIndex = m_SettingsMainModel.addEntry( "> Exit menu" );
 }
 
 ARMor8UiManager::~ARMor8UiManager()
@@ -296,8 +297,26 @@ void ARMor8UiManager::draw()
 			const unsigned int actualIndex = firstEntryIndex + entryNum;
 			if ( m_SettingsMainModel.indexIsTickable(actualIndex) )
 			{
-				// TODO draw filled or not filled based on state of field held in this class
-				m_Graphics->drawCircleFilled( 0.175f, 0.05f + yOffset, 0.025f );
+				bool fillCircle = false;
+				if ( (actualIndex == m_SettingsMenuUseRatioFreqIndex && m_UsingRatio)
+					|| (actualIndex == m_SettingsMenuEGDestAmpIndex && (m_EGDestBitmask & 0b100))
+					|| (actualIndex == m_SettingsMenuEGDestFreqIndex && (m_EGDestBitmask & 0b010))
+					|| (actualIndex == m_SettingsMenuEGDestFiltIndex && (m_EGDestBitmask & 0b001))
+					|| (actualIndex == m_SettingsMenuGlideRetrigIndex && m_UsingGlideRetrigger)
+					|| (actualIndex == m_SettingsMenuMonophonicIndex && m_UsingMono) )
+				{
+					fillCircle = true;
+				}
+
+				if ( fillCircle )
+				{
+					m_Graphics->drawCircleFilled( 0.175f, 0.05f + yOffset, 0.025f );
+				}
+				else
+				{
+					m_Graphics->drawCircle( 0.175f, 0.05f + yOffset, 0.025f );
+				}
+
 				m_Graphics->drawText( 0.15f + tickOffset, yOffset, entry, 1.0f );
 			}
 			else
@@ -308,6 +327,21 @@ void ARMor8UiManager::draw()
 			entryNum++;
 			entry = entries[entryNum];
 		}
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
+	{
+		m_Graphics->setColor( false );
+		m_Graphics->fill();
+
+		m_Graphics->setColor( true );
+
+		m_Graphics->drawText( 0.05f, 0.2f, "Overwrite preset?", 1.0f );
+
+		m_Graphics->drawCircleFilled( 0.15f, 0.5f, 0.05f );
+		m_Graphics->drawText( 0.25f, 0.475f, "Effect1: Yes", 1.0f );
+
+		m_Graphics->drawCircleFilled( 0.15f, 0.75f, 0.05f );
+		m_Graphics->drawText( 0.25f, 0.725f, "Effect2: No", 1.0f );
 	}
 
 	IARMor8LCDRefreshEventListener::PublishEvent(
@@ -328,15 +362,20 @@ void ARMor8UiManager::drawLoadingLogo()
 	this->publishPartialLCDRefreshEvent( 0.3f, 0.05f, 0.7f, 0.8f );
 }
 
+void ARMor8UiManager::endLoading()
+{
+	this->returnToStatusMenu();
+}
+
 void ARMor8UiManager::tickForChangingBackToStatus()
 {
 	if ( m_CurrentMenu != ARMOR8_MENUS::STATUS_MAIN
-			&& m_CurrentMenu != ARMOR8_MENUS::SETTINGS_MAIN )
+			&& m_CurrentMenu != ARMOR8_MENUS::SETTINGS_MAIN
+			&& m_CurrentMenu != ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
 	{
 		if ( m_TicksForChangingBackToStatus >= m_MaxTicksForChangingBackToStatus )
 		{
-			m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-			this->draw();
+			this->returnToStatusMenu();
 			m_TicksForChangingBackToStatus = 0;
 		}
 
@@ -1469,13 +1508,11 @@ void ARMor8UiManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				if ( m_Effect2BtnState == BUTTON_STATE::HELD ) // double button press
 				{
 					ignoreNextReleaseEffect2 = true;
-					// TODO handle double button press per menu
+					this->handleDoubleButtonPress();
 				}
 				else // single button press
 				{
-					// TODO this is specific to settings menu, refactor later, should handle single press per menu
-					m_SettingsMainModel.reverseCursor();
-					this->draw();
+					this->handleEffect1SinglePress();
 				}
 			}
 		}
@@ -1490,13 +1527,11 @@ void ARMor8UiManager::onButtonEvent (const ButtonEvent& buttonEvent)
 				if ( m_Effect1BtnState == BUTTON_STATE::HELD ) // double button press
 				{
 					ignoreNextReleaseEffect1 = true;
-					// TODO handle double button press per menu
+					this->handleDoubleButtonPress();
 				}
 				else // single button press
 				{
-					// TODO this is specific to settings menu, refactor later, should handle single press per menu
-					m_SettingsMainModel.advanceCursor();
-					this->draw();
+					this->handleEffect2SinglePress();
 				}
 			}
 		}
@@ -1617,9 +1652,9 @@ void ARMor8UiManager::processEffect1Btn (bool pressed)
 
 	if ( prevState != m_Effect1BtnState )
 	{
-		std::cout << "Effect1: " << static_cast<int>( m_Effect1BtnState ) << std::endl;
 		prevState = m_Effect1BtnState;
-		// TODO this should be managed by this class' onButtonEvent and should update the menu status or send parameter events
+
+		// this button event is then processed by this class' onButtonEvent with logic per menu
 		IButtonEventListener::PublishEvent( ButtonEvent(prevState, static_cast<unsigned int>(BUTTON_CHANNEL::EFFECT1)) );
 	}
 }
@@ -1631,9 +1666,9 @@ void ARMor8UiManager::processEffect2Btn (bool pressed)
 
 	if ( prevState != m_Effect2BtnState )
 	{
-		std::cout << "Effect2: " << static_cast<int>( m_Effect2BtnState ) << std::endl;
 		prevState = m_Effect2BtnState;
-		// TODO this should be managed by this class' onButtonEvent and should update the menu status or send parameter events
+
+		// this button event is then processed by this class' onButtonEvent with logic per menu
 		IButtonEventListener::PublishEvent( ButtonEvent(prevState, static_cast<unsigned int>(BUTTON_CHANNEL::EFFECT2)) );
 	}
 }
@@ -2191,6 +2226,129 @@ void ARMor8UiManager::refreshGlideRetrig()
 	}
 }
 
+void ARMor8UiManager::returnToStatusMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
+	this->draw();
+}
+
+void ARMor8UiManager::enterSettingsMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::SETTINGS_MAIN;
+	m_SettingsMainModel.returnToTop();
+	this->draw();
+}
+
+void ARMor8UiManager::enterWritePresetConfirmation()
+{
+	m_CurrentMenu = ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION;
+	this->draw();
+}
+
+void ARMor8UiManager::handleEffect1SinglePress()
+{
+	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
+	{
+		m_SettingsMainModel.reverseCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
+	{
+		// TODO implement preset write
+		std::cout << "SHOULD HAVE WROTE PRESET" << std::endl;
+		this->returnToStatusMenu();
+	}
+}
+
+void ARMor8UiManager::handleEffect2SinglePress()
+{
+	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
+	{
+		m_SettingsMainModel.advanceCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
+	{
+		this->returnToStatusMenu();
+	}
+}
+
+void ARMor8UiManager::handleDoubleButtonPress()
+{
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+	{
+		this->enterSettingsMenu();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
+	{
+		unsigned int cursorIndex = m_SettingsMainModel.getCursorIndex() + m_SettingsMainModel.getFirstVisibleIndex();
+		if ( cursorIndex == m_SettingsMenuExitMenuIndex ) // exit settings menu
+		{
+			this->returnToStatusMenu();
+		}
+		else if ( cursorIndex == m_SettingsMenuAssignEffect1Index ) // assign effect pot 1
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_SettingsMenuAssignEffect2Index ) // assign effect pot 2
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_SettingsMenuAssignEffect3Index ) // assign effect pot 3
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_SettingsMenuSelectOperatorIndex ) // select operator to edit
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_SettingsMenuSelectWaveformIndex ) // select waveform to use
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_SettingsMenuUseRatioFreqIndex ) // toggle ratio for frequency
+		{
+			m_UsingRatio = !m_UsingRatio;
+			this->draw();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SettingsMenuEGDestAmpIndex ) // toggle eg to amplitude
+		{
+			m_EGDestBitmask ^= 0b100;
+			this->draw();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SettingsMenuEGDestFreqIndex ) // toggle eg to frequency
+		{
+			m_EGDestBitmask ^= 0b010;
+			this->draw();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SettingsMenuEGDestFiltIndex ) // toggle eg to filter
+		{
+			m_EGDestBitmask ^= 0b001;
+			this->draw();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SettingsMenuGlideRetrigIndex ) // toggle glide retrigger
+		{
+			m_UsingGlideRetrigger = !m_UsingGlideRetrigger;
+			this->draw();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SettingsMenuMonophonicIndex ) // toggle monophonic mode
+		{
+			m_UsingMono = !m_UsingMono;
+			this->draw();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SettingsMenuWritePresetIndex ) // write preset (leads to confirmation page)
+		{
+			this->enterWritePresetConfirmation();
+		}
+	}
+}
+
 void ARMor8UiManager::intToCString (int val, char* buffer, unsigned int bufferLen)
 {
 	if ( bufferLen == 0 ) return;
@@ -2286,10 +2444,4 @@ void ARMor8UiManager::concatDigitStr (int val, char* sourceBuffer, char* destBuf
 			decimalPlaceOffset = 1;
 		}
 	}
-}
-
-void ARMor8UiManager::enterSettingsMenu()
-{
-	m_CurrentMenu = ARMOR8_MENUS::SETTINGS_MAIN;
-	this->draw();
 }
