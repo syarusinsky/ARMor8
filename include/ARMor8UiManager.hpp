@@ -27,6 +27,9 @@ enum class ARMOR8_MENUS : unsigned int
 	STATUS_MAIN,
 	STATUS_ADDITIONAL,
 	SETTINGS_MAIN,
+	ASSIGN_EFFECT_POT,
+	SELECT_OPERATOR,
+	SELECT_WAVEFORM,
 	WRITE_PRESET_CONFIRMATION
 };
 
@@ -92,6 +95,11 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		ARMOR8_MENUS 	m_CurrentMenu;
 
 		ScrollableMenuModel m_SettingsMainModel;
+		ScrollableMenuModel m_AssignEffectPotModel;
+		ScrollableMenuModel m_SelectOperatorModel;
+		ScrollableMenuModel m_SelectWaveformModel;
+
+		unsigned int 	m_EffectPotToAssign; // 1 for effect1 pot, 2 for effect2 pot, 3 for effect3 pot
 
 		unsigned int    m_TicksForChangingBackToStatus;
 		const unsigned int m_MaxTicksForChangingBackToStatus = 300;
@@ -219,6 +227,42 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		unsigned int 	m_SettingsMenuWritePresetIndex;
 		unsigned int 	m_SettingsMenuExitMenuIndex;
 
+		// assign effect pot menu indices
+		unsigned int 	m_AssignEffectPotMenuFreqIndex;
+		unsigned int 	m_AssignEffectPotMenuDetuneIndex;
+		unsigned int 	m_AssignEffectPotMenuAttackIndex;
+		unsigned int 	m_AssignEffectPotMenuDecayIndex;
+		unsigned int 	m_AssignEffectPotMenuSustainIndex;
+		unsigned int 	m_AssignEffectPotMenuReleaseIndex;
+		unsigned int 	m_AssignEffectPotMenuAtkExpoIndex;
+		unsigned int 	m_AssignEffectPotMenuDecExpoIndex;
+		unsigned int 	m_AssignEffectPotMenuRelExpoIndex;
+		unsigned int 	m_AssignEffectPotMenuOp1ModIndex;
+		unsigned int 	m_AssignEffectPotMenuOp2ModIndex;
+		unsigned int 	m_AssignEffectPotMenuOp3ModIndex;
+		unsigned int 	m_AssignEffectPotMenuOp4ModIndex;
+		unsigned int 	m_AssignEffectPotMenuAmplitudeIndex;
+		unsigned int 	m_AssignEffectPotMenuFiltFreqIndex;
+		unsigned int 	m_AssignEffectPotMenuFiltResIndex;
+		unsigned int 	m_AssignEffectPotMenuAmpVelSensIndex;
+		unsigned int 	m_AssignEffectPotMenuFiltVelSensIndex;
+		unsigned int 	m_AssignEffectPotMenuPBendSemiIndex;
+		unsigned int 	m_AssignEffectPotMenuGlideTimeIndex;
+
+		// select operator menu indices
+		unsigned int 	m_SelectOperatorMenuOp1Index;
+		unsigned int 	m_SelectOperatorMenuOp2Index;
+		unsigned int 	m_SelectOperatorMenuOp3Index;
+		unsigned int 	m_SelectOperatorMenuOp4Index;
+		unsigned int 	m_SelectOperatorMenuExitMenuIndex;
+
+		// select waveform menu indices
+		unsigned int 	m_SelectWaveformMenuSineIndex;
+		unsigned int 	m_SelectWaveformMenuTriIndex;
+		unsigned int 	m_SelectWaveformMenuSquareIndex;
+		unsigned int 	m_SelectWaveformMenuSawIndex;
+		unsigned int 	m_SelectWaveformMenuExitMenuIndex;
+
 		void updateButtonState (BUTTON_STATE& buttonState, bool pressed); // note: buttonState is an output variable
 		void updateEGDestState();
 		void publishPartialLCDRefreshEvent (float xStart, float yStart, float xEnd, float yEnd);
@@ -258,12 +302,18 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 
 		void returnToStatusMenu();
 		void enterSettingsMenu();
+		void enterAssignEffectPotMenu();
+		void enterSelectOperatorMenu();
+		void enterSelectWaveformMenu();
 		void enterWritePresetConfirmation();
 
 		// logic to handle button presses (in this case, releases) for each menu case
 		void handleEffect1SinglePress();
 		void handleEffect2SinglePress();
 		void handleDoubleButtonPress();
+
+		bool shouldTickSettingsMenu (unsigned int entryIndex);
+		void drawScrollableMenu (ScrollableMenuModel& menu, bool (ARMor8UiManager::*shouldTickFunc)(unsigned int), ARMor8UiManager& ui);
 
 		// note: this truncates ungracefully if bufferLen is smaller than then needed
 		void intToCString (int val, char* buffer, unsigned int bufferLen);

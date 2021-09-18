@@ -7,7 +7,7 @@
 #include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
-constexpr unsigned int NUM_VISIBLE_MENU_ENTRIES = 6;
+constexpr unsigned int SETTINGS_NUM_VISIBLE_ENTRIES = 6;
 
 // TODO remove this after testing
 #include <iostream>
@@ -16,7 +16,11 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	Surface( width, height, format ),
 	m_Logo( nullptr ),
 	m_CurrentMenu( ARMOR8_MENUS::LOADING ),
-	m_SettingsMainModel( NUM_VISIBLE_MENU_ENTRIES ),
+	m_SettingsMainModel( SETTINGS_NUM_VISIBLE_ENTRIES ),
+	m_AssignEffectPotModel( SETTINGS_NUM_VISIBLE_ENTRIES ),
+	m_SelectOperatorModel( SETTINGS_NUM_VISIBLE_ENTRIES ),
+	m_SelectWaveformModel( SETTINGS_NUM_VISIBLE_ENTRIES ),
+	m_EffectPotToAssign( 0 ),
 	m_CurrentPresetNum( 1 ),
 	m_OpCurrentlyBeingEdited( 1 ),
 	m_WaveNumCurrentlyBeingEdited( 1 ),
@@ -111,7 +115,7 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_Pot2StabilizerValue( 0.0f ),
 	m_Pot3StabilizerValue( 0.0f )
 {
-	// add entries to main settings menu and store indices for comparision
+	// add entries to main settings menu and store indices for comparison
 	m_SettingsMenuAssignEffect1Index = m_SettingsMainModel.addEntry( "Assign EFFECT1" );
 	m_SettingsMenuAssignEffect2Index = m_SettingsMainModel.addEntry( "Assign EFFECT2" );
 	m_SettingsMenuAssignEffect3Index = m_SettingsMainModel.addEntry( "Assign EFFECT3" );
@@ -125,6 +129,42 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_SettingsMenuMonophonicIndex = m_SettingsMainModel.addEntry( "Monophonic", true );
 	m_SettingsMenuWritePresetIndex = m_SettingsMainModel.addEntry( "Write preset" );
 	m_SettingsMenuExitMenuIndex = m_SettingsMainModel.addEntry( "> Exit menu" );
+
+	// add entries to assign effect pot menu and store indices for comparison
+	m_AssignEffectPotMenuFreqIndex = m_AssignEffectPotModel.addEntry( "Frequency" );
+	m_AssignEffectPotMenuDetuneIndex = m_AssignEffectPotModel.addEntry( "Detune" );
+	m_AssignEffectPotMenuAttackIndex = m_AssignEffectPotModel.addEntry( "EG attack" );
+	m_AssignEffectPotMenuDecayIndex = m_AssignEffectPotModel.addEntry( "EG decay" );
+	m_AssignEffectPotMenuSustainIndex = m_AssignEffectPotModel.addEntry( "EG sustain" );
+	m_AssignEffectPotMenuReleaseIndex = m_AssignEffectPotModel.addEntry( "EG release" );
+	m_AssignEffectPotMenuAtkExpoIndex = m_AssignEffectPotModel.addEntry( "Attack expo" );
+	m_AssignEffectPotMenuDecExpoIndex = m_AssignEffectPotModel.addEntry( "Decay expo" );
+	m_AssignEffectPotMenuRelExpoIndex = m_AssignEffectPotModel.addEntry( "Release expo" );
+	m_AssignEffectPotMenuOp1ModIndex = m_AssignEffectPotModel.addEntry( "Op1 mod amount" );
+	m_AssignEffectPotMenuOp2ModIndex = m_AssignEffectPotModel.addEntry( "Op2 mod amount" );
+	m_AssignEffectPotMenuOp3ModIndex = m_AssignEffectPotModel.addEntry( "Op3 mod amount" );
+	m_AssignEffectPotMenuOp4ModIndex = m_AssignEffectPotModel.addEntry( "Op4 mod amount" );
+	m_AssignEffectPotMenuAmplitudeIndex = m_AssignEffectPotModel.addEntry( "Amplitude" );
+	m_AssignEffectPotMenuFiltFreqIndex = m_AssignEffectPotModel.addEntry( "Filt frequency" );
+	m_AssignEffectPotMenuFiltResIndex = m_AssignEffectPotModel.addEntry( "Filt resonance" );
+	m_AssignEffectPotMenuAmpVelSensIndex = m_AssignEffectPotModel.addEntry( "Amp velocity" );
+	m_AssignEffectPotMenuFiltVelSensIndex = m_AssignEffectPotModel.addEntry( "Filt velocity" );
+	m_AssignEffectPotMenuPBendSemiIndex = m_AssignEffectPotModel.addEntry( "Pitch bend" );
+	m_AssignEffectPotMenuGlideTimeIndex = m_AssignEffectPotModel.addEntry( "Glide time" );
+
+	// add entries to select operator menu and store indices for comparison
+	m_SelectOperatorMenuOp1Index = m_SelectOperatorModel.addEntry( "Edit operator 1" );
+	m_SelectOperatorMenuOp2Index = m_SelectOperatorModel.addEntry( "Edit operator 2" );
+	m_SelectOperatorMenuOp3Index = m_SelectOperatorModel.addEntry( "Edit operator 3" );
+	m_SelectOperatorMenuOp4Index = m_SelectOperatorModel.addEntry( "Edit operator 4" );
+	m_SelectOperatorMenuExitMenuIndex = m_SelectOperatorModel.addEntry( "> Exit menu" );
+
+	// add entries to select waveform menu and store indices for comparison
+	m_SelectWaveformMenuSineIndex = m_SelectWaveformModel.addEntry( "Use sine" );
+	m_SelectWaveformMenuTriIndex = m_SelectWaveformModel.addEntry( "Use tri" );
+	m_SelectWaveformMenuSquareIndex = m_SelectWaveformModel.addEntry( "Use square" );
+	m_SelectWaveformMenuSawIndex = m_SelectWaveformModel.addEntry( "Use saw" );
+	m_SelectWaveformMenuExitMenuIndex = m_SelectWaveformModel.addEntry( "> Exit menu" );
 }
 
 ARMor8UiManager::~ARMor8UiManager()
@@ -276,57 +316,19 @@ void ARMor8UiManager::draw()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
 	{
-		m_Graphics->setColor( false );
-		m_Graphics->fill();
-
-		m_Graphics->setColor( true );
-
-		// draw cursor
-		float yOffset = (0.15f * m_SettingsMainModel.getCursorIndex());
-		m_Graphics->drawTriangleFilled( 0.075f, 0.1f + yOffset, 0.075f, 0.2f + yOffset, 0.125f, 0.15f + yOffset );
-
-		// draw entries
-		char** entries = m_SettingsMainModel.getEntries();
-		unsigned int firstEntryIndex = m_SettingsMainModel.getFirstVisibleIndex();
-		unsigned int entryNum = 0;
-		char* entry = entries[entryNum];
-		yOffset = 0.1f;
-		const float tickOffset = 0.1f;
-		while ( entry != nullptr && entryNum < NUM_VISIBLE_MENU_ENTRIES )
-		{
-			const unsigned int actualIndex = firstEntryIndex + entryNum;
-			if ( m_SettingsMainModel.indexIsTickable(actualIndex) )
-			{
-				bool fillCircle = false;
-				if ( (actualIndex == m_SettingsMenuUseRatioFreqIndex && m_UsingRatio)
-					|| (actualIndex == m_SettingsMenuEGDestAmpIndex && (m_EGDestBitmask & 0b100))
-					|| (actualIndex == m_SettingsMenuEGDestFreqIndex && (m_EGDestBitmask & 0b010))
-					|| (actualIndex == m_SettingsMenuEGDestFiltIndex && (m_EGDestBitmask & 0b001))
-					|| (actualIndex == m_SettingsMenuGlideRetrigIndex && m_UsingGlideRetrigger)
-					|| (actualIndex == m_SettingsMenuMonophonicIndex && m_UsingMono) )
-				{
-					fillCircle = true;
-				}
-
-				if ( fillCircle )
-				{
-					m_Graphics->drawCircleFilled( 0.175f, 0.05f + yOffset, 0.025f );
-				}
-				else
-				{
-					m_Graphics->drawCircle( 0.175f, 0.05f + yOffset, 0.025f );
-				}
-
-				m_Graphics->drawText( 0.15f + tickOffset, yOffset, entry, 1.0f );
-			}
-			else
-			{
-				m_Graphics->drawText( 0.15f, yOffset, entry, 1.0f );
-			}
-			yOffset += 0.15f;
-			entryNum++;
-			entry = entries[entryNum];
-		}
+		this->drawScrollableMenu( m_SettingsMainModel, &ARMor8UiManager::shouldTickSettingsMenu, *this );
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+	{
+		this->drawScrollableMenu( m_AssignEffectPotModel, nullptr, *this );
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_OPERATOR )
+	{
+		this->drawScrollableMenu( m_SelectOperatorModel, nullptr, *this );
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
+	{
+		this->drawScrollableMenu( m_SelectWaveformModel, nullptr, *this );
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
 	{
@@ -371,6 +373,9 @@ void ARMor8UiManager::tickForChangingBackToStatus()
 {
 	if ( m_CurrentMenu != ARMOR8_MENUS::STATUS_MAIN
 			&& m_CurrentMenu != ARMOR8_MENUS::SETTINGS_MAIN
+			&& m_CurrentMenu != ARMOR8_MENUS::ASSIGN_EFFECT_POT
+			&& m_CurrentMenu != ARMOR8_MENUS::SELECT_OPERATOR
+			&& m_CurrentMenu != ARMOR8_MENUS::SELECT_WAVEFORM
 			&& m_CurrentMenu != ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
 	{
 		if ( m_TicksForChangingBackToStatus >= m_MaxTicksForChangingBackToStatus )
@@ -2239,6 +2244,27 @@ void ARMor8UiManager::enterSettingsMenu()
 	this->draw();
 }
 
+void ARMor8UiManager::enterAssignEffectPotMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::ASSIGN_EFFECT_POT;
+	m_AssignEffectPotModel.returnToTop(); // TODO we actually probably want this to go to the previous assignment
+	this->draw();
+}
+
+void ARMor8UiManager::enterSelectOperatorMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::SELECT_OPERATOR;
+	m_SelectOperatorModel.returnToTop();
+	this->draw();
+}
+
+void ARMor8UiManager::enterSelectWaveformMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::SELECT_WAVEFORM;
+	m_SelectWaveformModel.returnToTop();
+	this->draw();
+}
+
 void ARMor8UiManager::enterWritePresetConfirmation()
 {
 	m_CurrentMenu = ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION;
@@ -2250,6 +2276,21 @@ void ARMor8UiManager::handleEffect1SinglePress()
 	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
 	{
 		m_SettingsMainModel.reverseCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+	{
+		m_AssignEffectPotModel.reverseCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_OPERATOR )
+	{
+		m_SelectOperatorModel.reverseCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
+	{
+		m_SelectWaveformModel.reverseCursor();
 		this->draw();
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
@@ -2265,6 +2306,106 @@ void ARMor8UiManager::handleEffect2SinglePress()
 	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
 	{
 		m_SettingsMainModel.advanceCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+	{
+		m_AssignEffectPotModel.advanceCursor();
+
+		unsigned int cursorIndex = m_AssignEffectPotModel.getCursorIndex() + m_AssignEffectPotModel.getFirstVisibleIndex();
+		if ( cursorIndex == m_AssignEffectPotMenuFreqIndex ) // assign effect pot to frequency
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuDetuneIndex ) // assign effect pot to detune
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuAttackIndex ) // assign effect pot to eg attack
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuDecayIndex ) // assign effect pot to eg decay
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuSustainIndex ) // assign effect pot to eg sustain
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuReleaseIndex ) // assign effect pot to eg release
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuAtkExpoIndex ) // assign effect pot to eg attack expo
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuDecExpoIndex ) // assign effect pot to eg decay expo
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuRelExpoIndex ) // assign effect pot to eg release expo
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuOp1ModIndex ) // assign effect pot to op1 modulation amount
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuOp2ModIndex ) // assign effect pot to op2 modulation amount
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuOp3ModIndex ) // assign effect pot to op3 modulation amount
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuOp4ModIndex ) // assign effect pot to op4 modulation amount
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuAmplitudeIndex ) // assign effect pot to amplitude
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuFiltFreqIndex ) // assign effect pot to filter frequency
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuFiltResIndex ) // assign effect pot to filter resonance
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // assign effect pot to amplitude velocity sensitivity
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // assign effect pot to filter velocity sensitivity
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuPBendSemiIndex ) // assign effect pot to pitch bend semitones
+		{
+			// TODO implement
+		}
+		else if ( cursorIndex == m_AssignEffectPotMenuGlideTimeIndex ) // assign effect pot to glide time
+		{
+			// TODO implement
+		}
+
+		// TODO assign effect pot (based on m_EffectPotToAssign) to parameter of current operator (may need additional vars for this)
+
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_OPERATOR )
+	{
+		m_SelectOperatorModel.advanceCursor();
+		this->draw();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
+	{
+		m_SelectWaveformModel.advanceCursor();
 		this->draw();
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
@@ -2288,23 +2429,26 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect1Index ) // assign effect pot 1
 		{
-			// TODO implement
+			m_EffectPotToAssign = 1;
+			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect2Index ) // assign effect pot 2
 		{
-			// TODO implement
+			m_EffectPotToAssign = 2;
+			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect3Index ) // assign effect pot 3
 		{
-			// TODO implement
+			m_EffectPotToAssign = 3;
+			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuSelectOperatorIndex ) // select operator to edit
 		{
-			// TODO implement
+			this->enterSelectOperatorMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuSelectWaveformIndex ) // select waveform to use
 		{
-			// TODO implement
+			this->enterSelectWaveformMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuUseRatioFreqIndex ) // toggle ratio for frequency
 		{
@@ -2346,6 +2490,140 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		{
 			this->enterWritePresetConfirmation();
 		}
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+	{
+		this->enterSettingsMenu();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_OPERATOR )
+	{
+		unsigned int cursorIndex = m_SelectOperatorModel.getCursorIndex() + m_SelectOperatorModel.getFirstVisibleIndex();
+		if ( cursorIndex == m_SelectOperatorMenuOp1Index ) // start editing operator 1
+		{
+			m_OpCurrentlyBeingEdited = 1;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectOperatorMenuOp2Index ) // start editing operator 2
+		{
+			m_OpCurrentlyBeingEdited = 2;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectOperatorMenuOp3Index ) // start editing operator 3
+		{
+			m_OpCurrentlyBeingEdited = 3;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectOperatorMenuOp4Index ) // start editing operator 4
+		{
+			m_OpCurrentlyBeingEdited = 4;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectOperatorMenuExitMenuIndex ) // exit back to settings menu
+		{
+			this->enterSettingsMenu();
+		}
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
+	{
+		unsigned int cursorIndex = m_SelectWaveformModel.getCursorIndex() + m_SelectWaveformModel.getFirstVisibleIndex();
+		if ( cursorIndex == m_SelectWaveformMenuSineIndex ) // use sine wave
+		{
+			m_WaveNumCurrentlyBeingEdited = 1;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectWaveformMenuTriIndex ) // use tri wave
+		{
+			m_WaveNumCurrentlyBeingEdited = 2;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectWaveformMenuSquareIndex ) // use square wave
+		{
+			m_WaveNumCurrentlyBeingEdited = 3;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectWaveformMenuSawIndex ) // use saw wave
+		{
+			m_WaveNumCurrentlyBeingEdited = 4;
+			this->enterSettingsMenu();
+			// TODO send parameter event
+		}
+		else if ( cursorIndex == m_SelectWaveformMenuExitMenuIndex ) // exit back to settings menu
+		{
+			this->enterSettingsMenu();
+		}
+	}
+}
+
+bool ARMor8UiManager::shouldTickSettingsMenu (unsigned int entryIndex)
+{
+
+	if ( (entryIndex == m_SettingsMenuUseRatioFreqIndex && m_UsingRatio)
+		|| (entryIndex == m_SettingsMenuEGDestAmpIndex && (m_EGDestBitmask & 0b100))
+		|| (entryIndex == m_SettingsMenuEGDestFreqIndex && (m_EGDestBitmask & 0b010))
+		|| (entryIndex == m_SettingsMenuEGDestFiltIndex && (m_EGDestBitmask & 0b001))
+		|| (entryIndex == m_SettingsMenuGlideRetrigIndex && m_UsingGlideRetrigger)
+		|| (entryIndex == m_SettingsMenuMonophonicIndex && m_UsingMono) )
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void ARMor8UiManager::drawScrollableMenu (ScrollableMenuModel& menu, bool (ARMor8UiManager::*shouldTickFunc)(unsigned int), ARMor8UiManager& ui)
+{
+	m_Graphics->setColor( false );
+	m_Graphics->fill();
+
+	m_Graphics->setColor( true );
+
+	// draw cursor
+	float yOffset = (0.15f * menu.getCursorIndex());
+	m_Graphics->drawTriangleFilled( 0.075f, 0.1f + yOffset, 0.075f, 0.2f + yOffset, 0.125f, 0.15f + yOffset );
+
+	// draw entries
+	char** entries = menu.getEntries();
+	unsigned int firstEntryIndex = menu.getFirstVisibleIndex();
+	unsigned int entryNum = 0;
+	char* entry = entries[entryNum];
+	yOffset = 0.1f;
+	const float tickOffset = 0.1f;
+	while ( entry != nullptr && entryNum < SETTINGS_NUM_VISIBLE_ENTRIES )
+	{
+		const unsigned int actualIndex = firstEntryIndex + entryNum;
+		if ( menu.indexIsTickable(actualIndex) )
+		{
+			bool fillCircle = false;
+			if ( shouldTickFunc != nullptr && (ui.*shouldTickFunc)(actualIndex) )
+			{
+				fillCircle = true;
+			}
+
+			if ( fillCircle )
+			{
+				m_Graphics->drawCircleFilled( 0.175f, 0.05f + yOffset, 0.025f );
+			}
+			else
+			{
+				m_Graphics->drawCircle( 0.175f, 0.05f + yOffset, 0.025f );
+			}
+
+			m_Graphics->drawText( 0.15f + tickOffset, yOffset, entry, 1.0f );
+		}
+		else
+		{
+			m_Graphics->drawText( 0.15f, yOffset, entry, 1.0f );
+		}
+		yOffset += 0.15f;
+		entryNum++;
+		entry = entries[entryNum];
 	}
 }
 

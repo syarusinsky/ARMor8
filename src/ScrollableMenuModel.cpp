@@ -50,7 +50,7 @@ char** ScrollableMenuModel::getEntries()
 
 void ScrollableMenuModel::advanceCursor()
 {
-	if ( m_CursorIndex < m_NumVisibleEntries - 1 )
+	if ( m_CursorIndex < m_NumVisibleEntries - 1 && m_CursorIndex < m_TotalEntries - 1 )
 	{
 		m_CursorIndex++;
 	}
