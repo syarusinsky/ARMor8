@@ -144,48 +144,14 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		char 		m_FiltResStr[5];
 
 		// pot cached values for parameter thresholds (so preset parameters don't change unless moved by a certain amount)
-		const float     m_PotChangeThreshold = 0.4f; // the pot value needs to break out of this threshold to be applied
-		float 		m_FreqPotCached;
-		float 		m_DetunePotCached;
-		float 		m_AttackPotCached;
-		float 		m_AttackExpoPotCached;
-		float 		m_Op1ModPotCached;
-		float 		m_DecayPotCached;
-		float 		m_DecayExpoPotCached;
-		float 		m_Op2ModPotCached;
-		float 		m_SustainPotCached;
-		float 		m_Op3ModPotCached;
-		float 		m_ReleasePotCached;
-		float 		m_ReleaseExpoPotCached;
-		float 		m_Op4ModPotCached;
-		float 		m_AmplitudePotCached;
-		float 		m_AmplitudeVelPotCached;
-		float 		m_FiltFreqPotCached;
-		float 		m_FiltResPotCached;
-		float 		m_FiltVelPotCached;
-		float 		m_PitchBendPotCached;
-		float 		m_GlidePotCached;
-		// these keep track of whether the given pots are 'locked' by the threshold when switching prsts or ops
-		bool 		m_FreqPotLocked;
-		bool 		m_DetunePotLocked;
-		bool 		m_AttackPotLocked;
-		bool 		m_AttackExpoPotLocked;
-		bool 		m_Op1ModPotLocked;
-		bool 		m_DecayPotLocked;
-		bool 		m_DecayExpoPotLocked;
-		bool 		m_Op2ModPotLocked;
-		bool 		m_SustainPotLocked;
-		bool 		m_Op3ModPotLocked;
-		bool 		m_ReleasePotLocked;
-		bool 		m_ReleaseExpoPotLocked;
-		bool 		m_Op4ModPotLocked;
-		bool 		m_AmplitudePotLocked;
-		bool 		m_AmplitudeVelPotLocked;
-		bool 		m_FiltFreqPotLocked;
-		bool 		m_FiltResPotLocked;
-		bool 		m_FiltVelPotLocked;
-		bool 		m_PitchBendPotLocked;
-		bool 		m_GlidePotLocked;
+		const float     m_PotChangeThreshold = 0.2f; // the pot value needs to break out of this threshold to be applied
+		float 		m_Effect1PotCached;
+		float 		m_Effect2PotCached;
+		float 		m_Effect3PotCached;
+		// these keep track of whether the given pots are 'locked' by the threshold when switching presets
+		bool 		m_Effect1PotLocked;
+		bool 		m_Effect2PotLocked;
+		bool 		m_Effect3PotLocked;
 
 		// button states for managing when button events are processed
 		BUTTON_STATE 	m_Alt1State;
@@ -307,6 +273,7 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void refreshGlideRetrig();
 
 		void returnToStatusMenu();
+		void enterStatusAdditionalMenu();
 		void enterSettingsMenu();
 		void enterAssignEffectPotMenu();
 		void enterSelectOperatorMenu();

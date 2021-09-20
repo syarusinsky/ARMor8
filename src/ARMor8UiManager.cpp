@@ -58,46 +58,12 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_GlideStr{ "GLIDE TIME: X.XXX" },
 	m_PitchBendStr{ "PITCH BEND:    XX" },
 	m_FiltResStr{ "X.XX" },
-	m_FreqPotCached( 0.0f ),
-	m_DetunePotCached( 0.0f ),
-	m_AttackPotCached( 0.0f ),
-	m_AttackExpoPotCached( 0.0f ),
-	m_Op1ModPotCached( 0.0f ),
-	m_DecayPotCached( 0.0f ),
-	m_DecayExpoPotCached( 0.0f ),
-	m_Op2ModPotCached( 0.0f ),
-	m_SustainPotCached( 0.0f ),
-	m_Op3ModPotCached( 0.0f ),
-	m_ReleasePotCached( 0.0f ),
-	m_ReleaseExpoPotCached( 0.0f ),
-	m_Op4ModPotCached( 0.0f ),
-	m_AmplitudePotCached( 0.0f ),
-	m_AmplitudeVelPotCached( 0.0f ),
-	m_FiltFreqPotCached( 0.0f ),
-	m_FiltResPotCached( 0.0f ),
-	m_FiltVelPotCached( 0.0f ),
-	m_PitchBendPotCached( 0.0f ),
-	m_GlidePotCached( 0.0f ),
-	m_FreqPotLocked( false ),
-	m_DetunePotLocked( false ),
-	m_AttackPotLocked( false ),
-	m_AttackExpoPotLocked( false ),
-	m_Op1ModPotLocked( false ),
-	m_DecayPotLocked( false ),
-	m_DecayExpoPotLocked( false ),
-	m_Op2ModPotLocked( false ),
-	m_SustainPotLocked( false ),
-	m_Op3ModPotLocked( false ),
-	m_ReleasePotLocked( false ),
-	m_ReleaseExpoPotLocked( false ),
-	m_Op4ModPotLocked( false ),
-	m_AmplitudePotLocked( false ),
-	m_AmplitudeVelPotLocked( false ),
-	m_FiltFreqPotLocked( false ),
-	m_FiltResPotLocked( false ),
-	m_FiltVelPotLocked( false ),
-	m_PitchBendPotLocked( false ),
-	m_GlidePotLocked( false ),
+	m_Effect1PotCached( 0.0f ),
+	m_Effect2PotCached( 0.0f ),
+	m_Effect3PotCached( 0.0f ),
+	m_Effect1PotLocked( false ),
+	m_Effect2PotLocked( false ),
+	m_Effect3PotLocked( false ),
 	m_Alt1State( BUTTON_STATE::FLOATING ),
 	m_Alt2State( BUTTON_STATE::FLOATING ),
 	m_RatioOrFixedBtnState( BUTTON_STATE::FLOATING ),
@@ -377,12 +343,8 @@ void ARMor8UiManager::endLoading()
 
 void ARMor8UiManager::tickForChangingBackToStatus()
 {
-	if ( m_CurrentMenu != ARMOR8_MENUS::STATUS_MAIN
-			&& m_CurrentMenu != ARMOR8_MENUS::SETTINGS_MAIN
-			&& m_CurrentMenu != ARMOR8_MENUS::ASSIGN_EFFECT_POT
-			&& m_CurrentMenu != ARMOR8_MENUS::SELECT_OPERATOR
-			&& m_CurrentMenu != ARMOR8_MENUS::SELECT_WAVEFORM
-			&& m_CurrentMenu != ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
+	// TODO m_TicksForChangingBackToStatus probably needs to be set to 0 each time a parameter event for additional page is sent
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 	{
 		if ( m_TicksForChangingBackToStatus >= m_MaxTicksForChangingBackToStatus )
 		{
@@ -1442,6 +1404,10 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 	float* potStabilizerValue = nullptr;
 	float allowedScatterLeft = ARMOR8_POT_STABIL_ALLOWED_SCATTER;
 	float allowedScatterRight = ARMOR8_POT_STABIL_ALLOWED_SCATTER;
+	bool* lockedStatus = nullptr;
+	float* lockCachedVal = nullptr;
+	unsigned int assignmentIndex = 0;
+	unsigned int assignmentOp = 0;
 
 	switch ( channel )
 	{
@@ -1449,18 +1415,30 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 			potStabilizerBuf = m_Pot1StabilizerBuf;
 			potStabilizerIndex = &m_Pot1StabilizerIndex;
 			potStabilizerValue = &m_Pot1StabilizerValue;
+			lockedStatus = &m_Effect1PotLocked;
+			lockCachedVal = &m_Effect1PotCached;
+			assignmentIndex = m_Effect1PotAssignmentIndex;
+			assignmentOp = m_Effect1PotAssignmentOp;
 
 			break;
 		case POT_CHANNEL::EFFECT2:
 			potStabilizerBuf = m_Pot2StabilizerBuf;
 			potStabilizerIndex = &m_Pot2StabilizerIndex;
 			potStabilizerValue = &m_Pot2StabilizerValue;
+			lockedStatus = &m_Effect2PotLocked;
+			lockCachedVal = &m_Effect2PotCached;
+			assignmentIndex = m_Effect2PotAssignmentIndex;
+			assignmentOp = m_Effect2PotAssignmentOp;
 
 			break;
 		case POT_CHANNEL::EFFECT3:
 			potStabilizerBuf = m_Pot3StabilizerBuf;
 			potStabilizerIndex = &m_Pot3StabilizerIndex;
 			potStabilizerValue = &m_Pot3StabilizerValue;
+			lockedStatus = &m_Effect3PotLocked;
+			lockCachedVal = &m_Effect3PotCached;
+			assignmentIndex = m_Effect3PotAssignmentIndex;
+			assignmentOp = m_Effect3PotAssignmentOp;
 
 			break;
 		default:
@@ -1479,17 +1457,17 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 	if ( percentage < (averageValue - allowedScatterLeft) || percentage > (averageValue + allowedScatterRight) )
 	{
 		*potStabilizerValue = averageValue;
-		if ( channel == POT_CHANNEL::EFFECT1 )
+
+		if ( ! *lockedStatus ) // if not locked
 		{
-			this->sendParamEventFromEffectPot( m_Effect1PotAssignmentIndex, m_Effect1PotAssignmentOp, *potStabilizerValue );
+			this->sendParamEventFromEffectPot( assignmentIndex, assignmentOp, *potStabilizerValue );
 		}
-		else if ( channel == POT_CHANNEL::EFFECT2 )
+		else // if locked, update locked status
 		{
-			this->sendParamEventFromEffectPot( m_Effect2PotAssignmentIndex, m_Effect2PotAssignmentOp, *potStabilizerValue );
-		}
-		else if ( channel == POT_CHANNEL::EFFECT3 )
-		{
-			this->sendParamEventFromEffectPot( m_Effect3PotAssignmentIndex, m_Effect3PotAssignmentOp, *potStabilizerValue );
+			if ( this->hasBrokenLock(*lockedStatus, *lockCachedVal, *potStabilizerValue) )
+			{
+				this->sendParamEventFromEffectPot( assignmentIndex, assignmentOp, *potStabilizerValue );
+			}
 		}
 	}
 
@@ -1761,26 +1739,12 @@ void ARMor8UiManager::publishPartialLCDRefreshEvent (float xStart, float yStart,
 
 void ARMor8UiManager::lockAllPots()
 {
-	m_FreqPotLocked = true;
-	m_DetunePotLocked = true;
-	m_AttackPotLocked = true;
-	m_AttackExpoPotLocked = true;
-	m_Op1ModPotLocked = true;
-	m_DecayPotLocked = true;
-	m_DecayExpoPotLocked = true;
-	m_Op2ModPotLocked = true;
-	m_SustainPotLocked = true;
-	m_Op3ModPotLocked = true;
-	m_ReleasePotLocked = true;
-	m_ReleaseExpoPotLocked = true;
-	m_Op4ModPotLocked = true;
-	m_AmplitudePotLocked = true;
-	m_AmplitudeVelPotLocked = true;
-	m_FiltFreqPotLocked = true;
-	m_FiltResPotLocked = true;
-	m_FiltVelPotLocked = true;
-	m_PitchBendPotLocked = true;
-	m_GlidePotLocked = true;
+	m_Effect1PotLocked = true;
+	m_Effect2PotLocked = true;
+	m_Effect3PotLocked = true;
+	m_Effect1PotCached = m_Pot1StabilizerValue;
+	m_Effect2PotCached = m_Pot2StabilizerValue;
+	m_Effect3PotCached = m_Pot3StabilizerValue;
 }
 
 bool ARMor8UiManager::hasBrokenLock (bool& potLockedVal, float& potCachedVal, float newPotVal)
@@ -1788,15 +1752,9 @@ bool ARMor8UiManager::hasBrokenLock (bool& potLockedVal, float& potCachedVal, fl
 	bool hasBrokenLowerRange  = newPotVal <= ( potCachedVal - m_PotChangeThreshold );
 	bool hasBrokenHigherRange = newPotVal >= ( potCachedVal + m_PotChangeThreshold );
 
-	if ( (! potLockedVal) && (potCachedVal != newPotVal) ) // if not locked and not the exact same value
-	{
-		potCachedVal = newPotVal;
-		return true;
-	}
-	else if ( potLockedVal && (hasBrokenHigherRange || hasBrokenLowerRange) ) // if locked but broke threshold
+	if ( potLockedVal && (hasBrokenHigherRange || hasBrokenLowerRange) ) // if locked but broke threshold
 	{
 		potLockedVal = false;
-		potCachedVal = newPotVal;
 		return true;
 	}
 
@@ -2240,6 +2198,12 @@ void ARMor8UiManager::returnToStatusMenu()
 	this->draw();
 }
 
+void ARMor8UiManager::enterStatusAdditionalMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
+	this->draw();
+}
+
 void ARMor8UiManager::enterSettingsMenu()
 {
 	m_CurrentMenu = ARMOR8_MENUS::SETTINGS_MAIN;
@@ -2321,83 +2285,262 @@ void ARMor8UiManager::assignEffectPot()
 
 void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val)
 {
-	if ( assignmentIndex == m_AssignEffectPotMenuFreqIndex ) // assign effect pot to frequency
+	unsigned int bufferLen = 20;
+	char buffer[bufferLen];
+
+	if ( assignmentIndex == m_AssignEffectPotMenuFreqIndex ) // frequency
+	{
+		float frequencyAmount = val * ARMOR8_FREQUENCY_MAX;
+		// TODO send parameter event
+		this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.74f, 0.62f, 0.82f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.74f, m_FreqStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.74f, 0.62f, 0.82f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuDetuneIndex ) // detune
 	{
 		// TODO implement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuDetuneIndex ) // assign effect pot to detune
+	else if ( assignmentIndex == m_AssignEffectPotMenuAttackIndex ) // eg attack
 	{
-		// TODO implement
+		float attackAmount = ( val * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) ) + ARMOR8_ATTACK_MIN;
+		// TODO send parameter event
+		this->updateAttackStr( attackAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.5f, 0.26f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.16f, m_AttackStr,  1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.5f, 0.26f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuAttackIndex ) // assign effect pot to eg attack
+	else if ( assignmentIndex == m_AssignEffectPotMenuDecayIndex ) // eg decay
 	{
-		// TODO implement
+		float decayAmount = ( val * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) ) + ARMOR8_DECAY_MIN;
+		// TODO send parameter event
+		this->updateDecayStr( decayAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.28f, 0.5f, 0.38f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.28f, m_DecayStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.28f, 0.5f, 0.38f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuDecayIndex ) // assign effect pot to eg decay
+	else if ( assignmentIndex == m_AssignEffectPotMenuSustainIndex ) // eg sustain
 	{
-		// TODO implement
+		float sustainAmount = val;
+		// TODO send parameter event
+		this->updateSustainStr( sustainAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.39f, 0.5f, 0.49f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.39f, m_SustainStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.39f, 0.5f, 0.49f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuSustainIndex ) // assign effect pot to eg sustain
+	else if ( assignmentIndex == m_AssignEffectPotMenuReleaseIndex ) // eg release
+	{
+		float releaseAmount = ( val * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) ) + ARMOR8_RELEASE_MIN;
+		// TODO send parameter event
+		this->updateReleaseStr( releaseAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.5f, 0.5f, 0.6f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.50f, m_ReleaseStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.5f, 0.5f, 0.6f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuAtkExpoIndex ) // eg attack expo
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuReleaseIndex ) // assign effect pot to eg release
+	else if ( assignmentIndex == m_AssignEffectPotMenuDecExpoIndex ) // eg decay expo
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuAtkExpoIndex ) // assign effect pot to eg attack expo
+	else if ( assignmentIndex == m_AssignEffectPotMenuRelExpoIndex ) // eg release expo
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuDecExpoIndex ) // assign effect pot to eg decay expo
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp1ModIndex ) // op1 modulation amount
+	{
+		float op1ModAmount = val;
+		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.16f, 1.1f, 0.26f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.16f, m_Op1Str, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.16f, 1.0f, 0.28f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp2ModIndex ) // op2 modulation amount
+	{
+		float op2ModAmount = val;
+		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.28f, 1.1f, 0.38f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.28f, m_Op2Str, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.28f, 1.0f, 0.38f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp3ModIndex ) // op3 modulation amount
+	{
+		float op3ModAmount = val;
+		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.39f, 1.1f, 0.49f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.39f, m_Op3Str, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.39f, 1.0f, 0.49f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp4ModIndex ) // op4 modulation amount
+	{
+		float op4ModAmount = val;
+		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.52f, 0.50f, 1.1f, 0.60f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.52f, 0.50f, m_Op4Str, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.52f, 0.50f, 1.0f, 0.60f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuAmplitudeIndex ) // amplitude
+	{
+		float amplitudeAmount = val * ARMOR8_AMPLITUDE_MAX;
+		// TODO send parameter event
+		this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.65f, 0.62f, 0.73f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.65f, m_OpAmpStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.65f, 0.62f, 0.73f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuFiltFreqIndex ) // filter frequency
+	{
+		float filtFrequencyAmount = ( val * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) ) + ARMOR8_FILT_FREQ_MIN;
+		// TODO send parameter event
+		this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.83f, 0.62f, 0.92f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.83f, m_FiltFreqStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.83f, 0.62f, 0.92f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		{
+			this->returnToStatusMenu();
+		}
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuFiltResIndex ) // filter resonance
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuRelExpoIndex ) // assign effect pot to eg release expo
+	else if ( assignmentIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // amplitude velocity sensitivity
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuOp1ModIndex ) // assign effect pot to op1 modulation amount
+	else if ( assignmentIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // filter velocity sensitivity
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuOp2ModIndex ) // assign effect pot to op2 modulation amount
+	else if ( assignmentIndex == m_AssignEffectPotMenuPBendSemiIndex ) // pitch bend semitones
 	{
 		//assignmentimplement
 	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuOp3ModIndex ) // assign effect pot to op3 modulation amount
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuOp4ModIndex ) // assign effect pot to op4 modulation amount
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuAmplitudeIndex ) // assign effect pot to amplitude
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuFiltFreqIndex ) // assign effect pot to filter frequency
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuFiltResIndex ) // assign effect pot to filter resonance
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // assign effect pot to amplitude velocity sensitivity
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // assign effect pot to filter velocity sensitivity
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuPBendSemiIndex ) // assign effect pot to pitch bend semitones
-	{
-		//assignmentimplement
-	}
-	else if ( assignmentIndex == m_AssignEffectPotMenuGlideTimeIndex ) // assign effect pot to glide time
+	else if ( assignmentIndex == m_AssignEffectPotMenuGlideTimeIndex ) // glide time
 	{
 		// TODO implement
 	}
