@@ -78,6 +78,17 @@ void ScrollableMenuModel::returnToTop()
 	m_TopVisibleIndex = 0;
 }
 
+void ScrollableMenuModel::advanceToBottom()
+{
+	m_CursorIndex = m_NumVisibleEntries - 1;
+	m_TopVisibleIndex = m_TotalEntries - m_NumVisibleEntries;
+}
+
+unsigned int ScrollableMenuModel::getEntryIndex()
+{
+	return this->getCursorIndex() + this->getFirstVisibleIndex();
+}
+
 unsigned int ScrollableMenuModel::getFirstVisibleIndex()
 {
 	return m_TopVisibleIndex;
@@ -96,4 +107,9 @@ bool ScrollableMenuModel::indexIsTickable (unsigned int index)
 	}
 
 	return false;
+}
+
+unsigned int ScrollableMenuModel::getTotalNumEntries()
+{
+	return m_TotalEntries;
 }

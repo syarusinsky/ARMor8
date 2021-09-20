@@ -100,6 +100,12 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		ScrollableMenuModel m_SelectWaveformModel;
 
 		unsigned int 	m_EffectPotToAssign; // 1 for effect1 pot, 2 for effect2 pot, 3 for effect3 pot
+		unsigned int 	m_Effect1PotAssignmentIndex; // to keep track of what entry on the assigment menu the effect is currently assigned
+		unsigned int 	m_Effect2PotAssignmentIndex;
+		unsigned int 	m_Effect3PotAssignmentIndex;
+		unsigned int 	m_Effect1PotAssignmentOp; // to keep track of what operator the entry should affect
+		unsigned int 	m_Effect2PotAssignmentOp;
+		unsigned int 	m_Effect3PotAssignmentOp;
 
 		unsigned int    m_TicksForChangingBackToStatus;
 		const unsigned int m_MaxTicksForChangingBackToStatus = 300;
@@ -306,6 +312,9 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void enterSelectOperatorMenu();
 		void enterSelectWaveformMenu();
 		void enterWritePresetConfirmation();
+
+		void assignEffectPot();
+		void sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val);
 
 		// logic to handle button presses (in this case, releases) for each menu case
 		void handleEffect1SinglePress();

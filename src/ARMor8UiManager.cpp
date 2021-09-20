@@ -21,6 +21,12 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_SelectOperatorModel( SETTINGS_NUM_VISIBLE_ENTRIES ),
 	m_SelectWaveformModel( SETTINGS_NUM_VISIBLE_ENTRIES ),
 	m_EffectPotToAssign( 0 ),
+	m_Effect1PotAssignmentIndex( 0 ),
+	m_Effect2PotAssignmentIndex( 1 ),
+	m_Effect3PotAssignmentIndex( 2 ),
+	m_Effect1PotAssignmentOp( 1 ),
+	m_Effect2PotAssignmentOp( 1 ),
+	m_Effect3PotAssignmentOp( 1 ),
 	m_CurrentPresetNum( 1 ),
 	m_OpCurrentlyBeingEdited( 1 ),
 	m_WaveNumCurrentlyBeingEdited( 1 ),
@@ -1475,18 +1481,15 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 		*potStabilizerValue = averageValue;
 		if ( channel == POT_CHANNEL::EFFECT1 )
 		{
-			// TODO send a parameter event based on what is the current parameter channel assigned to this pot, update ui
-			std::cout << "Effect1 Pot: " << std::to_string(*potStabilizerValue) << std::endl;
+			this->sendParamEventFromEffectPot( m_Effect1PotAssignmentIndex, m_Effect1PotAssignmentOp, *potStabilizerValue );
 		}
 		else if ( channel == POT_CHANNEL::EFFECT2 )
 		{
-			// TODO send a parameter event based on what is the current parameter channel assigned to this pot, update ui
-			std::cout << "Effect2 Pot: " << std::to_string(*potStabilizerValue) << std::endl;
+			this->sendParamEventFromEffectPot( m_Effect2PotAssignmentIndex, m_Effect2PotAssignmentOp, *potStabilizerValue );
 		}
 		else if ( channel == POT_CHANNEL::EFFECT3 )
 		{
-			// TODO send a parameter event based on what is the current parameter channel assigned to this pot, update ui
-			std::cout << "Effect3 Pot: " << std::to_string(*potStabilizerValue) << std::endl;
+			this->sendParamEventFromEffectPot( m_Effect3PotAssignmentIndex, m_Effect3PotAssignmentOp, *potStabilizerValue );
 		}
 	}
 
@@ -2247,7 +2250,30 @@ void ARMor8UiManager::enterSettingsMenu()
 void ARMor8UiManager::enterAssignEffectPotMenu()
 {
 	m_CurrentMenu = ARMOR8_MENUS::ASSIGN_EFFECT_POT;
-	m_AssignEffectPotModel.returnToTop(); // TODO we actually probably want this to go to the previous assignment
+
+	// navigate to correct assignment
+	unsigned int positionToNavigateTo = 0;
+	if ( m_EffectPotToAssign == 1 )
+	{
+		positionToNavigateTo = m_Effect1PotAssignmentIndex;
+	}
+	else if ( m_EffectPotToAssign == 2 )
+	{
+		positionToNavigateTo = m_Effect2PotAssignmentIndex;
+	}
+	else if ( m_EffectPotToAssign == 3 )
+	{
+		positionToNavigateTo = m_Effect3PotAssignmentIndex;
+	}
+
+	m_AssignEffectPotModel.returnToTop();
+	unsigned int cursorIndex = 0;
+	while ( cursorIndex != positionToNavigateTo )
+	{
+		m_AssignEffectPotModel.advanceCursor();
+		cursorIndex = m_AssignEffectPotModel.getEntryIndex();
+	}
+
 	this->draw();
 }
 
@@ -2271,6 +2297,113 @@ void ARMor8UiManager::enterWritePresetConfirmation()
 	this->draw();
 }
 
+void ARMor8UiManager::assignEffectPot()
+{
+	unsigned int cursorIndex = m_AssignEffectPotModel.getEntryIndex();
+
+	// remember assignment
+	if ( m_EffectPotToAssign == 1 )
+	{
+		m_Effect1PotAssignmentIndex = cursorIndex;
+		m_Effect1PotAssignmentOp = m_OpCurrentlyBeingEdited;
+	}
+	else if ( m_EffectPotToAssign == 2 )
+	{
+		m_Effect2PotAssignmentIndex = cursorIndex;
+		m_Effect2PotAssignmentOp = m_OpCurrentlyBeingEdited;
+	}
+	else if ( m_EffectPotToAssign == 3 )
+	{
+		m_Effect3PotAssignmentIndex = cursorIndex;
+		m_Effect3PotAssignmentOp = m_OpCurrentlyBeingEdited;
+	}
+}
+
+void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val)
+{
+	if ( assignmentIndex == m_AssignEffectPotMenuFreqIndex ) // assign effect pot to frequency
+	{
+		// TODO implement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuDetuneIndex ) // assign effect pot to detune
+	{
+		// TODO implement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuAttackIndex ) // assign effect pot to eg attack
+	{
+		// TODO implement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuDecayIndex ) // assign effect pot to eg decay
+	{
+		// TODO implement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuSustainIndex ) // assign effect pot to eg sustain
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuReleaseIndex ) // assign effect pot to eg release
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuAtkExpoIndex ) // assign effect pot to eg attack expo
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuDecExpoIndex ) // assign effect pot to eg decay expo
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuRelExpoIndex ) // assign effect pot to eg release expo
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp1ModIndex ) // assign effect pot to op1 modulation amount
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp2ModIndex ) // assign effect pot to op2 modulation amount
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp3ModIndex ) // assign effect pot to op3 modulation amount
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuOp4ModIndex ) // assign effect pot to op4 modulation amount
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuAmplitudeIndex ) // assign effect pot to amplitude
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuFiltFreqIndex ) // assign effect pot to filter frequency
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuFiltResIndex ) // assign effect pot to filter resonance
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // assign effect pot to amplitude velocity sensitivity
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // assign effect pot to filter velocity sensitivity
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuPBendSemiIndex ) // assign effect pot to pitch bend semitones
+	{
+		//assignmentimplement
+	}
+	else if ( assignmentIndex == m_AssignEffectPotMenuGlideTimeIndex ) // assign effect pot to glide time
+	{
+		// TODO implement
+	}
+
+}
+
 void ARMor8UiManager::handleEffect1SinglePress()
 {
 	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
@@ -2280,7 +2413,60 @@ void ARMor8UiManager::handleEffect1SinglePress()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
 	{
-		m_AssignEffectPotModel.reverseCursor();
+		unsigned int previousCursorIndex = m_AssignEffectPotModel.getEntryIndex();
+		if ( previousCursorIndex == 0 ) // if at the top already
+		{
+			m_AssignEffectPotModel.advanceToBottom();
+		}
+		else
+		{
+			m_AssignEffectPotModel.reverseCursor();
+		}
+		unsigned int cursorIndex = m_AssignEffectPotModel.getEntryIndex();
+		unsigned int comparisonIndex1 = 0;
+		unsigned int comparisonIndex2 = 0;
+		unsigned int comparisonOp1 = 0;
+		unsigned int comparisonOp2 = 0;
+		if ( m_EffectPotToAssign == 1 )
+		{
+			comparisonIndex1 = m_Effect2PotAssignmentIndex;
+			comparisonIndex2 = m_Effect3PotAssignmentIndex;
+			comparisonOp1 = m_Effect2PotAssignmentOp;
+			comparisonOp2 = m_Effect3PotAssignmentOp;
+		}
+		else if ( m_EffectPotToAssign == 2 )
+		{
+			comparisonIndex1 = m_Effect1PotAssignmentIndex;
+			comparisonIndex2 = m_Effect3PotAssignmentIndex;
+			comparisonOp1 = m_Effect1PotAssignmentOp;
+			comparisonOp2 = m_Effect3PotAssignmentOp;
+		}
+		else if ( m_EffectPotToAssign == 3 )
+		{
+			comparisonIndex1 = m_Effect1PotAssignmentIndex;
+			comparisonIndex2 = m_Effect2PotAssignmentIndex;
+			comparisonOp1 = m_Effect1PotAssignmentOp;
+			comparisonOp2 = m_Effect2PotAssignmentOp;
+		}
+
+		// ensure 2 effect pots aren't assigned to the same parameter on the same operator
+		while ( (cursorIndex == comparisonIndex1 && m_OpCurrentlyBeingEdited == comparisonOp1)
+				|| (cursorIndex == comparisonIndex2 && m_OpCurrentlyBeingEdited == comparisonOp2) )
+		{
+			if ( cursorIndex == 0 )
+			{
+				m_AssignEffectPotModel.advanceToBottom();
+			}
+			else
+			{
+				m_AssignEffectPotModel.reverseCursor();
+			}
+
+			cursorIndex = m_AssignEffectPotModel.getEntryIndex();
+		}
+
+		this->assignEffectPot();
+
 		this->draw();
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_OPERATOR )
@@ -2310,91 +2496,59 @@ void ARMor8UiManager::handleEffect2SinglePress()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
 	{
-		m_AssignEffectPotModel.advanceCursor();
-
-		unsigned int cursorIndex = m_AssignEffectPotModel.getCursorIndex() + m_AssignEffectPotModel.getFirstVisibleIndex();
-		if ( cursorIndex == m_AssignEffectPotMenuFreqIndex ) // assign effect pot to frequency
+		unsigned int previousCursorIndex = m_AssignEffectPotModel.getEntryIndex();
+		if ( previousCursorIndex == m_AssignEffectPotModel.getTotalNumEntries() - 1 ) // if at the bottom already
 		{
-			// TODO implement
+			m_AssignEffectPotModel.returnToTop();
 		}
-		else if ( cursorIndex == m_AssignEffectPotMenuDetuneIndex ) // assign effect pot to detune
+		else
 		{
-			// TODO implement
+			m_AssignEffectPotModel.advanceCursor();
 		}
-		else if ( cursorIndex == m_AssignEffectPotMenuAttackIndex ) // assign effect pot to eg attack
+		unsigned int cursorIndex = m_AssignEffectPotModel.getEntryIndex();
+		unsigned int comparisonIndex1 = 0;
+		unsigned int comparisonIndex2 = 0;
+		unsigned int comparisonOp1 = 0;
+		unsigned int comparisonOp2 = 0;
+		if ( m_EffectPotToAssign == 1 )
 		{
-			// TODO implement
+			comparisonIndex1 = m_Effect2PotAssignmentIndex;
+			comparisonIndex2 = m_Effect3PotAssignmentIndex;
+			comparisonOp1 = m_Effect2PotAssignmentOp;
+			comparisonOp2 = m_Effect3PotAssignmentOp;
 		}
-		else if ( cursorIndex == m_AssignEffectPotMenuDecayIndex ) // assign effect pot to eg decay
+		else if ( m_EffectPotToAssign == 2 )
 		{
-			// TODO implement
+			comparisonIndex1 = m_Effect1PotAssignmentIndex;
+			comparisonIndex2 = m_Effect3PotAssignmentIndex;
+			comparisonOp1 = m_Effect1PotAssignmentOp;
+			comparisonOp2 = m_Effect3PotAssignmentOp;
 		}
-		else if ( cursorIndex == m_AssignEffectPotMenuSustainIndex ) // assign effect pot to eg sustain
+		else if ( m_EffectPotToAssign == 3 )
 		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuReleaseIndex ) // assign effect pot to eg release
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuAtkExpoIndex ) // assign effect pot to eg attack expo
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuDecExpoIndex ) // assign effect pot to eg decay expo
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuRelExpoIndex ) // assign effect pot to eg release expo
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuOp1ModIndex ) // assign effect pot to op1 modulation amount
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuOp2ModIndex ) // assign effect pot to op2 modulation amount
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuOp3ModIndex ) // assign effect pot to op3 modulation amount
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuOp4ModIndex ) // assign effect pot to op4 modulation amount
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuAmplitudeIndex ) // assign effect pot to amplitude
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuFiltFreqIndex ) // assign effect pot to filter frequency
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuFiltResIndex ) // assign effect pot to filter resonance
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // assign effect pot to amplitude velocity sensitivity
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // assign effect pot to filter velocity sensitivity
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuPBendSemiIndex ) // assign effect pot to pitch bend semitones
-		{
-			// TODO implement
-		}
-		else if ( cursorIndex == m_AssignEffectPotMenuGlideTimeIndex ) // assign effect pot to glide time
-		{
-			// TODO implement
+			comparisonIndex1 = m_Effect1PotAssignmentIndex;
+			comparisonIndex2 = m_Effect2PotAssignmentIndex;
+			comparisonOp1 = m_Effect1PotAssignmentOp;
+			comparisonOp2 = m_Effect2PotAssignmentOp;
 		}
 
-		// TODO assign effect pot (based on m_EffectPotToAssign) to parameter of current operator (may need additional vars for this)
+		// ensure 2 effect pots aren't assigned to the same parameter on the same operator
+		while ( (cursorIndex == comparisonIndex1 && m_OpCurrentlyBeingEdited == comparisonOp1)
+				|| (cursorIndex == comparisonIndex2 && m_OpCurrentlyBeingEdited == comparisonOp2) )
+		{
+			if ( cursorIndex == m_AssignEffectPotModel.getTotalNumEntries() - 1 )
+			{
+				m_AssignEffectPotModel.returnToTop();
+			}
+			else
+			{
+				m_AssignEffectPotModel.advanceCursor();
+			}
+
+			cursorIndex = m_AssignEffectPotModel.getEntryIndex();
+		}
+
+		this->assignEffectPot();
 
 		this->draw();
 	}
@@ -2422,7 +2576,7 @@ void ARMor8UiManager::handleDoubleButtonPress()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
 	{
-		unsigned int cursorIndex = m_SettingsMainModel.getCursorIndex() + m_SettingsMainModel.getFirstVisibleIndex();
+		unsigned int cursorIndex = m_SettingsMainModel.getEntryIndex();
 		if ( cursorIndex == m_SettingsMenuExitMenuIndex ) // exit settings menu
 		{
 			this->returnToStatusMenu();
@@ -2430,16 +2584,19 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		else if ( cursorIndex == m_SettingsMenuAssignEffect1Index ) // assign effect pot 1
 		{
 			m_EffectPotToAssign = 1;
+			m_Effect1PotAssignmentOp = m_OpCurrentlyBeingEdited;
 			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect2Index ) // assign effect pot 2
 		{
 			m_EffectPotToAssign = 2;
+			m_Effect2PotAssignmentOp = m_OpCurrentlyBeingEdited;
 			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect3Index ) // assign effect pot 3
 		{
 			m_EffectPotToAssign = 3;
+			m_Effect3PotAssignmentOp = m_OpCurrentlyBeingEdited;
 			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuSelectOperatorIndex ) // select operator to edit
@@ -2497,7 +2654,7 @@ void ARMor8UiManager::handleDoubleButtonPress()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_OPERATOR )
 	{
-		unsigned int cursorIndex = m_SelectOperatorModel.getCursorIndex() + m_SelectOperatorModel.getFirstVisibleIndex();
+		unsigned int cursorIndex = m_SelectOperatorModel.getEntryIndex();
 		if ( cursorIndex == m_SelectOperatorMenuOp1Index ) // start editing operator 1
 		{
 			m_OpCurrentlyBeingEdited = 1;
@@ -2529,7 +2686,7 @@ void ARMor8UiManager::handleDoubleButtonPress()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
 	{
-		unsigned int cursorIndex = m_SelectWaveformModel.getCursorIndex() + m_SelectWaveformModel.getFirstVisibleIndex();
+		unsigned int cursorIndex = m_SelectWaveformModel.getEntryIndex();
 		if ( cursorIndex == m_SelectWaveformMenuSineIndex ) // use sine wave
 		{
 			m_WaveNumCurrentlyBeingEdited = 1;

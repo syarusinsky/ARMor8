@@ -28,11 +28,15 @@ class ScrollableMenuModel
 		void advanceCursor();
 		void reverseCursor();
 		void returnToTop();
+		void advanceToBottom();
 
+		unsigned int getEntryIndex(); // returns the currently selected entry's index
 		unsigned int getFirstVisibleIndex();
-		unsigned int getCursorIndex();
+		unsigned int getCursorIndex(); // only returns the position of the cursor (0 to number of visible entries)
 
 		bool indexIsTickable (unsigned int index);
+
+		unsigned int getTotalNumEntries();
 
 	private:
 		char* 			m_Entries[MAX_ENTRIES + 1]; // plus 1 so that we always null terminate the list
