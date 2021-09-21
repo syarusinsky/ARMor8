@@ -31,7 +31,41 @@ constexpr float ARMOR8_GLIDE_TIME_MIN = 0.0f;
 constexpr float ARMOR8_GLIDE_TIME_MAX = 1.0f;
 
 constexpr unsigned int ARMOR8_POT_STABIL_NUM = 50; // pot stabilization stuff
-constexpr float ARMOR8_POT_STABIL_ALLOWED_SCATTER = 0.0f; // allow 0% of jitter on pots
+
+enum class PARAM_CHANNEL : unsigned int
+{
+	FREQUENCY 	= 0,
+	DETUNE 		= 1,
+	EG_ATTACK 	= 2,
+	EG_DECAY 	= 3,
+	EG_SUSTAIN 	= 4,
+	EG_RELEASE 	= 5,
+	EG_ATTACK_EXPO 	= 6,
+	EG_DECAY_EXPO 	= 7,
+	EG_RELEASE_EXPO = 8,
+	OP_1_MOD_AMOUNT = 9,
+	OP_2_MOD_AMOUNT = 10,
+	OP_3_MOD_AMOUNT = 11,
+	OP_4_MOD_AMOUNT = 12,
+	AMPLITUDE 	= 13,
+	FILTER_FREQ 	= 14,
+	FILTER_RES 	= 15,
+	AMP_VEL_SENS 	= 16,
+	FILT_VEL_SENS 	= 17,
+	PITCH_BEND_SEMI = 18,
+	GLIDE_TIME 	= 19,
+	USE_RATIO 	= 20,
+	EG_DEST_AMP 	= 21,
+	EG_DEST_FREQ 	= 22,
+	EG_DEST_FILT 	= 23,
+	GLIDE_RETRIG 	= 24,
+	MONOPHONIC 	= 25,
+	SELECT_WAVEFORM = 26,
+	SELECT_OPERATOR = 27,
+	NEXT_PRESET 	= 28,
+	PREV_PRESET 	= 29,
+	WRITE_PRESET 	= 30
+};
 
 enum class POT_CHANNEL : unsigned int
 {

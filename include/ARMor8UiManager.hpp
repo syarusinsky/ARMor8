@@ -16,7 +16,6 @@
 
 #include "ARMor8Constants.hpp"
 #include "IARMor8PresetEventListener.hpp"
-#include "IARMor8ParameterEventListener.hpp"
 #include "IButtonEventListener.hpp"
 #include "IPotEventListener.hpp"
 #include "ScrollableMenuModel.hpp"
@@ -36,7 +35,7 @@ enum class ARMOR8_MENUS : unsigned int
 class Font;
 class Sprite;
 
-class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IARMor8ParameterEventListener, public IPotEventListener,
+class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, public IPotEventListener,
 			public IButtonEventListener
 {
 	public:
@@ -55,36 +54,9 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 
 		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
 
-		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
-
 		void onPotEvent (const PotEvent& potEvent) override;
 
 		void onButtonEvent (const ButtonEvent& buttonEvent) override;
-
-		void setEGDestAmplitude (bool on);
-		void setEGDestFrequency (bool on);
-		void setEGDestFiltrFreq (bool on);
-
-		void processFreqOrDetunePot               (float percentage);
-		void processAtkOrAtkExpoOrOp1ModPot       (float percentage);
-		void processDecOrDecExpoOrOp2ModPot       (float percentage);
-		void processSusOrOp3ModPot                (float percentage);
-		void processRelOrRelExpoOrOp4ModPot       (float percentage);
-		void processAmpOrAmpVelPot                (float percentage);
-		void processFiltFreqOrFiltResOrFiltVelPot (float percentage);
-		void processPitchBendOrGlidePot           (float percentage);
-
-		void processAlt1Btn         (bool pressed);
-		void processAlt2Btn         (bool pressed);
-		void processRatioOrFixedBtn (bool pressed);
-		void processNextOpBtn       (bool pressed);
-		void processNextWaveBtn     (bool pressed);
-		void processGlideRetrigBtn  (bool pressed);
-		void processMonoBtn         (bool pressed);
-		void processEGDestBtn       (bool pressed);
-		void processPrevPresetBtn   (bool pressed);
-		void processNextPresetBtn   (bool pressed);
-		void processWritePresetBtn  (bool pressed);
 
 		void processEffect1Btn (bool pressed);
 		void processEffect2Btn (bool pressed);
@@ -152,19 +124,6 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		bool 		m_Effect1PotLocked;
 		bool 		m_Effect2PotLocked;
 		bool 		m_Effect3PotLocked;
-
-		// button states for managing when button events are processed
-		BUTTON_STATE 	m_Alt1State;
-		BUTTON_STATE 	m_Alt2State;
-		BUTTON_STATE 	m_RatioOrFixedBtnState;
-		BUTTON_STATE 	m_NextOpBtnState;
-		BUTTON_STATE 	m_NextWaveBtnState;
-		BUTTON_STATE 	m_GlideRetrigBtnState;
-		BUTTON_STATE 	m_MonoBtnState;
-		BUTTON_STATE 	m_EGDestBtnState;
-		BUTTON_STATE 	m_PrevPresetBtnState;
-		BUTTON_STATE 	m_NextPresetBtnState;
-		BUTTON_STATE 	m_WritePresetBtnState;
 
 		// button state handling
 		BUTTON_STATE 	m_Effect1BtnState;
@@ -236,7 +195,6 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		unsigned int 	m_SelectWaveformMenuExitMenuIndex;
 
 		void updateButtonState (BUTTON_STATE& buttonState, bool pressed); // note: buttonState is an output variable
-		void updateEGDestState();
 		void publishPartialLCDRefreshEvent (float xStart, float yStart, float xEnd, float yEnd);
 
 		void lockAllPots();

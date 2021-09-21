@@ -1,20 +1,15 @@
 #include "ARMor8VoiceManager.hpp"
 
 #include "IARMor8PresetEventListener.hpp"
-#include "IARMor8ParameterEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 #include "AudioConstants.hpp"
 #include <string.h>
 #include <cmath>
 
-// TODO remove this after testing
-#include <iostream>
-
 ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
 	m_MidiHandler( midiHandler ),
 	m_PresetManager( presetManager ),
-	m_OpToEdit( 0 ),
 	m_Monophonic( false ),
 	m_Voice1(),
 	m_Voice2(),
@@ -31,43 +26,6 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 
 ARMor8VoiceManager::~ARMor8VoiceManager()
 {
-}
-
-void ARMor8VoiceManager::setOperatorToEdit (unsigned int opToEdit)
-{
-	if ( opToEdit < 4 )
-	{
-		m_OpToEdit = opToEdit;
-	}
-}
-
-unsigned int ARMor8VoiceManager::getOperatorToEdit()
-{
-	return m_OpToEdit;
-}
-
-unsigned int ARMor8VoiceManager::getCurrentWaveNum()
-{
-	OscillatorMode wave = m_Voices[0]->getOperatorWave( m_OpToEdit );
-
-	if ( wave == OscillatorMode::SINE )
-	{
-		return 0;
-	}
-	else if ( wave == OscillatorMode::TRIANGLE )
-	{
-		return 1;
-	}
-	else if ( wave == OscillatorMode::SQUARE )
-	{
-		return 2;
-	}
-	else if ( wave == OscillatorMode::SAWTOOTH )
-	{
-		return 3;
-	}
-
-	return 0;
 }
 
 void ARMor8VoiceManager::setOperatorFreq (unsigned int opNum, float freq)
@@ -431,379 +389,156 @@ void ARMor8VoiceManager::onPitchEvent (const PitchEvent& pitchEvent)
 	}
 }
 
-/*
-void ARMor8VoiceManager::onPotEvent (const PotEvent& potEvent)
+void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent)
 {
-	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
-	float percentage = potEvent.getPercentage();
+	PARAM_CHANNEL channel = static_cast<PARAM_CHANNEL>( paramEvent.getChannel() );
+	unsigned int op = paramEvent.getOperator() - 1; // the voice manager doesn't zero-index this value
+	float val = paramEvent.getValue();
 
 	switch ( channel )
 	{
-		case POT_CHANNEL::EFFECT1:
-			std::cout << "Effect1 Pot: " << std::to_string( percentage ) << std::endl;
+		case PARAM_CHANNEL::FREQUENCY:
+			this->setOperatorFreq( op, val );
 
 			break;
-		case POT_CHANNEL::EFFECT2:
-
-			std::cout << "Effect2 Pot: " << std::to_string( percentage ) << std::endl;
-			break;
-		case POT_CHANNEL::EFFECT3:
-
-			std::cout << "Effect2 Pot: " << std::to_string( percentage ) << std::endl;
-			break;
-		default:
-			break;
-	}
-
-	POT_CHANNEL channel = static_cast<POT_CHANNEL>( potEvent.getChannel() );
-	float percentage = potEvent.getPercentage();
-
-	switch ( channel )
-	{
-		case POT_CHANNEL::FREQUENCY:
-		{
-			float frequencyVal = ARMOR8_FREQUENCY_MAX * percentage;
-			this->setOperatorFreq( m_OpToEdit, frequencyVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(frequencyVal,
-						static_cast<unsigned int>(POT_CHANNEL::FREQUENCY)) );
-		}
+		case PARAM_CHANNEL::DETUNE:
+			this->setOperatorDetune( op, static_cast<int>(val) );
 
 			break;
-		case POT_CHANNEL::DETUNE:
-		{
-			int detuneVal = std::round( (percentage * ARMOR8_DETUNE_MAX * 2.0f) - ARMOR8_DETUNE_MAX );
-			this->setOperatorDetune( m_OpToEdit, detuneVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(*reinterpret_cast<float*>(&detuneVal),
-						static_cast<unsigned int>(POT_CHANNEL::DETUNE)) );
-		}
+		case PARAM_CHANNEL::EG_ATTACK:
+			this->setOperatorEGAttack( op, val, m_Voices[0]->getOperatorAttackExpo(op) );
 
 			break;
-		case POT_CHANNEL::ATTACK:
-		{
-			float attackVal = ( percentage * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) ) + ARMOR8_ATTACK_MIN;
-			this->setOperatorEGAttack( m_OpToEdit, attackVal, m_Voices[0]->getOperatorAttackExpo(m_OpToEdit) );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(attackVal,
-						static_cast<unsigned int>(POT_CHANNEL::ATTACK)) );
-		}
+		case PARAM_CHANNEL::EG_ATTACK_EXPO:
+			this->setOperatorEGAttack( op, m_Voices[0]->getOperatorAttack(op), val );
 
 			break;
-		case POT_CHANNEL::ATTACK_EXPO:
-		{
-			float attackExpoVal = ( percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
-			this->setOperatorEGAttack( m_OpToEdit, m_Voices[0]->getOperatorAttack(m_OpToEdit), attackExpoVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(attackExpoVal,
-						static_cast<unsigned int>(POT_CHANNEL::ATTACK_EXPO)) );
-		}
+		case PARAM_CHANNEL::EG_DECAY:
+			this->setOperatorEGDecay( op, val, m_Voices[0]->getOperatorDecayExpo(op) );
 
 			break;
-		case POT_CHANNEL::DECAY:
-		{
-			float decayVal = ( percentage * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) ) + ARMOR8_DECAY_MIN;
-			this->setOperatorEGDecay( m_OpToEdit, decayVal, m_Voices[0]->getOperatorDecayExpo(m_OpToEdit) );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(decayVal,
-						static_cast<unsigned int>(POT_CHANNEL::DECAY)) );
-		}
+		case PARAM_CHANNEL::EG_DECAY_EXPO:
+			this->setOperatorEGDecay( op, m_Voices[0]->getOperatorDecay(op), val );
 
 			break;
-		case POT_CHANNEL::DECAY_EXPO:
-		{
-			float decayExpoVal = ( percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
-			this->setOperatorEGDecay( m_OpToEdit, m_Voices[0]->getOperatorDecay(m_OpToEdit), decayExpoVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(decayExpoVal,
-						static_cast<unsigned int>(POT_CHANNEL::DECAY_EXPO)) );
-		}
+		case PARAM_CHANNEL::EG_SUSTAIN:
+			this->setOperatorEGSustain( op, val );
 
 			break;
-		case POT_CHANNEL::SUSTAIN:
-		{
-			float sustainVal = percentage;
-			this->setOperatorEGSustain( m_OpToEdit, sustainVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(sustainVal,
-						static_cast<unsigned int>(POT_CHANNEL::SUSTAIN)) );
-		}
+		case PARAM_CHANNEL::EG_RELEASE:
+			this->setOperatorEGRelease( op, val, m_Voices[0]->getOperatorReleaseExpo(op) );
 
 			break;
-		case POT_CHANNEL::RELEASE:
-		{
-			float releaseVal = ( percentage * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) ) + ARMOR8_RELEASE_MIN;
-			this->setOperatorEGRelease( m_OpToEdit, releaseVal, m_Voices[0]->getOperatorReleaseExpo(m_OpToEdit) );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(releaseVal,
-						static_cast<unsigned int>(POT_CHANNEL::RELEASE)) );
-		}
+		case PARAM_CHANNEL::EG_RELEASE_EXPO:
+			this->setOperatorEGRelease( op, m_Voices[0]->getOperatorRelease(op), val );
 
 			break;
-		case POT_CHANNEL::RELEASE_EXPO:
-		{
-			float releaseExpoVal = ( percentage * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
-			this->setOperatorEGRelease( m_OpToEdit, m_Voices[0]->getOperatorRelease(m_OpToEdit), releaseExpoVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(releaseExpoVal,
-						static_cast<unsigned int>(POT_CHANNEL::RELEASE_EXPO)) );
-		}
+		case PARAM_CHANNEL::OP_1_MOD_AMOUNT:
+			this->setOperatorModulation( 0, op, val );
 
 			break;
-		case POT_CHANNEL::OP1_MOD_AMT:
-			this->setOperatorModulation( 0, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP1_MOD_AMT)) );
+		case PARAM_CHANNEL::OP_2_MOD_AMOUNT:
+			this->setOperatorModulation( 1, op, val );
 
 			break;
-		case POT_CHANNEL::OP2_MOD_AMT:
-			this->setOperatorModulation( 1, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP2_MOD_AMT)) );
+		case PARAM_CHANNEL::OP_3_MOD_AMOUNT:
+			this->setOperatorModulation( 2, op, val );
 
 			break;
-		case POT_CHANNEL::OP3_MOD_AMT:
-			this->setOperatorModulation( 2, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP3_MOD_AMT)) );
+		case PARAM_CHANNEL::OP_4_MOD_AMOUNT:
+			this->setOperatorModulation( 3, op, val );
 
 			break;
-		case POT_CHANNEL::OP4_MOD_AMT:
-			this->setOperatorModulation( 3, m_OpToEdit, percentage * ARMOR8_OP_MOD_MAX );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::OP4_MOD_AMT)) );
+		case PARAM_CHANNEL::AMPLITUDE:
+			this->setOperatorAmplitude( op, val );
 
 			break;
-		case POT_CHANNEL::AMPLITUDE:
-		{
-			float amplitudeVal = percentage * ARMOR8_AMPLITUDE_MAX;
-			this->setOperatorAmplitude( m_OpToEdit, percentage * ARMOR8_AMPLITUDE_MAX );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(amplitudeVal,
-						static_cast<unsigned int>(POT_CHANNEL::AMPLITUDE)) );
-		}
+		case PARAM_CHANNEL::FILTER_FREQ:
+			this->setOperatorFilterFreq( op, val );
 
 			break;
-		case POT_CHANNEL::FILT_FREQ:
-		{
-			float filtFreqVal = ( percentage * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) ) + ARMOR8_FILT_FREQ_MIN;
-			this->setOperatorFilterFreq( m_OpToEdit, filtFreqVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(filtFreqVal,
-						static_cast<unsigned int>(POT_CHANNEL::FILT_FREQ)) );
-		}
+		case PARAM_CHANNEL::FILTER_RES:
+			this->setOperatorFilterRes( op, val );
 
 			break;
-		case POT_CHANNEL::FILT_RES:
-		{
-			float filtResVal = percentage * ARMOR8_FILT_RES_MAX;
-			this->setOperatorFilterRes( m_OpToEdit, filtResVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(filtResVal,
-						static_cast<unsigned int>(POT_CHANNEL::FILT_RES)) );
-		}
+		case PARAM_CHANNEL::AMP_VEL_SENS:
+			this->setOperatorAmpVelSens( op, val );
 
 			break;
-		case POT_CHANNEL::VEL_AMP:
-			this->setOperatorAmpVelSens( m_OpToEdit, percentage );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::VEL_AMP)) );
+		case PARAM_CHANNEL::FILT_VEL_SENS:
+			this->setOperatorFiltVelSens( op, val );
 
 			break;
-		case POT_CHANNEL::VEL_FILT:
-			this->setOperatorFiltVelSens( m_OpToEdit, percentage );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(percentage,
-						static_cast<unsigned int>(POT_CHANNEL::VEL_FILT)) );
-
-			break;
-		case POT_CHANNEL::PITCH_BEND:
-		{
-			unsigned int pitchBendSemitonesVal = std::round(percentage *
-							(ARMOR8_PITCH_BEND_MAX - ARMOR8_PITCH_BEND_MIN) + ARMOR8_PITCH_BEND_MIN);
-			this->setPitchBendSemitones( pitchBendSemitonesVal );
+		case PARAM_CHANNEL::PITCH_BEND_SEMI:
+			this->setPitchBendSemitones( static_cast<int>(val) );
 			m_MidiHandler->setNumberOfSemitonesToPitchBend( m_PitchBendSemitones );
 
-			IARMor8ParameterEventListener::PublishEvent(
-						ARMor8ParameterEvent(*reinterpret_cast<float*>(&m_PitchBendSemitones),
-						static_cast<unsigned int>(POT_CHANNEL::PITCH_BEND)) );
+			break;
+		case PARAM_CHANNEL::GLIDE_TIME:
+			this->setGlideTime( val );
+
+			break;
+		case PARAM_CHANNEL::USE_RATIO:
+			this->setOperatorRatio( op, static_cast<bool>(val) );
+
+			break;
+		case PARAM_CHANNEL::EG_DEST_AMP:
+			this->setOperatorEGModDestination( op, EGModDestination::AMPLITUDE, static_cast<bool>(val) );
+
+			break;
+		case PARAM_CHANNEL::EG_DEST_FREQ:
+			this->setOperatorEGModDestination( op, EGModDestination::FREQUENCY, static_cast<bool>(val) );
+
+			break;
+		case PARAM_CHANNEL::EG_DEST_FILT:
+			this->setOperatorEGModDestination( op, EGModDestination::FILT_FREQUENCY, static_cast<bool>(&val) );
+
+			break;
+		case PARAM_CHANNEL::GLIDE_RETRIG:
+			this->setGlideRetrigger( static_cast<bool>(val) );
+
+			break;
+		case PARAM_CHANNEL::MONOPHONIC:
+			m_Monophonic = static_cast<float>(val);
+
+			break;
+		case PARAM_CHANNEL::SELECT_WAVEFORM:
+			this->setOperatorWave( op, static_cast<OscillatorMode>(val) );
+
+			break;
+		case PARAM_CHANNEL::SELECT_OPERATOR:
+			// refresh screen with new operator values
+			IARMor8PresetEventListener::PublishEvent(
+					ARMor8PresetEvent(this->getState(), op, m_PresetManager->getCurrentPresetNum(), 0) );
+
+			break;
+		case PARAM_CHANNEL::NEXT_PRESET:
+		{
+			ARMor8VoiceState preset = m_PresetManager->nextPreset<ARMor8VoiceState>();
+			this->setState( preset );
+			IARMor8PresetEventListener::PublishEvent(
+					ARMor8PresetEvent(this->getState(), 0, m_PresetManager->getCurrentPresetNum(), 0) );
 		}
 
 			break;
-		case POT_CHANNEL::GLIDE_TIME:
+		case PARAM_CHANNEL::PREV_PRESET:
 		{
-			float glideTimeVal = percentage * ARMOR8_GLIDE_TIME_MAX;
-			this->setGlideTime( glideTimeVal );
-
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(glideTimeVal,
-						static_cast<unsigned int>(POT_CHANNEL::GLIDE_TIME)) );
+			ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
+			this->setState( preset );
+			IARMor8PresetEventListener::PublishEvent(
+					ARMor8PresetEvent(this->getState(), 0, m_PresetManager->getCurrentPresetNum(), 0) );
+		}
+			break;
+		case PARAM_CHANNEL::WRITE_PRESET:
+		{
+			ARMor8VoiceState presetToWrite = this->getState();
+			m_PresetManager->writePreset<ARMor8VoiceState>( presetToWrite, m_PresetManager->getCurrentPresetNum() );
 		}
 
 			break;
 		default:
 			break;
 	}
-}
-*/
-
-void ARMor8VoiceManager::onButtonEvent (const ButtonEvent& buttonEvent)
-{
-	/*
-	if ( buttonEvent.getButtonState() == BUTTON_STATE::RELEASED )
-	{
-		switch ( static_cast<BUTTON_CHANNEL>(buttonEvent.getChannel()) )
-		{
-			case BUTTON_CHANNEL::OP1:
-				m_OpToEdit = 0;
-
-				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
-										m_OpToEdit,
-										m_PresetManager->getCurrentPresetNum(),
-										0) );
-
-				break;
-			case BUTTON_CHANNEL::OP2:
-				m_OpToEdit = 1;
-
-				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
-										m_OpToEdit,
-										m_PresetManager->getCurrentPresetNum(),
-										0) );
-
-				break;
-			case BUTTON_CHANNEL::OP3:
-				m_OpToEdit = 2;
-
-				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
-										m_OpToEdit,
-										m_PresetManager->getCurrentPresetNum(),
-										0) );
-
-				break;
-			case BUTTON_CHANNEL::OP4:
-				m_OpToEdit = 3;
-
-				IARMor8PresetEventListener::PublishEvent( ARMor8PresetEvent(this->getState(),
-										m_OpToEdit,
-										m_PresetManager->getCurrentPresetNum(),
-										0) );
-
-				break;
-			case BUTTON_CHANNEL::SINE:
-				this->setOperatorWave( m_OpToEdit, OscillatorMode::SINE );
-
-				break;
-			case BUTTON_CHANNEL::TRIANGLE:
-				this->setOperatorWave( m_OpToEdit, OscillatorMode::TRIANGLE );
-
-				break;
-			case BUTTON_CHANNEL::SQUARE:
-				this->setOperatorWave( m_OpToEdit, OscillatorMode::SQUARE );
-
-				break;
-			case BUTTON_CHANNEL::SAWTOOTH:
-				this->setOperatorWave( m_OpToEdit, OscillatorMode::SAWTOOTH );
-
-				break;
-			case BUTTON_CHANNEL::PREV_PRESET:
-				{
-					ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
-					this->setState( preset );
-					IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
-				}
-
-				break;
-			case BUTTON_CHANNEL::NEXT_PRESET:
-				{
-					ARMor8VoiceState preset = m_PresetManager->nextPreset<ARMor8VoiceState>();
-					this->setState( preset );
-					IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
-				}
-
-				break;
-			case BUTTON_CHANNEL::WRITE_PRESET:
-				{
-					ARMor8VoiceState presetToWrite = this->getState();
-					m_PresetManager->writePreset<ARMor8VoiceState>( presetToWrite, m_PresetManager->getCurrentPresetNum() );
-				}
-
-				break;
-			default:
-				break;
-		}
-	}
-	else if ( buttonEvent.getButtonState() == BUTTON_STATE::HELD )
-	{
-		switch ( static_cast<BUTTON_CHANNEL>(buttonEvent.getChannel()) )
-		{
-			case BUTTON_CHANNEL::RATIO:
-				this->setOperatorRatio( m_OpToEdit, true );
-
-				break;
-			case BUTTON_CHANNEL::MONOPHONIC:
-				m_Monophonic = true;
-
-				break;
-			case BUTTON_CHANNEL::GLIDE_RETRIG:
-				this->setGlideRetrigger( true );
-
-				break;
-			case BUTTON_CHANNEL::EG_AMP:
-				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::AMPLITUDE, true );
-
-				break;
-			case BUTTON_CHANNEL::EG_FREQ:
-				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FREQUENCY, true );
-
-				break;
-			case BUTTON_CHANNEL::EG_FILT:
-				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, true );
-
-				break;
-			default:
-				break;
-		}
-	}
-	else if ( buttonEvent.getButtonState() == BUTTON_STATE::FLOATING )
-	{
-		switch ( static_cast<BUTTON_CHANNEL>(buttonEvent.getChannel()) )
-		{
-			case BUTTON_CHANNEL::RATIO:
-				this->setOperatorRatio( m_OpToEdit, false );
-
-				break;
-			case BUTTON_CHANNEL::MONOPHONIC:
-				m_Monophonic = false;
-
-				break;
-			case BUTTON_CHANNEL::GLIDE_RETRIG:
-				this->setGlideRetrigger( false );
-
-				break;
-			case BUTTON_CHANNEL::EG_AMP:
-				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::AMPLITUDE, false );
-
-				break;
-			case BUTTON_CHANNEL::EG_FREQ:
-				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FREQUENCY, false );
-
-				break;
-			case BUTTON_CHANNEL::EG_FILT:
-				this->setOperatorEGModDestination( m_OpToEdit, EGModDestination::FILT_FREQUENCY, false );
-
-				break;
-			default:
-				break;
-		}
-	}
-	*/
 }
 
 ARMor8VoiceState ARMor8VoiceManager::getState()

@@ -4,13 +4,11 @@
 #include "Graphics.hpp"
 #include "Sprite.hpp"
 #include "IARMor8LCDRefreshEventListener.hpp"
+#include "IARMor8ParameterEventListener.hpp"
 #include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
 constexpr unsigned int SETTINGS_NUM_VISIBLE_ENTRIES = 6;
-
-// TODO remove this after testing
-#include <iostream>
 
 ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format) :
 	Surface( width, height, format ),
@@ -64,17 +62,6 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_Effect1PotLocked( false ),
 	m_Effect2PotLocked( false ),
 	m_Effect3PotLocked( false ),
-	m_Alt1State( BUTTON_STATE::FLOATING ),
-	m_Alt2State( BUTTON_STATE::FLOATING ),
-	m_RatioOrFixedBtnState( BUTTON_STATE::FLOATING ),
-	m_NextOpBtnState( BUTTON_STATE::FLOATING ),
-	m_NextWaveBtnState( BUTTON_STATE::FLOATING ),
-	m_GlideRetrigBtnState( BUTTON_STATE::FLOATING ),
-	m_MonoBtnState( BUTTON_STATE::FLOATING ),
-	m_EGDestBtnState( BUTTON_STATE::FLOATING ),
-	m_PrevPresetBtnState( BUTTON_STATE::FLOATING ),
-	m_NextPresetBtnState( BUTTON_STATE::FLOATING ),
-	m_WritePresetBtnState( BUTTON_STATE::FLOATING ),
 	m_Effect1BtnState( BUTTON_STATE::FLOATING ),
 	m_Effect2BtnState( BUTTON_STATE::FLOATING ),
 	m_Pot1StabilizerBuf{ 0.0f },
@@ -343,7 +330,6 @@ void ARMor8UiManager::endLoading()
 
 void ARMor8UiManager::tickForChangingBackToStatus()
 {
-	// TODO m_TicksForChangingBackToStatus probably needs to be set to 0 each time a parameter event for additional page is sent
 	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 	{
 		if ( m_TicksForChangingBackToStatus >= m_MaxTicksForChangingBackToStatus )
@@ -567,831 +553,7 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 
 	this->updateFiltResStr( filterRes, buffer, bufferLen );
 
-	m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-	this->draw();
-}
-
-void ARMor8UiManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent)
-{
-	/*
-	POT_CHANNEL channel = static_cast<POT_CHANNEL>( paramEvent.getChannel() );
-
-	unsigned int bufferLen = 20;
-	char buffer[bufferLen];
-
-	switch ( channel )
-	{
-		case POT_CHANNEL::AMPLITUDE:
-		{
-			float amplitudeAmount = paramEvent.getValue();
-			this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.65f, 0.62f, 0.73f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.65f, m_OpAmpStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.65f, 0.62f, 0.73f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::FILT_FREQ:
-		{
-			float filtFrequencyAmount = paramEvent.getValue();
-			this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.83f, 0.62f, 0.92f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.83f, m_FiltFreqStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.83f, 0.62f, 0.92f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::FREQUENCY:
-		{
-			float frequencyAmount = paramEvent.getValue();
-			this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.74f, 0.62f, 0.82f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.74f, m_FreqStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.74f, 0.62f, 0.82f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::ATTACK:
-		{
-			float attackAmount = paramEvent.getValue();
-			this->updateAttackStr( attackAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.5f, 0.26f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.16f, m_AttackStr,  1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.5f, 0.26f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::DECAY:
-		{
-			float decayAmount = paramEvent.getValue();
-			this->updateDecayStr( decayAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.28f, 0.5f, 0.38f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.28f, m_DecayStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.28f, 0.5f, 0.38f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-			break;
-		case POT_CHANNEL::SUSTAIN:
-		{
-			float sustainAmount = paramEvent.getValue();
-			this->updateSustainStr( sustainAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.39f, 0.5f, 0.49f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.39f, m_SustainStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.39f, 0.5f, 0.49f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::RELEASE:
-		{
-			float releaseAmount = paramEvent.getValue();
-			this->updateReleaseStr( releaseAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.5f, 0.5f, 0.6f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.50f, m_ReleaseStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.5f, 0.5f, 0.6f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::OP1_MOD_AMT:
-		{
-			float op1ModAmount = paramEvent.getValue();
-			this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.52f, 0.16f, 1.1f, 0.26f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.52f, 0.16f, m_Op1Str, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.52f, 0.16f, 1.0f, 0.28f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::OP2_MOD_AMT:
-		{
-			float op2ModAmount = paramEvent.getValue();
-			this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.52f, 0.28f, 1.1f, 0.38f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.52f, 0.28f, m_Op2Str, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.52f, 0.28f, 1.0f, 0.38f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::OP3_MOD_AMT:
-		{
-			float op3ModAmount = paramEvent.getValue();
-			this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.52f, 0.39f, 1.1f, 0.49f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.52f, 0.39f, m_Op3Str, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.52f, 0.39f, 1.0f, 0.49f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::OP4_MOD_AMT:
-		{
-			float op4ModAmount = paramEvent.getValue();
-			this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.52f, 0.50f, 1.1f, 0.60f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.52f, 0.50f, m_Op4Str, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.52f, 0.50f, 1.0f, 0.60f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::DETUNE:
-		{
-			float detuneAmountF = paramEvent.getValue();
-			int detuneAmount = *reinterpret_cast<int*>( &detuneAmountF );
-			this->updateDetuneStr( detuneAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.0f, 1.0f, 0.08f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.0f, m_DetuneStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.0f, 1.0f, 0.08f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::ATTACK_EXPO:
-		{
-			float attackExpoAmount = paramEvent.getValue();
-			this->updateAttackExpoStr( attackExpoAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.6f, 0.26f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.16f, m_AttackExpoStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.6f, 0.26f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::DECAY_EXPO:
-		{
-			float decayExpoAmount = paramEvent.getValue();
-			this->updateDecayExpoStr( decayExpoAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.3f, 0.6f, 0.4 );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.30f, m_DecayExpoStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.3f, 0.6f, 0.4f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::RELEASE_EXPO:
-		{
-			float releaseExpoAmount = paramEvent.getValue();
-			this->updateReleaseExpoStr( releaseExpoAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.42f, 0.6f, 0.52f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.42f, m_ReleaseExpoStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.42f, 0.6f, 0.52f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::VEL_AMP:
-		{
-			float amplitudeVelAmount = paramEvent.getValue();
-			this->updateAmplitudeVelStr( amplitudeVelAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.6f, 0.6f, 0.7f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.60f, m_AmplitudeVelStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.6f, 0.6f, 0.7f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::VEL_FILT:
-		{
-			float filterVelAmount = paramEvent.getValue();
-			this->updateFilterVelStr( filterVelAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.0f, 0.72f, 0.6f, 0.81f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( -0.02f, 0.72f, m_FiltVelStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.0f, 0.72f, 0.6f, 0.81f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::GLIDE_TIME:
-		{
-			float glideTimeAmount = paramEvent.getValue();
-			this->updateGlideStr( glideTimeAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.03f, 0.83f, 0.97f, 0.92f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.03f, 0.83f, m_GlideStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.03f, 0.83f, 0.97f, 0.92f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::PITCH_BEND:
-		{
-			float pitchBendAmount = paramEvent.getValue();
-			unsigned int pitchBendAmountUInt = *reinterpret_cast<unsigned int*>( &pitchBendAmount );
-			int pitchBendAmountInt = static_cast<int>( pitchBendAmountUInt );
-			this->updatePitchBendStr( pitchBendAmountInt, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.03f, 0.93f, 0.97f, 1.0f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.03f, 0.93f, m_PitchBendStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.03f, 0.93f, 0.97f, 1.0f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		case POT_CHANNEL::FILT_RES:
-		{
-			float filtResAmount = paramEvent.getValue();
-			this->updateFiltResStr( filtResAmount, buffer, bufferLen );
-
-			if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
-			{
-				m_Graphics->setColor( false );
-				m_Graphics->drawBoxFilled( 0.71f, 0.3f, 0.93f, 0.4f );
-				m_Graphics->setColor( true );
-				m_Graphics->drawText( 0.71f, 0.3f, m_FiltResStr, 1.0f );
-
-				this->publishPartialLCDRefreshEvent( 0.71f, 0.3f, 0.93f, 0.4f );
-			}
-			else
-			{
-				m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
-				this->draw();
-			}
-		}
-
-			break;
-		default:
-			break;
-	}
-	*/
-}
-
-void ARMor8UiManager::setEGDestAmplitude (bool on)
-{
-	if ( on )
-	{
-		m_EGDestBitmask = m_EGDestBitmask | 0b100;
-	}
-	else
-	{
-		m_EGDestBitmask = m_EGDestBitmask & ~(0b100);
-	}
-
-	this->updateEGDestState();
-	this->refreshEGDest();
-}
-
-void ARMor8UiManager::setEGDestFrequency (bool on)
-{
-	if ( on )
-	{
-		m_EGDestBitmask = m_EGDestBitmask | 0b010;
-	}
-	else
-	{
-		m_EGDestBitmask = m_EGDestBitmask & ~(0b010);
-	}
-
-	this->updateEGDestState();
-	this->refreshEGDest();
-}
-
-void ARMor8UiManager::setEGDestFiltrFreq (bool on)
-{
-	if ( on )
-	{
-		m_EGDestBitmask = m_EGDestBitmask | 0b001;
-	}
-	else
-	{
-		m_EGDestBitmask = m_EGDestBitmask & ~(0b001);
-	}
-
-	this->updateEGDestState();
-	this->refreshEGDest();
-}
-
-void ARMor8UiManager::processFreqOrDetunePot (float percentage)
-{
-	/*
-	if ( m_Alt1State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_DetunePotLocked, m_DetunePotCached, percentage) )
-		{
-			// detune
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::DETUNE)) );
-		}
-		else
-		{
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_FreqPotLocked, m_FreqPotCached, percentage) )
-		{
-			// frequency
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::FREQUENCY)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processAtkOrAtkExpoOrOp1ModPot (float percentage)
-{
-	/*
-	if ( m_Alt2State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_Op1ModPotLocked, m_Op1ModPotCached, percentage) )
-		{
-			// op 1 mod
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::OP1_MOD_AMT)) );
-		}
-	}
-	else if ( m_Alt1State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_AttackExpoPotLocked, m_AttackExpoPotCached, percentage) )
-		{
-			// attack expo
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::ATTACK_EXPO)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_AttackPotLocked, m_AttackPotCached, percentage) )
-		{
-			// attack
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::ATTACK)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processDecOrDecExpoOrOp2ModPot (float percentage)
-{
-	/*
-	if ( m_Alt2State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_Op2ModPotLocked, m_Op2ModPotCached, percentage) )
-		{
-			// op 2 mod
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::OP2_MOD_AMT)) );
-		}
-	}
-	else if ( m_Alt1State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_DecayExpoPotLocked, m_DecayExpoPotCached, percentage) )
-		{
-			// decay expo
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::DECAY_EXPO)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_DecayPotLocked, m_DecayPotCached, percentage) )
-		{
-			// decay
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::DECAY)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processSusOrOp3ModPot (float percentage)
-{
-	/*
-	if ( m_Alt2State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_Op3ModPotLocked, m_Op3ModPotCached, percentage) )
-		{
-			// op 3 mod
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::OP3_MOD_AMT)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_SustainPotLocked, m_SustainPotCached, percentage) )
-		{
-			// sustain
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::SUSTAIN)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processRelOrRelExpoOrOp4ModPot (float percentage)
-{
-	/*
-	if ( m_Alt2State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_Op4ModPotLocked, m_Op4ModPotCached, percentage) )
-		{
-			// op 4 mod
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::OP4_MOD_AMT)) );
-		}
-	}
-	else if ( m_Alt1State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_ReleaseExpoPotLocked, m_ReleaseExpoPotCached, percentage) )
-		{
-			// release expo
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::RELEASE_EXPO)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_ReleasePotLocked, m_ReleasePotCached, percentage) )
-		{
-			// release
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::RELEASE)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processAmpOrAmpVelPot (float percentage)
-{
-	/*
-	if ( m_Alt2State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_AmplitudeVelPotLocked, m_AmplitudeVelPotCached, percentage) )
-		{
-			// amplitude velocity
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::VEL_AMP)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_AmplitudePotLocked, m_AmplitudePotCached, percentage) )
-		{
-			// amplitude
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::AMPLITUDE)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processFiltFreqOrFiltResOrFiltVelPot (float percentage)
-{
-	/*
-	if ( m_Alt2State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_FiltVelPotLocked, m_FiltVelPotCached, percentage) )
-		{
-			// filter velocity
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::VEL_FILT)) );
-		}
-	}
-	else if ( m_Alt1State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_FiltResPotLocked, m_FiltResPotCached, percentage) )
-		{
-			// filter resonance
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::FILT_RES)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_FiltFreqPotLocked, m_FiltFreqPotCached, percentage) )
-		{
-			// filter frequency
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::FILT_FREQ)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processPitchBendOrGlidePot (float percentage)
-{
-	/*
-	if ( m_Alt1State == BUTTON_STATE::HELD )
-	{
-		if ( this->hasBrokenLock(m_PitchBendPotLocked, m_PitchBendPotCached, percentage) )
-		{
-			// pitch bend
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::PITCH_BEND)) );
-		}
-	}
-	else
-	{
-		if ( this->hasBrokenLock(m_GlidePotLocked, m_GlidePotCached, percentage) )
-		{
-			// glide time
-			IPotEventListener::PublishEvent( PotEvent(percentage, static_cast<unsigned int>(POT_CHANNEL::GLIDE_TIME)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processAlt1Btn (bool pressed)
-{
-	this->updateButtonState( m_Alt1State, pressed );
-}
-
-void ARMor8UiManager::processAlt2Btn (bool pressed)
-{
-	this->updateButtonState( m_Alt2State, pressed );
-}
-
-void ARMor8UiManager::processRatioOrFixedBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_RatioOrFixedBtnState, pressed );
-
-	if ( m_RatioOrFixedBtnState == BUTTON_STATE::RELEASED )
-	{
-		m_UsingRatio = !m_UsingRatio;
-
-		if ( m_UsingRatio )
-		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
-							static_cast<unsigned int>(BUTTON_CHANNEL::RATIO)) );
-		}
-		else
-		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
-							static_cast<unsigned int>(BUTTON_CHANNEL::RATIO)) );
-		}
-
-		this->updateRatioFixedStr();
-		this->refreshRatioFixed();
-	}
-	*/
-}
-
-void ARMor8UiManager::processNextOpBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_NextOpBtnState, pressed );
-
-	if ( m_NextOpBtnState == BUTTON_STATE::RELEASED )
-	{
-		if ( m_OpCurrentlyBeingEdited == 1 )
-		{
-			m_OpCurrentlyBeingEdited = 2;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::OP2)) );
-		}
-		else if ( m_OpCurrentlyBeingEdited == 2 )
-		{
-			m_OpCurrentlyBeingEdited = 3;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::OP3)) );
-		}
-		else if ( m_OpCurrentlyBeingEdited == 3 )
-		{
-			m_OpCurrentlyBeingEdited = 4;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::OP4)) );
-		}
-		else if ( m_OpCurrentlyBeingEdited == 4 )
-		{
-			m_OpCurrentlyBeingEdited = 1;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::OP1)) );
-		}
-	}
-	*/
-}
-
-void ARMor8UiManager::processNextWaveBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_NextWaveBtnState, pressed );
-
-	if ( m_NextWaveBtnState == BUTTON_STATE::RELEASED )
-	{
-		if ( m_WaveNumCurrentlyBeingEdited == 1 )
-		{
-			m_WaveNumCurrentlyBeingEdited = 2;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::TRIANGLE)) );
-		}
-		else if ( m_WaveNumCurrentlyBeingEdited == 2 )
-		{
-			m_WaveNumCurrentlyBeingEdited = 3;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::SQUARE)) );
-		}
-		else if ( m_WaveNumCurrentlyBeingEdited == 3 )
-		{
-			m_WaveNumCurrentlyBeingEdited = 4;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::SAWTOOTH)) );
-		}
-		else if ( m_WaveNumCurrentlyBeingEdited == 4 )
-		{
-			m_WaveNumCurrentlyBeingEdited = 1;
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-								static_cast<unsigned int>(BUTTON_CHANNEL::SINE)) );
-		}
-
-		this->updateWaveStr();
-		this->refreshWave();
-	}
-	*/
+	this->returnToStatusMenu();
 }
 
 void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
@@ -1402,8 +564,6 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 	float* potStabilizerBuf = nullptr;
 	unsigned int* potStabilizerIndex = nullptr;
 	float* potStabilizerValue = nullptr;
-	float allowedScatterLeft = ARMOR8_POT_STABIL_ALLOWED_SCATTER;
-	float allowedScatterRight = ARMOR8_POT_STABIL_ALLOWED_SCATTER;
 	bool* lockedStatus = nullptr;
 	float* lockCachedVal = nullptr;
 	unsigned int assignmentIndex = 0;
@@ -1454,7 +614,7 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 	averageValue = averageValue / ( static_cast<float>(ARMOR8_POT_STABIL_NUM) + 1.0f );
 
 	// only if the current value breaks our 'hysteresis' do we actually set a new pot value
-	if ( percentage < (averageValue - allowedScatterLeft) || percentage > (averageValue + allowedScatterRight) )
+	if ( *potStabilizerValue != averageValue )
 	{
 		*potStabilizerValue = averageValue;
 
@@ -1524,113 +684,6 @@ void ARMor8UiManager::onButtonEvent (const ButtonEvent& buttonEvent)
 	}
 }
 
-void ARMor8UiManager::processGlideRetrigBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_GlideRetrigBtnState, pressed );
-
-	if ( m_GlideRetrigBtnState == BUTTON_STATE::RELEASED )
-	{
-		m_UsingGlideRetrigger = !m_UsingGlideRetrigger;
-
-		if ( m_UsingGlideRetrigger )
-		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
-								static_cast<unsigned int>(BUTTON_CHANNEL::GLIDE_RETRIG)) );
-		}
-		else
-		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
-								static_cast<unsigned int>(BUTTON_CHANNEL::GLIDE_RETRIG)) );
-		}
-
-		this->refreshGlideRetrig();
-	}
-	*/
-}
-
-void ARMor8UiManager::processMonoBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_MonoBtnState, pressed );
-
-	if ( m_MonoBtnState == BUTTON_STATE::RELEASED )
-	{
-		m_UsingMono = !m_UsingMono;
-
-		if ( m_UsingMono )
-		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
-								static_cast<unsigned int>(BUTTON_CHANNEL::MONOPHONIC)) );
-		}
-		else
-		{
-			IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
-								static_cast<unsigned int>(BUTTON_CHANNEL::MONOPHONIC)) );
-		}
-
-		this->updateMonoPolyStr();
-		this->refreshMonoPoly();
-	}
-	*/
-}
-
-void ARMor8UiManager::processEGDestBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_EGDestBtnState, pressed );
-
-	if ( m_EGDestBtnState == BUTTON_STATE::RELEASED )
-	{
-		m_EGDestBitmask++;
-
-		if ( m_EGDestBitmask > 0b111 ) m_EGDestBitmask = 0b000;
-
-		this->updateEGDestState();
-		this->refreshEGDest();
-	}
-	*/
-}
-
-void ARMor8UiManager::processPrevPresetBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_PrevPresetBtnState, pressed );
-
-	if ( m_PrevPresetBtnState == BUTTON_STATE::RELEASED )
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::PREV_PRESET)) );
-	}
-	*/
-}
-
-void ARMor8UiManager::processNextPresetBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_NextPresetBtnState, pressed );
-
-	if ( m_NextPresetBtnState == BUTTON_STATE::RELEASED )
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::NEXT_PRESET)) );
-	}
-	*/
-}
-
-void ARMor8UiManager::processWritePresetBtn (bool pressed)
-{
-	/*
-	this->updateButtonState( m_WritePresetBtnState, pressed );
-
-	if ( m_WritePresetBtnState == BUTTON_STATE::RELEASED )
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::RELEASED,
-							static_cast<unsigned int>(BUTTON_CHANNEL::WRITE_PRESET)) );
-	}
-	*/
-}
-
 void ARMor8UiManager::processEffect1Btn (bool pressed)
 {
 	static BUTTON_STATE prevState = BUTTON_STATE::FLOATING;
@@ -1683,48 +736,6 @@ void ARMor8UiManager::updateButtonState (BUTTON_STATE& buttonState, bool pressed
 			buttonState = BUTTON_STATE::FLOATING;
 		}
 	}
-}
-
-void ARMor8UiManager::updateEGDestState()
-{
-	/*
-	bool amplitudeActive = (m_EGDestBitmask >> 2);
-	bool frequencyActive = (m_EGDestBitmask >> 1) & 0b00000001;
-	bool filtrFreqActive = (m_EGDestBitmask >> 0) & 0b00000001;
-
-	if ( amplitudeActive )
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
-							static_cast<unsigned int>(BUTTON_CHANNEL::EG_AMP)) );
-	}
-	else
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
-							static_cast<unsigned int>(BUTTON_CHANNEL::EG_AMP)) );
-	}
-
-	if ( frequencyActive )
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
-							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FREQ)) );
-	}
-	else
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
-							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FREQ)) );
-	}
-
-	if ( filtrFreqActive )
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::HELD,
-							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FILT)) );
-	}
-	else
-	{
-		IButtonEventListener::PublishEvent( ButtonEvent(BUTTON_STATE::FLOATING,
-							static_cast<unsigned int>(BUTTON_CHANNEL::EG_FILT)) );
-	}
-	*/
 }
 
 void ARMor8UiManager::publishPartialLCDRefreshEvent (float xStart, float yStart, float xEnd, float yEnd)
@@ -2291,7 +1302,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	if ( assignmentIndex == m_AssignEffectPotMenuFreqIndex ) // frequency
 	{
 		float frequencyAmount = val * ARMOR8_FREQUENCY_MAX;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(frequencyAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FREQUENCY)) );
 		this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2310,12 +1322,31 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuDetuneIndex ) // detune
 	{
-		// TODO implement
+		int detuneAmount = std::round( (val * ARMOR8_DETUNE_MAX * 2.0f) - ARMOR8_DETUNE_MAX );
+		float detuneAmountFloat = static_cast<float>( detuneAmount );
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(detuneAmountFloat, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::DETUNE)) );
+		this->updateDetuneStr( detuneAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.0f, 1.0f, 0.08f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.0f, m_DetuneStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.0f, 1.0f, 0.08f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuAttackIndex ) // eg attack
 	{
 		float attackAmount = ( val * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) ) + ARMOR8_ATTACK_MIN;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(attackAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_ATTACK)) );
 		this->updateAttackStr( attackAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2335,7 +1366,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuDecayIndex ) // eg decay
 	{
 		float decayAmount = ( val * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) ) + ARMOR8_DECAY_MIN;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(decayAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_DECAY)) );
 		this->updateDecayStr( decayAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2355,7 +1387,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuSustainIndex ) // eg sustain
 	{
 		float sustainAmount = val;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(sustainAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_SUSTAIN)) );
 		this->updateSustainStr( sustainAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2375,7 +1408,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuReleaseIndex ) // eg release
 	{
 		float releaseAmount = ( val * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) ) + ARMOR8_RELEASE_MIN;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(releaseAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_RELEASE)) );
 		this->updateReleaseStr( releaseAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2394,20 +1428,72 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuAtkExpoIndex ) // eg attack expo
 	{
-		//assignmentimplement
+		float attackExpoAmount = ( val * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(attackExpoAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_ATTACK_EXPO)) );
+		this->updateAttackExpoStr( attackExpoAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.6f, 0.26f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.16f, m_AttackExpoStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.6f, 0.26f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuDecExpoIndex ) // eg decay expo
 	{
-		//assignmentimplement
+		float decayExpoAmount = ( val * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(decayExpoAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_DECAY_EXPO)) );
+		this->updateDecayExpoStr( decayExpoAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.3f, 0.6f, 0.4f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.30f, m_DecayExpoStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.3f, 0.6f, 0.4f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuRelExpoIndex ) // eg release expo
 	{
-		//assignmentimplement
+		float releaseExpoAmount = ( val * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(releaseExpoAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_RELEASE_EXPO)) );
+		this->updateReleaseExpoStr( releaseExpoAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.42f, 0.6f, 0.52f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.42f, m_ReleaseExpoStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.42f, 0.6f, 0.52f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp1ModIndex ) // op1 modulation amount
 	{
 		float op1ModAmount = val;
-		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(op1ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_1_MOD_AMOUNT)) );
 		this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2427,7 +1513,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp2ModIndex ) // op2 modulation amount
 	{
 		float op2ModAmount = val;
-		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(op2ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_2_MOD_AMOUNT)) );
 		this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2447,7 +1534,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp3ModIndex ) // op3 modulation amount
 	{
 		float op3ModAmount = val;
-		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(op3ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_3_MOD_AMOUNT)) );
 		this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2467,7 +1555,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp4ModIndex ) // op4 modulation amount
 	{
 		float op4ModAmount = val;
-		// TODO send parameter event (NEED TO MULTIPLY BY ARMOR8_OP_MOD_MAX TOO!)
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(op4ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_4_MOD_AMOUNT)) );
 		this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2487,7 +1576,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuAmplitudeIndex ) // amplitude
 	{
 		float amplitudeAmount = val * ARMOR8_AMPLITUDE_MAX;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(amplitudeAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::AMPLITUDE)) );
 		this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2507,7 +1597,8 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	else if ( assignmentIndex == m_AssignEffectPotMenuFiltFreqIndex ) // filter frequency
 	{
 		float filtFrequencyAmount = ( val * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) ) + ARMOR8_FILT_FREQ_MIN;
-		// TODO send parameter event
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(filtFrequencyAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILTER_FREQ)) );
 		this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -2526,30 +1617,121 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuFiltResIndex ) // filter resonance
 	{
-		//assignmentimplement
+		float filtResAmount = val * ARMOR8_FILT_RES_MAX;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(filtResAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILTER_RES)) );
+		this->updateFiltResStr( filtResAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.71f, 0.3f, 0.93f, 0.4f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.71f, 0.3f, m_FiltResStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.71f, 0.3f, 0.93f, 0.4f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // amplitude velocity sensitivity
 	{
-		//assignmentimplement
+		float amplitudeVelAmount = val;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(amplitudeVelAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::AMP_VEL_SENS)) );
+		this->updateAmplitudeVelStr( amplitudeVelAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.6f, 0.6f, 0.7f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.60f, m_AmplitudeVelStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.6f, 0.6f, 0.7f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // filter velocity sensitivity
 	{
-		//assignmentimplement
+		float filterVelAmount = val;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(filterVelAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILT_VEL_SENS)) );
+		this->updateFilterVelStr( filterVelAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.0f, 0.72f, 0.6f, 0.81f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( -0.02f, 0.72f, m_FiltVelStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.0f, 0.72f, 0.6f, 0.81f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuPBendSemiIndex ) // pitch bend semitones
 	{
-		//assignmentimplement
+		int pitchBendAmount = std::round( val * (ARMOR8_PITCH_BEND_MAX - ARMOR8_PITCH_BEND_MIN) + ARMOR8_PITCH_BEND_MIN );
+		float pitchBendAmountFloat = static_cast<float>( pitchBendAmount );
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(pitchBendAmountFloat, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::PITCH_BEND_SEMI)) );
+		this->updatePitchBendStr( pitchBendAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.03f, 0.93f, 0.97f, 1.0f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.03f, 0.93f, m_PitchBendStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.03f, 0.93f, 0.97f, 1.0f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuGlideTimeIndex ) // glide time
 	{
-		// TODO implement
+		float glideTimeAmount = val * ARMOR8_GLIDE_TIME_MAX;
+		IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(glideTimeAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::GLIDE_TIME)) );
+		this->updateGlideStr( glideTimeAmount, buffer, bufferLen );
+
+		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		{
+			m_Graphics->setColor( false );
+			m_Graphics->drawBoxFilled( 0.03f, 0.83f, 0.97f, 0.92f );
+			m_Graphics->setColor( true );
+			m_Graphics->drawText( 0.03f, 0.83f, m_GlideStr, 1.0f );
+
+			this->publishPartialLCDRefreshEvent( 0.03f, 0.83f, 0.97f, 0.92f );
+		}
+		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		{
+			this->enterStatusAdditionalMenu();
+		}
 	}
 
 }
 
 void ARMor8UiManager::handleEffect1SinglePress()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+	{
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(true, m_OpCurrentlyBeingEdited,
+					static_cast<unsigned int>(PARAM_CHANNEL::PREV_PRESET)) );
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
 	{
 		m_SettingsMainModel.reverseCursor();
 		this->draw();
@@ -2624,15 +1806,20 @@ void ARMor8UiManager::handleEffect1SinglePress()
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
 	{
-		// TODO implement preset write
-		std::cout << "SHOULD HAVE WROTE PRESET" << std::endl;
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(true, m_OpCurrentlyBeingEdited,
+					static_cast<unsigned int>(PARAM_CHANNEL::WRITE_PRESET)) );
 		this->returnToStatusMenu();
 	}
 }
 
 void ARMor8UiManager::handleEffect2SinglePress()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+	{
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(true, m_OpCurrentlyBeingEdited,
+					static_cast<unsigned int>(PARAM_CHANNEL::NEXT_PRESET)) );
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SETTINGS_MAIN )
 	{
 		m_SettingsMainModel.advanceCursor();
 		this->draw();
@@ -2713,7 +1900,7 @@ void ARMor8UiManager::handleEffect2SinglePress()
 
 void ARMor8UiManager::handleDoubleButtonPress()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 	{
 		this->enterSettingsMenu();
 	}
@@ -2754,37 +1941,68 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		{
 			m_UsingRatio = !m_UsingRatio;
 			this->draw();
-			// TODO send parameter event
+			IARMor8ParameterEventListener::PublishEvent(
+				ARMor8ParameterEvent(static_cast<float>(m_UsingRatio), m_OpCurrentlyBeingEdited,
+					static_cast<unsigned int>(PARAM_CHANNEL::USE_RATIO)) );
 		}
 		else if ( cursorIndex == m_SettingsMenuEGDestAmpIndex ) // toggle eg to amplitude
 		{
 			m_EGDestBitmask ^= 0b100;
 			this->draw();
-			// TODO send parameter event
+			if ( m_EGDestBitmask & 0b100 )
+			{
+				IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(true), m_OpCurrentlyBeingEdited,
+							static_cast<unsigned int>(PARAM_CHANNEL::EG_DEST_AMP)) );
+			}
+			else
+			{
+				IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(false), m_OpCurrentlyBeingEdited,
+							static_cast<unsigned int>(PARAM_CHANNEL::EG_DEST_AMP)) );
+			}
 		}
 		else if ( cursorIndex == m_SettingsMenuEGDestFreqIndex ) // toggle eg to frequency
 		{
 			m_EGDestBitmask ^= 0b010;
 			this->draw();
-			// TODO send parameter event
+			if ( m_EGDestBitmask & 0b010 )
+			{
+				IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(true), m_OpCurrentlyBeingEdited,
+							static_cast<unsigned int>(PARAM_CHANNEL::EG_DEST_FREQ)) );
+			}
+			else
+			{
+				IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(false), m_OpCurrentlyBeingEdited,
+							static_cast<unsigned int>(PARAM_CHANNEL::EG_DEST_FREQ)) );
+			}
 		}
 		else if ( cursorIndex == m_SettingsMenuEGDestFiltIndex ) // toggle eg to filter
 		{
 			m_EGDestBitmask ^= 0b001;
 			this->draw();
-			// TODO send parameter event
+			if ( m_EGDestBitmask & 0b001 )
+			{
+				IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(true), m_OpCurrentlyBeingEdited,
+							static_cast<unsigned int>(PARAM_CHANNEL::EG_DEST_FILT)) );
+			}
+			else
+			{
+				IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(false), m_OpCurrentlyBeingEdited,
+							static_cast<unsigned int>(PARAM_CHANNEL::EG_DEST_FILT)) );
+			}
 		}
 		else if ( cursorIndex == m_SettingsMenuGlideRetrigIndex ) // toggle glide retrigger
 		{
 			m_UsingGlideRetrigger = !m_UsingGlideRetrigger;
 			this->draw();
-			// TODO send parameter event
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_UsingGlideRetrigger),
+						m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::GLIDE_RETRIG)) );
 		}
 		else if ( cursorIndex == m_SettingsMenuMonophonicIndex ) // toggle monophonic mode
 		{
 			m_UsingMono = !m_UsingMono;
 			this->draw();
-			// TODO send parameter event
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_UsingMono),
+						m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::MONOPHONIC)) );
 		}
 		else if ( cursorIndex == m_SettingsMenuWritePresetIndex ) // write preset (leads to confirmation page)
 		{
@@ -2802,62 +2020,67 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		{
 			m_OpCurrentlyBeingEdited = 1;
 			this->enterSettingsMenu();
-			// TODO send parameter event
 		}
 		else if ( cursorIndex == m_SelectOperatorMenuOp2Index ) // start editing operator 2
 		{
 			m_OpCurrentlyBeingEdited = 2;
 			this->enterSettingsMenu();
-			// TODO send parameter event
 		}
 		else if ( cursorIndex == m_SelectOperatorMenuOp3Index ) // start editing operator 3
 		{
 			m_OpCurrentlyBeingEdited = 3;
 			this->enterSettingsMenu();
-			// TODO send parameter event
 		}
 		else if ( cursorIndex == m_SelectOperatorMenuOp4Index ) // start editing operator 4
 		{
 			m_OpCurrentlyBeingEdited = 4;
 			this->enterSettingsMenu();
-			// TODO send parameter event
 		}
 		else if ( cursorIndex == m_SelectOperatorMenuExitMenuIndex ) // exit back to settings menu
 		{
 			this->enterSettingsMenu();
+			return;
 		}
+
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, // doesn't matter
+					m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SELECT_WAVEFORM)) );
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
 	{
 		unsigned int cursorIndex = m_SelectWaveformModel.getEntryIndex();
+		OscillatorMode mode = OscillatorMode::SINE;
 		if ( cursorIndex == m_SelectWaveformMenuSineIndex ) // use sine wave
 		{
 			m_WaveNumCurrentlyBeingEdited = 1;
 			this->enterSettingsMenu();
-			// TODO send parameter event
+			mode = OscillatorMode::SINE;
 		}
 		else if ( cursorIndex == m_SelectWaveformMenuTriIndex ) // use tri wave
 		{
 			m_WaveNumCurrentlyBeingEdited = 2;
 			this->enterSettingsMenu();
-			// TODO send parameter event
+			mode = OscillatorMode::TRIANGLE;
 		}
 		else if ( cursorIndex == m_SelectWaveformMenuSquareIndex ) // use square wave
 		{
 			m_WaveNumCurrentlyBeingEdited = 3;
 			this->enterSettingsMenu();
-			// TODO send parameter event
+			mode = OscillatorMode::SQUARE;
 		}
 		else if ( cursorIndex == m_SelectWaveformMenuSawIndex ) // use saw wave
 		{
 			m_WaveNumCurrentlyBeingEdited = 4;
 			this->enterSettingsMenu();
-			// TODO send parameter event
+			mode = OscillatorMode::SAWTOOTH;
 		}
 		else if ( cursorIndex == m_SelectWaveformMenuExitMenuIndex ) // exit back to settings menu
 		{
 			this->enterSettingsMenu();
+			return;
 		}
+
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(mode),
+					m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SELECT_WAVEFORM)) );
 	}
 }
 

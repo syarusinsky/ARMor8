@@ -65,7 +65,8 @@ MainComponent::MainComponent() :
 	this->bindToARMor8LCDRefreshEventSystem();
 	armor8VoiceManager.bindToKeyEventSystem();
 	armor8VoiceManager.bindToPitchEventSystem();
-	armor8VoiceManager.bindToButtonEventSystem();
+	armor8VoiceManager.bindToARMor8ParameterEventSystem();
+	uiSim.bindToARMor8PresetEventSystem();
 	uiSim.bindToPotEventSystem();
 	uiSim.bindToButtonEventSystem();
 
