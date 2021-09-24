@@ -8,6 +8,8 @@
 #include "IPotEventListener.hpp"
 #include "IButtonEventListener.hpp"
 
+static inline float AUDIO_TAPER (float input) { return pow(input, 2); }
+
 constexpr unsigned int SETTINGS_NUM_VISIBLE_ENTRIES = 6;
 
 ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const CP_FORMAT& format) :
@@ -347,7 +349,6 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 	this->lockAllPots();
 
 	ARMor8VoiceState voiceState = presetEvent.getPreset();
-	m_OpCurrentlyBeingEdited = presetEvent.getOpToEdit() + 1;
 	m_CurrentPresetNum = presetEvent.getPresetNum() + 1;
 
 	// buffer for holding parameter strings
@@ -384,6 +385,12 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 	OscillatorMode wave = OscillatorMode::SINE;
 	unsigned int pitchBendSemitones = voiceState.pitchBendSemitones;
 	float filterRes     = 0.0f;
+	m_Effect1PotAssignmentIndex = voiceState.pot1AssignmentIndex;
+	m_Effect1PotAssignmentOp = voiceState.pot1AssignmentOp + 1;
+	m_Effect2PotAssignmentIndex = voiceState.pot2AssignmentIndex;
+	m_Effect2PotAssignmentOp = voiceState.pot2AssignmentOp + 1;
+	m_Effect3PotAssignmentIndex = voiceState.pot3AssignmentIndex;
+	m_Effect3PotAssignmentOp = voiceState.pot3AssignmentOp + 1;
 
 	switch ( m_OpCurrentlyBeingEdited )
 	{
@@ -1281,16 +1288,22 @@ void ARMor8UiManager::assignEffectPot()
 	{
 		m_Effect1PotAssignmentIndex = cursorIndex;
 		m_Effect1PotAssignmentOp = m_OpCurrentlyBeingEdited;
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_Effect1PotAssignmentIndex),
+					m_Effect1PotAssignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::POT1_ASSIGNMENT)) );
 	}
 	else if ( m_EffectPotToAssign == 2 )
 	{
 		m_Effect2PotAssignmentIndex = cursorIndex;
 		m_Effect2PotAssignmentOp = m_OpCurrentlyBeingEdited;
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_Effect2PotAssignmentIndex),
+					m_Effect2PotAssignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::POT2_ASSIGNMENT)) );
 	}
 	else if ( m_EffectPotToAssign == 3 )
 	{
 		m_Effect3PotAssignmentIndex = cursorIndex;
 		m_Effect3PotAssignmentOp = m_OpCurrentlyBeingEdited;
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_Effect3PotAssignmentIndex),
+					m_Effect3PotAssignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::POT3_ASSIGNMENT)) );
 	}
 }
 
@@ -1301,6 +1314,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 	if ( assignmentIndex == m_AssignEffectPotMenuFreqIndex ) // frequency
 	{
+		val = AUDIO_TAPER( val );
 		float frequencyAmount = val * ARMOR8_FREQUENCY_MAX;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(frequencyAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FREQUENCY)) );
@@ -1344,6 +1358,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuAttackIndex ) // eg attack
 	{
+		val = AUDIO_TAPER( val );
 		float attackAmount = ( val * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) ) + ARMOR8_ATTACK_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(attackAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_ATTACK)) );
@@ -1365,6 +1380,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuDecayIndex ) // eg decay
 	{
+		val = AUDIO_TAPER( val );
 		float decayAmount = ( val * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) ) + ARMOR8_DECAY_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(decayAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_DECAY)) );
@@ -1407,6 +1423,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuReleaseIndex ) // eg release
 	{
+		val = AUDIO_TAPER( val );
 		float releaseAmount = ( val * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) ) + ARMOR8_RELEASE_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(releaseAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_RELEASE)) );
@@ -1491,9 +1508,11 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp1ModIndex ) // op1 modulation amount
 	{
+		val = AUDIO_TAPER( val );
 		float op1ModAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
-				ARMor8ParameterEvent(op1ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_1_MOD_AMOUNT)) );
+				ARMor8ParameterEvent(op1ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
+					static_cast<unsigned int>(PARAM_CHANNEL::OP_1_MOD_AMOUNT)) );
 		this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -1512,9 +1531,11 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp2ModIndex ) // op2 modulation amount
 	{
+		val = AUDIO_TAPER( val );
 		float op2ModAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
-				ARMor8ParameterEvent(op2ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_2_MOD_AMOUNT)) );
+				ARMor8ParameterEvent(op2ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
+					static_cast<unsigned int>(PARAM_CHANNEL::OP_2_MOD_AMOUNT)) );
 		this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -1533,9 +1554,11 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp3ModIndex ) // op3 modulation amount
 	{
+		val = AUDIO_TAPER( val );
 		float op3ModAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
-				ARMor8ParameterEvent(op3ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_3_MOD_AMOUNT)) );
+				ARMor8ParameterEvent(op3ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
+					static_cast<unsigned int>(PARAM_CHANNEL::OP_3_MOD_AMOUNT)) );
 		this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -1554,9 +1577,11 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuOp4ModIndex ) // op4 modulation amount
 	{
+		val = AUDIO_TAPER( val );
 		float op4ModAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
-				ARMor8ParameterEvent(op4ModAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::OP_4_MOD_AMOUNT)) );
+				ARMor8ParameterEvent(op4ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
+					static_cast<unsigned int>(PARAM_CHANNEL::OP_4_MOD_AMOUNT)) );
 		this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
 
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
@@ -1575,6 +1600,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuAmplitudeIndex ) // amplitude
 	{
+		val = AUDIO_TAPER( val );
 		float amplitudeAmount = val * ARMOR8_AMPLITUDE_MAX;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(amplitudeAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::AMPLITUDE)) );
@@ -1596,6 +1622,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 	}
 	else if ( assignmentIndex == m_AssignEffectPotMenuFiltFreqIndex ) // filter frequency
 	{
+		val = AUDIO_TAPER( val );
 		float filtFrequencyAmount = ( val * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) ) + ARMOR8_FILT_FREQ_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(filtFrequencyAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILTER_FREQ)) );
@@ -2043,7 +2070,7 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		}
 
 		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, // doesn't matter
-					m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SELECT_WAVEFORM)) );
+					m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SELECT_OPERATOR)) );
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::SELECT_WAVEFORM )
 	{

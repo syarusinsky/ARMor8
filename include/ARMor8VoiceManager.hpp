@@ -77,6 +77,13 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 		ARMor8Voice    m_Voice6;
 		ARMor8Voice*   m_Voices[MAX_VOICES];
 
+		unsigned int   m_Pot1AssignmentIndex;
+		unsigned int   m_Pot1AssignmentOp;
+		unsigned int   m_Pot2AssignmentIndex;
+		unsigned int   m_Pot2AssignmentOp;
+		unsigned int   m_Pot3AssignmentIndex;
+		unsigned int   m_Pot3AssignmentOp;
+
 		KeyEvent m_ActiveKeyEvents[MAX_VOICES];
 		unsigned int m_ActiveKeyEventIndex;
 

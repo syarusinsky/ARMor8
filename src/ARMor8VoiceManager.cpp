@@ -18,9 +18,15 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 	m_Voice5(),
 	m_Voice6(),
 	m_Voices { &m_Voice1, &m_Voice2, &m_Voice3, &m_Voice4, &m_Voice5, &m_Voice6 },
+	m_Pot1AssignmentIndex( 0 ),
+	m_Pot1AssignmentOp( 0 ),
+	m_Pot2AssignmentIndex( 1 ),
+	m_Pot2AssignmentOp( 0 ),
+	m_Pot3AssignmentIndex( 2 ),
+	m_Pot3AssignmentOp( 0 ),
 	m_ActiveKeyEventIndex( 0 ),
 	m_PitchBendSemitones( 1 ),
-	m_PresetHeader( {1, 1, 0, true} )
+	m_PresetHeader( {1, 2, 0, true} )
 {
 }
 
@@ -392,7 +398,7 @@ void ARMor8VoiceManager::onPitchEvent (const PitchEvent& pitchEvent)
 void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent)
 {
 	PARAM_CHANNEL channel = static_cast<PARAM_CHANNEL>( paramEvent.getChannel() );
-	unsigned int op = paramEvent.getOperator() - 1; // the voice manager doesn't zero-index this value
+	unsigned int op = paramEvent.getOperator() - 1; // the ui manager doesn't zero-index this value
 	float val = paramEvent.getValue();
 
 	switch ( channel )
@@ -509,7 +515,7 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 		case PARAM_CHANNEL::SELECT_OPERATOR:
 			// refresh screen with new operator values
 			IARMor8PresetEventListener::PublishEvent(
-					ARMor8PresetEvent(this->getState(), op, m_PresetManager->getCurrentPresetNum(), 0) );
+					ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
 
 			break;
 		case PARAM_CHANNEL::NEXT_PRESET:
@@ -517,7 +523,7 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 			ARMor8VoiceState preset = m_PresetManager->nextPreset<ARMor8VoiceState>();
 			this->setState( preset );
 			IARMor8PresetEventListener::PublishEvent(
-					ARMor8PresetEvent(this->getState(), 0, m_PresetManager->getCurrentPresetNum(), 0) );
+					ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
 		}
 
 			break;
@@ -526,7 +532,7 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 			ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
 			this->setState( preset );
 			IARMor8PresetEventListener::PublishEvent(
-					ARMor8PresetEvent(this->getState(), 0, m_PresetManager->getCurrentPresetNum(), 0) );
+					ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
 		}
 			break;
 		case PARAM_CHANNEL::WRITE_PRESET:
@@ -534,6 +540,21 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 			ARMor8VoiceState presetToWrite = this->getState();
 			m_PresetManager->writePreset<ARMor8VoiceState>( presetToWrite, m_PresetManager->getCurrentPresetNum() );
 		}
+
+			break;
+		case PARAM_CHANNEL::POT1_ASSIGNMENT:
+			m_Pot1AssignmentIndex = static_cast<unsigned int>( val );
+			m_Pot1AssignmentOp = op;
+
+			break;
+		case PARAM_CHANNEL::POT2_ASSIGNMENT:
+			m_Pot2AssignmentIndex = static_cast<unsigned int>( val );
+			m_Pot2AssignmentOp = op;
+
+			break;
+		case PARAM_CHANNEL::POT3_ASSIGNMENT:
+			m_Pot3AssignmentIndex = static_cast<unsigned int>( val );
+			m_Pot3AssignmentOp = op;
 
 			break;
 		default:
@@ -546,6 +567,12 @@ ARMor8VoiceState ARMor8VoiceManager::getState()
 	ARMor8VoiceState state = m_Voices[0]->getState();
 	state.monophonic = m_Monophonic;
 	state.pitchBendSemitones = m_PitchBendSemitones;
+	state.pot1AssignmentIndex = m_Pot1AssignmentIndex;
+	state.pot1AssignmentOp = m_Pot1AssignmentOp;
+	state.pot2AssignmentIndex = m_Pot2AssignmentIndex;
+	state.pot2AssignmentOp = m_Pot2AssignmentOp;
+	state.pot3AssignmentIndex = m_Pot3AssignmentIndex;
+	state.pot3AssignmentOp = m_Pot3AssignmentOp;
 
 	return state;
 }
@@ -561,6 +588,12 @@ void ARMor8VoiceManager::setState (const ARMor8VoiceState& state)
 	m_Monophonic = state.monophonic;
 	m_PitchBendSemitones = state.pitchBendSemitones;
 	m_MidiHandler->setNumberOfSemitonesToPitchBend( m_PitchBendSemitones );
+	m_Pot1AssignmentIndex = state.pot1AssignmentIndex;
+	m_Pot1AssignmentOp = state.pot1AssignmentOp;
+	m_Pot2AssignmentIndex = state.pot2AssignmentIndex;
+	m_Pot2AssignmentOp = state.pot2AssignmentOp;
+	m_Pot3AssignmentIndex = state.pot3AssignmentIndex;
+	m_Pot3AssignmentOp = state.pot3AssignmentOp;
 }
 
 ARMor8PresetHeader ARMor8VoiceManager::getPresetHeader()

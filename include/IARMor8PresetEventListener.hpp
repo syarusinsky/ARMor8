@@ -13,17 +13,14 @@
 class ARMor8PresetEvent : public IEvent
 {
 	public:
-		ARMor8PresetEvent (const ARMor8VoiceState& preset, unsigned int opToEdit, unsigned int presetNum,
-					unsigned int channel);
+		ARMor8PresetEvent (const ARMor8VoiceState& preset, unsigned int presetNum, unsigned int channel);
 		~ARMor8PresetEvent() override;
 
 		ARMor8VoiceState getPreset() const { return m_Preset; }
-		unsigned int getOpToEdit() const { return m_OpToEdit; }
 		unsigned int getPresetNum() const { return m_PresetNum; }
 
 	private:
 		ARMor8VoiceState m_Preset;
-		unsigned int m_OpToEdit;
 		unsigned int m_PresetNum;
 };
 

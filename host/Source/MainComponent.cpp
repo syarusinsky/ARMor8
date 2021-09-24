@@ -1088,7 +1088,7 @@ void MainComponent::updateToggleState (juce::Button* button)
 
 void MainComponent::onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent)
 {
-	this->setFromARMor8VoiceState( presetEvent.getPreset(), presetEvent.getOpToEdit(), presetEvent.getPresetNum() );
+	this->setFromARMor8VoiceState( presetEvent.getPreset(), presetEvent.getPresetNum() );
 }
 
 void MainComponent::onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRefreshEvent)
@@ -1098,7 +1098,7 @@ void MainComponent::onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRef
 	this->repaint();
 }
 
-void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum)
+void MainComponent::setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int presetNum)
 {
 	try
 	{

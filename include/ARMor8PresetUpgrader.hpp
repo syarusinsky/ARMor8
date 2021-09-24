@@ -26,6 +26,7 @@ class ARMor8PresetUpgrader : public IPresetUpgrader
 
 		void upgradeFrom0_1_0To1_0_0();
 		void upgradeFrom1_0_0To1_1_0();
+		void upgradeFrom1_1_0To1_2_0();
 };
 
 #endif // ARMOR8PRESETUPGRADER_HPP
