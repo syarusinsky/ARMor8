@@ -11,18 +11,18 @@
 
 #include "IEventListener.hpp"
 
-const unsigned int MAX_PARAMETER_EVENT_STRING_SIZE = 5;
-
 class ARMor8ParameterEvent : public IEvent
 {
 	public:
-		ARMor8ParameterEvent (float value, unsigned int channel);
+		ARMor8ParameterEvent (float value, unsigned int op, unsigned int channel);
 		~ARMor8ParameterEvent() override;
 
 		float getValue() const;
+		unsigned int getOperator() const;
 
 	private:
-		float m_Value;
+		float 		m_Value;
+		unsigned int 	m_Operator;
 };
 
 class IARMor8ParameterEventListener : public IEventListener

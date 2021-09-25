@@ -47,6 +47,10 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		void paint (juce::Graphics& g) override;
 		void resized() override;
 
+		//==============================================================================
+		bool keyPressed (const juce::KeyPress& k) override;
+		bool keyStateChanged (bool isKeyDown) override;
+
 		void sliderValueChanged (juce::Slider* slider) override;
 		void buttonClicked (juce::Button* button) override;
 		void updateToggleState (juce::Button* button);
@@ -69,87 +73,21 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		bool keyButtonRelease;
 
 		juce::AudioFormatWriter* writer;
-		juce::Slider freqSldr;
-		juce::Label freqLbl;
-		juce::Slider detuneSldr;
-		juce::Label detuneLbl;
-		juce::ToggleButton ratioBtn;
 
-		juce::Label editLbl;
-		juce::ToggleButton op1Btn;
-		juce::ToggleButton op2Btn;
-		juce::ToggleButton op3Btn;
-		juce::ToggleButton op4Btn;
+		juce::Slider effect1Sldr;
+		juce::Label effect1Lbl;
+		juce::Slider effect2Sldr;
+		juce::Label effect2Lbl;
+		juce::Slider effect3Sldr;
+		juce::Label effect3Lbl;
 
-		juce::Label waveLbl;
-		juce::ToggleButton sineBtn;
-		juce::ToggleButton triangleBtn;
-		juce::ToggleButton squareBtn;
-		juce::ToggleButton sawBtn;
-
-		juce::Slider attackSldr;
-		juce::Label attackLbl;
-		juce::Slider attackExpoSldr;
-		juce::Label attackExpoLbl;
-		juce::Slider decaySldr;
-		juce::Label decayLbl;
-		juce::Slider decayExpoSldr;
-		juce::Label decayExpoLbl;
-		juce::Slider sustainSldr;
-		juce::Label sustainLbl;
-		juce::Slider releaseSldr;
-		juce::Label releaseLbl;
-		juce::Slider releaseExpoSldr;
-		juce::Label releaseExpoLbl;
-
-		juce::Label egDestLbl;
-		juce::ToggleButton amplitudeDestBtn;
-		juce::ToggleButton frequencyDestBtn;
-		juce::ToggleButton filterDestBtn;
-
-		juce::Slider op1ModAmountSldr;
-		juce::Label op1ModAmountLbl;
-		juce::Slider op2ModAmountSldr;
-		juce::Label op2ModAmountLbl;
-		juce::Slider op3ModAmountSldr;
-		juce::Label op3ModAmountLbl;
-		juce::Slider op4ModAmountSldr;
-		juce::Label op4ModAmountLbl;
-
-		juce::Slider amplitudeSldr;
-		juce::Label amplitudeLbl;
-
-		juce::Slider filterFreqSldr;
-		juce::Label filterFreqLbl;
-
-		juce::Slider filterResSldr;
-		juce::Label filterResLbl;
-
-		juce::Slider ampVelSldr;
-		juce::Label ampVelLbl;
-
-		juce::Slider filtVelSldr;
-		juce::Label filtVelLbl;
-
-		juce::Slider pitchBendSldr;
-		juce::Label pitchBendLbl;
-
-		juce::Slider glideSldr;
-		juce::Label glideLbl;
-
-		juce::ToggleButton egRetriggerBtn;
+		juce::TextButton effect1Btn;
+		juce::TextButton effect2Btn;
 
 		juce::TextButton audioSettingsBtn;
 
 		juce::ComboBox midiInputList;
 		juce::Label midiInputListLbl;
-
-		juce::ToggleButton monoBtn;
-
-		juce::TextButton prevPresetBtn;
-		juce::Label presetNumLbl;
-		juce::TextButton nextPresetBtn;
-		juce::TextButton writePresetBtn;
 
 		AudioSettingsComponent audioSettingsComponent;
 
@@ -159,7 +97,7 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 
 		std::ofstream testFile;
 
-		void setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int opToEdit, unsigned int presetNum);
+		void setFromARMor8VoiceState (const ARMor8VoiceState& state, unsigned int presetNum);
 		void copyFrameBufferToImage (unsigned int xStart, unsigned int yStart, unsigned int xEnd, unsigned int yEnd);
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

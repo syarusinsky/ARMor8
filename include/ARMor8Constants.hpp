@@ -30,51 +30,57 @@ constexpr int   ARMOR8_PITCH_BEND_MAX = 12;
 constexpr float ARMOR8_GLIDE_TIME_MIN = 0.0f;
 constexpr float ARMOR8_GLIDE_TIME_MAX = 1.0f;
 
+constexpr unsigned int ARMOR8_POT_STABIL_NUM = 50; // pot stabilization stuff
+
+enum class PARAM_CHANNEL : unsigned int
+{
+	FREQUENCY 	= 0,
+	DETUNE 		= 1,
+	EG_ATTACK 	= 2,
+	EG_DECAY 	= 3,
+	EG_SUSTAIN 	= 4,
+	EG_RELEASE 	= 5,
+	EG_ATTACK_EXPO 	= 6,
+	EG_DECAY_EXPO 	= 7,
+	EG_RELEASE_EXPO = 8,
+	OP_1_MOD_AMOUNT = 9,
+	OP_2_MOD_AMOUNT = 10,
+	OP_3_MOD_AMOUNT = 11,
+	OP_4_MOD_AMOUNT = 12,
+	AMPLITUDE 	= 13,
+	FILTER_FREQ 	= 14,
+	FILTER_RES 	= 15,
+	AMP_VEL_SENS 	= 16,
+	FILT_VEL_SENS 	= 17,
+	PITCH_BEND_SEMI = 18,
+	GLIDE_TIME 	= 19,
+	USE_RATIO 	= 20,
+	EG_DEST_AMP 	= 21,
+	EG_DEST_FREQ 	= 22,
+	EG_DEST_FILT 	= 23,
+	GLIDE_RETRIG 	= 24,
+	MONOPHONIC 	= 25,
+	SELECT_WAVEFORM = 26,
+	SELECT_OPERATOR = 27,
+	NEXT_PRESET 	= 28,
+	PREV_PRESET 	= 29,
+	WRITE_PRESET 	= 30,
+	POT1_ASSIGNMENT = 31,
+	POT2_ASSIGNMENT = 32,
+	POT3_ASSIGNMENT = 33,
+};
+
 enum class POT_CHANNEL : unsigned int
 {
-	ALL          = 0,
-	FREQUENCY    = 1,
-	DETUNE       = 2,
-	ATTACK       = 3,
-	ATTACK_EXPO  = 4,
-	DECAY        = 5,
-	DECAY_EXPO   = 6,
-	SUSTAIN      = 7,
-	RELEASE      = 8,
-	RELEASE_EXPO = 9,
-	OP1_MOD_AMT  = 10,
-	OP2_MOD_AMT  = 11,
-	OP3_MOD_AMT  = 12,
-	OP4_MOD_AMT  = 13,
-	AMPLITUDE    = 14,
-	FILT_FREQ    = 15,
-	FILT_RES     = 16,
-	VEL_AMP      = 17,
-	VEL_FILT     = 18,
-	PITCH_BEND   = 19,
-	GLIDE_TIME   = 20
+	EFFECT1 = 0,
+	EFFECT2 = 1,
+	EFFECT3 = 2
 };
 
 enum class BUTTON_CHANNEL : unsigned int
 {
-	ALL          = 0,
-	RATIO        = 1,
-	OP1          = 2,
-	OP2          = 3,
-	OP3          = 4,
-	OP4          = 5,
-	SINE         = 6,
-	TRIANGLE     = 7,
-	SQUARE       = 8,
-	SAWTOOTH     = 9,
-	EG_AMP       = 10,
-	EG_FREQ      = 11,
-	EG_FILT      = 12,
-	GLIDE_RETRIG = 13,
-	MONOPHONIC   = 14,
-	PREV_PRESET  = 15,
-	NEXT_PRESET  = 16,
-	WRITE_PRESET = 17
+	EFFECT1 = 0,
+	EFFECT2 = 1
 };
 
 #endif // ARMOR8CONSTANTS_HPP

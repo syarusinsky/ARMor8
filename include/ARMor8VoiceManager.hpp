@@ -12,8 +12,7 @@
 #include "IBufferCallback.hpp"
 #include "IMidiEventListener.hpp"
 #include "IPitchEventListener.hpp"
-#include "IPotEventListener.hpp"
-#include "IButtonEventListener.hpp"
+#include "IARMor8ParameterEventListener.hpp"
 
 class MidiHandler;
 class PresetManager;
@@ -21,16 +20,11 @@ class PresetManager;
 const unsigned int MAX_VOICES = 6;
 
 class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListener, public IPitchEventListener,
-				public IPotEventListener, public IButtonEventListener
+				public IARMor8ParameterEventListener
 {
 	public:
 		ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager);
 		~ARMor8VoiceManager() override;
-
-		void setOperatorToEdit (unsigned int opToEdit);
-		unsigned int getOperatorToEdit(); // 0 indexed
-
-		unsigned int getCurrentWaveNum(); // 0 for sine, 1 for triangle, 2 for square, 3 for saw
 
 		void setMonophonic (bool on);
 
@@ -69,14 +63,11 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 
 		void onPitchEvent (const PitchEvent& pitchEvent) override;
 
-		void onPotEvent (const PotEvent& potEvent) override;
-
-		void onButtonEvent (const ButtonEvent& buttonEvent) override;
+		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
 
 	private:
 		MidiHandler*   m_MidiHandler;
 		PresetManager* m_PresetManager;
-		unsigned int   m_OpToEdit;
 		bool           m_Monophonic;
 		ARMor8Voice    m_Voice1;
 		ARMor8Voice    m_Voice2;
@@ -85,6 +76,13 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 		ARMor8Voice    m_Voice5;
 		ARMor8Voice    m_Voice6;
 		ARMor8Voice*   m_Voices[MAX_VOICES];
+
+		unsigned int   m_Pot1AssignmentIndex;
+		unsigned int   m_Pot1AssignmentOp;
+		unsigned int   m_Pot2AssignmentIndex;
+		unsigned int   m_Pot2AssignmentOp;
+		unsigned int   m_Pot3AssignmentIndex;
+		unsigned int   m_Pot3AssignmentOp;
 
 		KeyEvent m_ActiveKeyEvents[MAX_VOICES];
 		unsigned int m_ActiveKeyEventIndex;

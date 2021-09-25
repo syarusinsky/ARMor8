@@ -123,6 +123,10 @@
             file="../lib/SIGL/include/SoftwareGraphics.hpp"/>
       <FILE id="wPWgYh" name="Sprite.cpp" compile="1" resource="0" file="../lib/SIGL/src/Sprite.cpp"/>
       <FILE id="IPesLA" name="Sprite.hpp" compile="0" resource="0" file="../lib/SIGL/include/Sprite.hpp"/>
+      <FILE id="wgzgYh" name="ScrollableMenuModel.cpp" compile="1" resource="0"
+            file="../src/ScrollableMenuModel.cpp"/>
+      <FILE id="IgzsLA" name="ScrollableMenuModel.hpp" compile="0" resource="0"
+            file="../include/ScrollableMenuModel.hpp"/>
       <FILE id="wPWgYh" name="Surface.cpp" compile="1" resource="0" file="../lib/SIGL/src/Surface.cpp"/>
       <FILE id="IPesLA" name="Surface.hpp" compile="0" resource="0" file="../lib/SIGL/include/Surface.hpp"/>
       <FILE id="WyOxZs" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>

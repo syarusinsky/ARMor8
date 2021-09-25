@@ -124,6 +124,12 @@ struct ARMor8VoiceState
 	unsigned int pitchBendSemitones;
 	float        glideTime;
 	bool         glideRetrigger;
+	unsigned int pot1AssignmentIndex;
+	unsigned int pot1AssignmentOp;
+	unsigned int pot2AssignmentIndex;
+	unsigned int pot2AssignmentOp;
+	unsigned int pot3AssignmentIndex;
+	unsigned int pot3AssignmentOp;
 };
 
 // the ARMor8PresetHeader is intended to be used as a header for the PresetMangager, it tracks the preset version

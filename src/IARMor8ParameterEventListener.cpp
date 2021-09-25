@@ -4,9 +4,10 @@
 EventDispatcher<IARMor8ParameterEventListener, ARMor8ParameterEvent,
 		&IARMor8ParameterEventListener::onARMor8ParameterEvent> IARMor8ParameterEventListener::m_EventDispatcher;
 
-ARMor8ParameterEvent::ARMor8ParameterEvent (float value, unsigned int channel) :
+ARMor8ParameterEvent::ARMor8ParameterEvent (float value, unsigned int op, unsigned int channel) :
 	IEvent( channel ),
-	m_Value{ value }
+	m_Value( value ),
+	m_Operator( op )
 {
 }
 
@@ -17,6 +18,11 @@ ARMor8ParameterEvent::~ARMor8ParameterEvent()
 float ARMor8ParameterEvent::getValue() const
 {
 	return m_Value;
+}
+
+unsigned int ARMor8ParameterEvent::getOperator() const
+{
+	return m_Operator;
 }
 
 IARMor8ParameterEventListener::~IARMor8ParameterEventListener()
