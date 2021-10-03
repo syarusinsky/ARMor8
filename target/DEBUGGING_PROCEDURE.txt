@@ -1,0 +1,27 @@
+FLASHING BOTH CORES:
+	1. in CM4 directory, openocd -f STM32h745zi_CM4.cfg
+	2. in CM7 directory, arm-none-eabi-gdb main_debug.elf
+	3. with that gdb, target extended-remote :3333
+	4. with that gdb, load
+	5. with that gdb, quit
+	6. in CM4 directory, arm-none-eabi-gdb main_debug.elf
+	7. with that gdb, target extended-remote :3334
+	8. with that gdb, load
+	9. with that gdb, quit
+	10. exit openocd
+
+CORE_M7:
+	1. openocd -f STM32h745zi_CM7.cfg
+	2. arm-none-eabi-gdb main_debug.elf
+	3. target extended-remote :3333
+	4. debug as normal
+
+CORE_M4:
+	0. run core_m7 as described above, stopping stepping right after clock config
+	1. openocd -f STM32h745zi_CM4.cfg
+	2. arm-none-eabi-gdb main_debug.elf
+	3. target extended-remote :3334
+	4. debug as normal
+
+NOTES:
+	- Using openocd 1.11

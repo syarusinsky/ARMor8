@@ -1,4 +1,4 @@
 cd Builds/LinuxMakefile
-make CONFIG=Release -j4
+make CONFIG=Debug -j4
 ./build/FMSynth
 cd ../../

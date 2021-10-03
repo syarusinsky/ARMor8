@@ -97,6 +97,7 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/FrameBuffer_dd23fc3c.o \
   $(JUCE_OBJDIR)/SoftwareGraphics_2fefb4d.o \
   $(JUCE_OBJDIR)/Sprite_1f4eb2c0.o \
+  $(JUCE_OBJDIR)/EventQueue_64733c86.o \
   $(JUCE_OBJDIR)/ScrollableMenuModel_5fdf1ade.o \
   $(JUCE_OBJDIR)/Surface_6ac201dc.o \
   $(JUCE_OBJDIR)/MainComponent_a6ffb4a5.o \
@@ -272,6 +273,11 @@ $(JUCE_OBJDIR)/SoftwareGraphics_2fefb4d.o: ../../../lib/SIGL/src/SoftwareGraphic
 $(JUCE_OBJDIR)/Sprite_1f4eb2c0.o: ../../../lib/SIGL/src/Sprite.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling Sprite.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/EventQueue_64733c86.o: ../../../src/EventQueue.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling EventQueue.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/ScrollableMenuModel_5fdf1ade.o: ../../../src/ScrollableMenuModel.cpp

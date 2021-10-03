@@ -1,41 +1,48 @@
 TARGET = main
 
-VARIANT = STM32F302XC
-# change this to STM32F302XC for that variant
-
 # stm32cube files directory
-STM32_CUBE_FILES_DIR = ../lib/STM32f302x8-HAL/stm32cubef3
+STM32_CUBE_FILES_DIR = ../../lib/STM32h745zi-HAL/stm32cubeh7
 STM32_CUBE_INCLUDE_DIR = $(STM32_CUBE_FILES_DIR)/include
 
 # llpd files directory
-LLPD_FILES_DIR = ../lib/STM32f302x8-HAL/llpd
+LLPD_FILES_DIR = ../../lib/STM32h745zi-HAL/llpd
 LLPD_INCLUDE_DIR = $(LLPD_FILES_DIR)/include
 LLPD_SRC_DIR = $(LLPD_FILES_DIR)/src
 
-# ARMor8 files directory
-ARMOR8_FILES_DIR = ../
+# devlib files directory
+DEVLIB_FILES_DIR = ../../lib/DevLib
+DEVLIB_INCLUDE_DIR = $(DEVLIB_FILES_DIR)/include
+DEVLIB_SRC_DIR = $(DEVLIB_FILES_DIR)/src
+
+# armor8 files directory
+ARMOR8_FILES_DIR = ../..
 ARMOR8_INCLUDE_DIR = $(ARMOR8_FILES_DIR)/include
 ARMOR8_SRC_DIR = $(ARMOR8_FILES_DIR)/src
 
-# SAL files directory
-SAL_FILES_DIR = ../lib/SAL
+# armor8 assets directory
+ARMOR8_ASSETS_DIR = ../../assets
+
+# sal files directory
+SAL_FILES_DIR = ../../lib/SAL
 SAL_INCLUDE_DIR = $(SAL_FILES_DIR)/include
 SAL_SRC_DIR = $(SAL_FILES_DIR)/src
 
-# SIGL files directory
-SIGL_FILES_DIR = ../lib/SIGL
+# sigl files directory
+SIGL_FILES_DIR = ../../lib/SIGL
 SIGL_INCLUDE_DIR = $(SIGL_FILES_DIR)/include
 SIGL_SRC_DIR = $(SIGL_FILES_DIR)/src
 
 # include directories
 INCLUDE =  -I$(STM32_CUBE_INCLUDE_DIR)
 INCLUDE += -I$(LLPD_INCLUDE_DIR)
+INCLUDE += -I$(DEVLIB_INCLUDE_DIR)
 INCLUDE += -I$(ARMOR8_INCLUDE_DIR)
 INCLUDE += -I$(SAL_INCLUDE_DIR)
 INCLUDE += -I$(SIGL_INCLUDE_DIR)
+INCLUDE += -I$(ARMOR8_ASSETS_DIR)
 
-# linker script
-LD_SCRIPT = $(STM32_CUBE_FILES_DIR)/ld/$(VARIANT)_FLASH.ld
+# linker scripts
+LD_SCRIPT = $(STM32_CUBE_FILES_DIR)/ld/CM4/STM32H745ZITX_FLASH.ld
 
 # mcu definition
 MCU_SPEC = cortex-m4
@@ -76,14 +83,18 @@ CFLAGS += -fsingle-precision-constant
 # (set error messages to appear on a single line.)
 CFLAGS += -fmessage-length=0
 # (set system to ignore semihosted junk)
+CFLAGS += -specs=nano.specs
 CFLAGS += -specs=nosys.specs
 CFLAGS += -fno-exceptions
 CFLAGS += -fno-rtti
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
-CFLAGS += -D$(VARIANT)
+CFLAGS += -DCORE_CM4
+CFLAGS += -DSTM32H745xx
+CFLAGS += -DTARGET_BUILD
 # (allow SIGL to use software rendering)
 CFLAGS += -DSOFTWARE_RENDERING
+CFLAGS += -DROTATE_DISPLAY_180_DEGREES
 
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)
@@ -93,22 +104,18 @@ LFLAGS += -Wl,--gc-sections
 LFLAGS += -T$(LSCRIPT)
 
 # assembly files to compile
-AS_SRC = ./$(STM32_CUBE_FILES_DIR)/startup_$(VARIANT).s
+AS_SRC = $(STM32_CUBE_FILES_DIR)/startup_stm32h745zitx.s
 
 # c files to compile
-C_SRC =  ./$(STM32_CUBE_FILES_DIR)/system_stm32f3xx.c
-C_SRC += ./$(LLPD_SRC_DIR)/LLPD.c
+C_SRC =  $(STM32_CUBE_FILES_DIR)/system_stm32h7xx_dualcore_boot_cm4_cm7.c
 
 # c++ files to compile
 CPP_SRC = ./main.cpp
-# CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
-CPP_SRC += $(ARMOR8_SRC_DIR)/ARMor8Filter.cpp
-CPP_SRC += $(ARMOR8_SRC_DIR)/ARMor8Voice.cpp
-CPP_SRC += $(ARMOR8_SRC_DIR)/ARMor8VoiceManager.cpp
-CPP_SRC += $(ARMOR8_SRC_DIR)/IARMor8PresetEventListener.cpp
-CPP_SRC += $(ARMOR8_SRC_DIR)/IARMor8ParameterEventListener.cpp
+CPP_SRC += ./$(LLPD_SRC_DIR)/LLPD.cpp
+CPP_SRC += $(wildcard $(DEVLIB_SRC_DIR)/*.cpp)
+CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
 CPP_SRC += $(wildcard $(SAL_SRC_DIR)/*.cpp)
-# CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
+CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
 
 RELEASE_OBJS =  $(AS_SRC:.s=_release.o)
 RELEASE_OBJS += $(C_SRC:.c=_release.o)
@@ -125,10 +132,10 @@ release: $(TARGET)_release.bin
 	$(CC) -x assembler-with-cpp $(ASFLAGS) $< -o $@
 
 %_release.o: %.c
-	$(CC) -c -O3 $(CFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
 
 %_release.o: %.cpp
-	$(CC) -c -O3 $(CFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
 
 $(TARGET)_release.elf: $(RELEASE_OBJS)
 	$(CC) $^ $(LFLAGS) -o $@

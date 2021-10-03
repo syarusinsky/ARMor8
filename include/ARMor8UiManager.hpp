@@ -139,7 +139,7 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		float 		m_Pot1StabilizerValue; // we use this as the actual value to send
 		float 		m_Pot2StabilizerValue;
 		float 		m_Pot3StabilizerValue;
-		float 		m_Pot1StabilizerCachedPer; // cached percentage for hysteresis
+		float 		m_Pot1StabilizerCachedPer; // cached percentage for switching between status submenus
 		float 		m_Pot2StabilizerCachedPer;
 		float 		m_Pot3StabilizerCachedPer;
 
@@ -239,12 +239,14 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void enterWritePresetConfirmation();
 
 		void assignEffectPot();
-		void sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val);
+		void sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val, bool menuThreshBroken);
 
 		// logic to handle button presses (in this case, releases) for each menu case
 		void handleEffect1SinglePress();
 		void handleEffect2SinglePress();
 		void handleDoubleButtonPress();
+
+		bool hasBrokenMenuChangeThreshold (float newVal, float cachedVal);
 
 		bool shouldTickSettingsMenu (unsigned int entryIndex);
 		void drawScrollableMenu (ScrollableMenuModel& menu, bool (ARMor8UiManager::*shouldTickFunc)(unsigned int), ARMor8UiManager& ui);
