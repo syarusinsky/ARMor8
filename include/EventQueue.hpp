@@ -24,7 +24,7 @@ template <typename T>
 class EventQueue
 {
 	public:
-		EventQueue (uint8_t* startAddress, unsigned int sizeInBytes) :
+		EventQueue (uint8_t* startAddress, unsigned int sizeInBytes, unsigned int semNum = 0) :
 			m_StartAddress( startAddress ),
 			m_SizeInBytes( sizeInBytes ),
 			m_SizeOfEvent( sizeof(T) ),
@@ -32,7 +32,7 @@ class EventQueue
 			m_ReadIndex( 0 ),
 			m_WriteIndex( 0 ),
 			m_NumUnread( 0 ),
-			m_Mutex()
+			m_Mutex( semNum )
 		{
 		}
 

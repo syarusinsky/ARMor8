@@ -5,6 +5,7 @@
 #include "OLED_SH1106.hpp"
 #include "ARMor8UiManager.hpp"
 #include "IARMor8LCDRefreshEventListener.hpp"
+#include "IARMor8ParameterEventListener.hpp"
 #include "FrameBuffer.hpp"
 #include "Font.hpp"
 #include "Smoll.h"
@@ -99,11 +100,26 @@ class Oled_Manager : public IARMor8LCDRefreshEventListener
 		uint8_t* 	m_DisplayBuffer;
 };
 
+class ARMor8ParameterEventBridge : public IARMor8ParameterEventListener
+{
+	public:
+		ARMor8ParameterEventBridge (EventQueue<ARMor8ParameterEvent>* eventQueuePtr) : m_EventQueuePtr( eventQueuePtr ) {}
+		~ARMor8ParameterEventBridge() override {}
+
+		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override
+		{
+			m_EventQueuePtr->writeEvent( paramEvent );
+		}
+
+	private:
+		EventQueue<ARMor8ParameterEvent>* m_EventQueuePtr;
+};
+
 int main(void)
 {
 	LLPD::rcc_clock_start_max_cpu2();
 
-	EventQueue<IEvent>* eventQueue = nullptr;
+	EventQueue<ARMor8ParameterEvent>* paramEventQueue = nullptr;
 
 	// wait for setupCompleteFlag to inform that audio timer is setup
 	while ( true )
@@ -115,7 +131,9 @@ int main(void)
 			{
 				uint8_t* sram4Ptr = reinterpret_cast<uint8_t*>( D3_SRAM_BASE ) + ( D3_SRAM_UNUSED_OFFSET_IN_BYTES );
 
-				eventQueue = new ( sram4Ptr ) EventQueue<IEvent>( sram4Ptr + sizeof(EventQueue<IEvent>), sizeof(IEvent) * 100 );
+				paramEventQueue = new ( sram4Ptr ) EventQueue<ARMor8ParameterEvent>(
+									sram4Ptr + sizeof(EventQueue<ARMor8ParameterEvent>),
+									sizeof(ARMor8ParameterEvent) * 1000, 1 );
 
 				*setupCompleteFlag = false;
 
@@ -128,28 +146,6 @@ int main(void)
 		}
 	}
 
-	/*
-	// display buffer
-	uint8_t displayBuffer[(SH1106_LCDWIDTH * SH1106_LCDHEIGHT) / 8] = { 0 };
-
-	// fill display buffer
-	for ( unsigned int byte = 0; byte < (SH1106_LCDHEIGHT * SH1106_LCDWIDTH) / 8; byte++ )
-	{
-		displayBuffer[byte] = 0xFF;
-	}
-
-	// OLED setup
-	LLPD::gpio_output_setup( OLED_PORT, OLED_CS_PIN, GPIO_PUPD::NONE, GPIO_OUTPUT_TYPE::PUSH_PULL, GPIO_OUTPUT_SPEED::HIGH, false );
-	LLPD::gpio_output_set( OLED_PORT, OLED_CS_PIN, true );
-	LLPD::gpio_output_setup( OLED_PORT, OLED_DC_PIN, GPIO_PUPD::NONE, GPIO_OUTPUT_TYPE::PUSH_PULL, GPIO_OUTPUT_SPEED::HIGH, false );
-	LLPD::gpio_output_set( OLED_PORT, OLED_DC_PIN, true );
-	LLPD::gpio_output_setup( OLED_PORT, OLED_RESET_PIN, GPIO_PUPD::NONE, GPIO_OUTPUT_TYPE::PUSH_PULL, GPIO_OUTPUT_SPEED::HIGH, false );
-	LLPD::gpio_output_set( OLED_PORT, OLED_RESET_PIN, true );
-	Oled_SH1106 oled( OLED_SPI_NUM, OLED_PORT, OLED_CS_PIN, OLED_PORT, OLED_DC_PIN, OLED_PORT, OLED_RESET_PIN );
-	oled.begin();
-	oled.displayFullRowMajor( displayBuffer );
-	*/
-
 	// UI manager setup
 	Font font( Smoll_data );
 	ARMor8UiManager uiManager( SH1106_LCDWIDTH, SH1106_LCDHEIGHT, CP_FORMAT::MONOCHROME_1BIT );
@@ -158,6 +154,10 @@ int main(void)
 	uiManager.setFont( &font );
 	uiManagerPtr = &uiManager;
 	uiManager.endLoading();
+
+	// parameter event bridge setup
+	ARMor8ParameterEventBridge paramEventBride( paramEventQueue );
+	paramEventBride.bindToARMor8ParameterEventSystem();
 
 	// OLED setup
 	Oled_Manager oled( uiManager.getFrameBuffer()->getPixels() );
@@ -183,8 +183,5 @@ int main(void)
 		uint16_t effect3Val = LLPD::adc_get_channel_value( EFFECT_ADC_NUM, EFFECT3_ADC_CHANNEL );
 		float effect3Percentage = static_cast<float>( effect3Val ) * ( 1.0f / 4095.0f );
 		IPotEventListener::PublishEvent( PotEvent(effect3Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT3)) );
-
-		IEvent iEvent( effect1Val );
-		eventQueue->writeEvent( iEvent );
 	}
 }

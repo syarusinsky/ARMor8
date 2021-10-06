@@ -6,12 +6,14 @@
 #include "EventQueue.hpp"
 #include "IEventListener.hpp"
 #include "MidiHandler.hpp"
+#include "ARMor8VoiceManager.hpp"
+#include "AudioBuffer.hpp"
 
 #define SYS_CLOCK_FREQUENCY = 480000000;
 
 // global variables
-volatile bool adcSetupComplete = false; // should be set to true after adc has been initialized
 MidiHandler* volatile midiHandlerPtr = nullptr;
+AudioBuffer<float>* volatile audioBufferPtr = nullptr;
 
 // peripheral defines
 #define OP_AMP1_INV_OUT_PORT 		GPIO_PORT::C
@@ -62,29 +64,27 @@ MidiHandler* volatile midiHandlerPtr = nullptr;
 #define SD_CARD_SPI_NUM 		SPI_NUM::SPI_4
 #define OLED_SPI_NUM 			SPI_NUM::SPI_3
 
-// TODO delete this after testing
-#include "IKeyEventListener.hpp"
-
-class KeyEventTester : public IKeyEventListener
+class ARMor8ParameterEventBridge
 {
 	public:
-		KeyEventTester() {}
-		~KeyEventTester() override {}
+		ARMor8ParameterEventBridge (EventQueue<ARMor8ParameterEvent>* eventQueuePtr) : m_EventQueuePtr( eventQueuePtr ) {}
+		~ARMor8ParameterEventBridge() {}
 
-		void onKeyEvent (const KeyEvent& keyEvent) override
+		void processQueuedParameterEvents()
 		{
-			if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
+			ARMor8ParameterEvent paramEvent( 0.0f, 0, 0 );
+			bool readCorrectly = m_EventQueuePtr->readEvent( paramEvent );
+			while ( readCorrectly )
 			{
-				LLPD::usart_log_int( LOGGING_USART_NUM, "Key pressed: ", keyEvent.note() );
-			}
-			else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED )
-			{
-				LLPD::usart_log_int( LOGGING_USART_NUM, "Key released: ", keyEvent.note() );
+				IARMor8ParameterEventListener::PublishEvent( paramEvent );
+
+				readCorrectly = m_EventQueuePtr->readEvent( paramEvent );
 			}
 		}
+
+	private:
+		EventQueue<ARMor8ParameterEvent>* m_EventQueuePtr;
 };
-
-
 
 // these pins are unconnected on Ultra_FX_SYN Rev 2 development board, so we disable them as per the ST recommendations
 void disableUnusedPins()
@@ -272,13 +272,12 @@ int main(void)
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT1_ADC_PIN );
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT2_ADC_PIN );
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT3_ADC_PIN );
-	LLPD::gpio_analog_setup( AUDIO_IN_PORT, AUDIO1_IN_PIN );
-	LLPD::gpio_analog_setup( AUDIO_IN_PORT, AUDIO2_IN_PIN );
+	// LLPD::gpio_analog_setup( AUDIO_IN_PORT, AUDIO1_IN_PIN );
+	// LLPD::gpio_analog_setup( AUDIO_IN_PORT, AUDIO2_IN_PIN );
 	LLPD::adc_init( ADC_NUM::ADC_1_2, ADC_CYCLES_PER_SAMPLE::CPS_64p5 );
-	LLPD::adc_init( ADC_NUM::ADC_3, ADC_CYCLES_PER_SAMPLE::CPS_32p5 );
+	// LLPD::adc_init( ADC_NUM::ADC_3, ADC_CYCLES_PER_SAMPLE::CPS_32p5 );
 	LLPD::adc_set_channel_order( ADC_NUM::ADC_1_2, 3, EFFECT1_ADC_CHANNEL, EFFECT2_ADC_CHANNEL, EFFECT3_ADC_CHANNEL );
-	LLPD::adc_set_channel_order( ADC_NUM::ADC_3, 2, AUDIO1_IN_ADC_CHANNEL, AUDIO2_IN_ADC_CHANNEL );
-	adcSetupComplete = true;
+	// LLPD::adc_set_channel_order( ADC_NUM::ADC_3, 2, AUDIO1_IN_ADC_CHANNEL, AUDIO2_IN_ADC_CHANNEL );
 
 	// pushbutton setup
 	LLPD::gpio_digital_input_setup( EFFECT_BUTTON_PORT, EFFECT1_BUTTON_PIN, GPIO_PUPD::PULL_UP );
@@ -365,25 +364,29 @@ int main(void)
 		}
 	}
 
-	// TODO for testing, delete later
-	uint8_t* eventQueueMem = reinterpret_cast<uint8_t*>( D3_SRAM_BASE ) + ( D3_SRAM_UNUSED_OFFSET_IN_BYTES );
-	EventQueue<IEvent>* eventQueue = reinterpret_cast<EventQueue<IEvent>*>( eventQueueMem );
-	KeyEventTester keyEventTester;
-	keyEventTester.bindToKeyEventSystem();
+	uint8_t* paramEventQueueMem = reinterpret_cast<uint8_t*>( D3_SRAM_BASE ) + ( D3_SRAM_UNUSED_OFFSET_IN_BYTES );
+	EventQueue<ARMor8ParameterEvent>* paramEventQueue = reinterpret_cast<EventQueue<ARMor8ParameterEvent>*>( paramEventQueueMem );
+	ARMor8ParameterEventBridge paramEventBridge( paramEventQueue );
+
+	// TODO need to add preset manager
+	ARMor8VoiceManager voiceManager( midiHandlerPtr, nullptr );
+	voiceManager.bindToKeyEventSystem();
+	voiceManager.bindToPitchEventSystem();
+	voiceManager.bindToARMor8ParameterEventSystem();
+
+	AudioBuffer<float> audioBuffer;
+	audioBuffer.registerCallback( &voiceManager );
+	audioBufferPtr = &audioBuffer;
 
 	while ( true )
 	{
 		LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
 
-		// TODO testing stuff, remove later
-		IEvent iEvent( 0 );
-		bool readCorrectly = eventQueue->readEvent( iEvent );
-		if ( readCorrectly )
-		{
-			// LLPD::usart_log_int( LOGGING_USART_NUM, "Got event! Event Number: ", iEvent.getChannel() );
-		}
+		paramEventBridge.processQueuedParameterEvents();
 
 		midiHandler.dispatchEvents();
+
+		audioBuffer.pollToFillBuffers();
 	}
 }
 
@@ -391,12 +394,11 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 {
 	if ( ! LLPD::tim6_isr_handle_delay() ) // if not currently in a delay function,...
 	{
-		if ( adcSetupComplete )
+		if ( audioBufferPtr )
 		{
-			LLPD::adc_perform_conversion_sequence( AUDIO_IN_ADC_NUM );
-			uint16_t audioIn1 = LLPD::adc_get_channel_value( AUDIO_IN_ADC_NUM, AUDIO1_IN_ADC_CHANNEL );
-			uint16_t audioIn2 = LLPD::adc_get_channel_value( AUDIO_IN_ADC_NUM, AUDIO2_IN_ADC_CHANNEL );
-			LLPD::dac_send( audioIn1, audioIn2 );
+			uint16_t outVal = static_cast<uint16_t>( audioBufferPtr->getNextSample(0.0f) * 4095.0f );
+
+			LLPD::dac_send( outVal, outVal );
 		}
 	}
 

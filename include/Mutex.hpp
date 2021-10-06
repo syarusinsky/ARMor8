@@ -16,7 +16,7 @@
 class Mutex
 {
 	public:
-		Mutex() : m_Mutex() {}
+		Mutex (unsigned int semNum) : m_Mutex() {}
 		~Mutex() {}
 
 		bool tryLock() { return m_Mutex.try_lock(); }
@@ -32,17 +32,18 @@ class Mutex
 
 #include "LLPD.hpp"
 
-#define SEMAPHORE_NUM 1
-
 class Mutex
 {
 	public:
-		Mutex() {}
+		Mutex (unsigned int semNum) : m_SemaphoreNumber( semNum ) {}
 		~Mutex() {}
 
-		bool tryLock() { return LLPD::hsem_try_take( SEMAPHORE_NUM ); }
+		bool tryLock() { return LLPD::hsem_try_take( m_SemaphoreNumber ); }
 
-		void unlock() { LLPD::hsem_release( SEMAPHORE_NUM ); }
+		void unlock() { LLPD::hsem_release( m_SemaphoreNumber ); }
+
+	private:
+		unsigned int m_SemaphoreNumber;
 };
 
 #endif // #ifndef TARGET_BUILD
