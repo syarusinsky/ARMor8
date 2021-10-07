@@ -74,7 +74,10 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_Pot3StabilizerIndex( 0 ),
 	m_Pot1StabilizerValue( 0.0f ),
 	m_Pot2StabilizerValue( 0.0f ),
-	m_Pot3StabilizerValue( 0.0f )
+	m_Pot3StabilizerValue( 0.0f ),
+	m_Pot1StabilizerCachedPer( 0.0f ),
+	m_Pot2StabilizerCachedPer( 0.0f ),
+	m_Pot3StabilizerCachedPer( 0.0f )
 {
 	// add entries to main settings menu and store indices for comparison
 	m_SettingsMenuAssignEffect1Index = m_SettingsMainModel.addEntry( "Assign EFFECT1" );
@@ -571,6 +574,7 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 	float* potStabilizerBuf = nullptr;
 	unsigned int* potStabilizerIndex = nullptr;
 	float* potStabilizerValue = nullptr;
+	float* potStabilizerCachedPer = nullptr;
 	bool* lockedStatus = nullptr;
 	float* lockCachedVal = nullptr;
 	unsigned int assignmentIndex = 0;
@@ -582,6 +586,7 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 			potStabilizerBuf = m_Pot1StabilizerBuf;
 			potStabilizerIndex = &m_Pot1StabilizerIndex;
 			potStabilizerValue = &m_Pot1StabilizerValue;
+			potStabilizerCachedPer = &m_Pot1StabilizerCachedPer;
 			lockedStatus = &m_Effect1PotLocked;
 			lockCachedVal = &m_Effect1PotCached;
 			assignmentIndex = m_Effect1PotAssignmentIndex;
@@ -592,6 +597,7 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 			potStabilizerBuf = m_Pot2StabilizerBuf;
 			potStabilizerIndex = &m_Pot2StabilizerIndex;
 			potStabilizerValue = &m_Pot2StabilizerValue;
+			potStabilizerCachedPer = &m_Pot2StabilizerCachedPer;
 			lockedStatus = &m_Effect2PotLocked;
 			lockCachedVal = &m_Effect2PotCached;
 			assignmentIndex = m_Effect2PotAssignmentIndex;
@@ -602,6 +608,7 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 			potStabilizerBuf = m_Pot3StabilizerBuf;
 			potStabilizerIndex = &m_Pot3StabilizerIndex;
 			potStabilizerValue = &m_Pot3StabilizerValue;
+			potStabilizerCachedPer = &m_Pot3StabilizerCachedPer;
 			lockedStatus = &m_Effect3PotLocked;
 			lockCachedVal = &m_Effect3PotCached;
 			assignmentIndex = m_Effect3PotAssignmentIndex;
@@ -627,13 +634,15 @@ void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
 
 		if ( ! *lockedStatus ) // if not locked
 		{
-			this->sendParamEventFromEffectPot( assignmentIndex, assignmentOp, *potStabilizerValue );
+			bool menuThreshBroken = this->hasBrokenMenuChangeThreshold( *potStabilizerValue, *potStabilizerCachedPer );
+			this->sendParamEventFromEffectPot( assignmentIndex, assignmentOp, *potStabilizerValue, menuThreshBroken );
 		}
 		else // if locked, update locked status
 		{
 			if ( this->hasBrokenLock(*lockedStatus, *lockCachedVal, *potStabilizerValue) )
 			{
-				this->sendParamEventFromEffectPot( assignmentIndex, assignmentOp, *potStabilizerValue );
+				bool menuThreshBroken = this->hasBrokenMenuChangeThreshold( *potStabilizerValue, *potStabilizerCachedPer );
+				this->sendParamEventFromEffectPot( assignmentIndex, assignmentOp, *potStabilizerValue, menuThreshBroken );
 			}
 		}
 	}
@@ -1212,12 +1221,22 @@ void ARMor8UiManager::refreshGlideRetrig()
 
 void ARMor8UiManager::returnToStatusMenu()
 {
+	// cache pot values
+	m_Pot1StabilizerCachedPer = m_Pot1StabilizerValue;
+	m_Pot2StabilizerCachedPer = m_Pot2StabilizerValue;
+	m_Pot3StabilizerCachedPer = m_Pot3StabilizerValue;
+
 	m_CurrentMenu = ARMOR8_MENUS::STATUS_MAIN;
 	this->draw();
 }
 
 void ARMor8UiManager::enterStatusAdditionalMenu()
 {
+	// cache pot values
+	m_Pot1StabilizerCachedPer = m_Pot1StabilizerValue;
+	m_Pot2StabilizerCachedPer = m_Pot2StabilizerValue;
+	m_Pot3StabilizerCachedPer = m_Pot3StabilizerValue;
+
 	m_CurrentMenu = ARMOR8_MENUS::STATUS_ADDITIONAL;
 	this->draw();
 }
@@ -1307,7 +1326,7 @@ void ARMor8UiManager::assignEffectPot()
 	}
 }
 
-void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val)
+void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val, bool menuThreshBroken)
 {
 	unsigned int bufferLen = 20;
 	char buffer[bufferLen];
@@ -1329,7 +1348,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.74f, 0.62f, 0.82f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1351,7 +1370,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.0f, 1.0f, 0.08f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1373,7 +1392,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.5f, 0.26f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1395,7 +1414,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.28f, 0.5f, 0.38f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1416,7 +1435,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.39f, 0.5f, 0.49f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1438,7 +1457,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.5f, 0.5f, 0.6f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1459,7 +1478,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.6f, 0.26f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1480,7 +1499,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.3f, 0.6f, 0.4f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1501,7 +1520,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.42f, 0.6f, 0.52f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1524,7 +1543,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.16f, 1.0f, 0.28f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1547,7 +1566,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.28f, 1.0f, 0.38f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1570,7 +1589,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.39f, 1.0f, 0.49f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1593,7 +1612,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.50f, 1.0f, 0.60f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1615,7 +1634,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.65f, 0.62f, 0.73f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1637,7 +1656,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.83f, 0.62f, 0.92f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
 			this->returnToStatusMenu();
 		}
@@ -1658,7 +1677,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.71f, 0.3f, 0.93f, 0.4f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1679,7 +1698,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.6f, 0.6f, 0.7f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1700,7 +1719,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.72f, 0.6f, 0.81f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1722,7 +1741,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.03f, 0.93f, 0.97f, 1.0f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -1743,7 +1762,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.03f, 0.83f, 0.97f, 0.92f );
 		}
-		else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
 			this->enterStatusAdditionalMenu();
 		}
@@ -2175,6 +2194,16 @@ void ARMor8UiManager::drawScrollableMenu (ScrollableMenuModel& menu, bool (ARMor
 		entryNum++;
 		entry = entries[entryNum];
 	}
+}
+
+bool ARMor8UiManager::hasBrokenMenuChangeThreshold (float newVal, float cachedVal)
+{
+	if ( std::abs(newVal - cachedVal) > ARMOR8_POT_MENU_CHANGE_THRESH )
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void ARMor8UiManager::intToCString (int val, char* buffer, unsigned int bufferLen)

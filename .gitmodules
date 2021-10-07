@@ -7,3 +7,6 @@
 [submodule "lib/DevLib"]
 	path = lib/DevLib
 	url = https://github.com/syarusinsky/DevLib.git
+[submodule "lib/STM32h745zi-HAL"]
+	path = lib/STM32h745zi-HAL
+	url = https://github.com/syarusinsky/STM32h745zi-HAL.git

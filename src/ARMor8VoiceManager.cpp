@@ -514,31 +514,43 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 			break;
 		case PARAM_CHANNEL::SELECT_OPERATOR:
 			// refresh screen with new operator values
-			IARMor8PresetEventListener::PublishEvent(
-					ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+			if ( m_PresetManager )
+			{
+				IARMor8PresetEventListener::PublishEvent(
+						ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+			}
 
 			break;
 		case PARAM_CHANNEL::NEXT_PRESET:
 		{
-			ARMor8VoiceState preset = m_PresetManager->nextPreset<ARMor8VoiceState>();
-			this->setState( preset );
-			IARMor8PresetEventListener::PublishEvent(
-					ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+			if ( m_PresetManager )
+			{
+				ARMor8VoiceState preset = m_PresetManager->nextPreset<ARMor8VoiceState>();
+				this->setState( preset );
+				IARMor8PresetEventListener::PublishEvent(
+						ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+			}
 		}
 
 			break;
 		case PARAM_CHANNEL::PREV_PRESET:
 		{
-			ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
-			this->setState( preset );
-			IARMor8PresetEventListener::PublishEvent(
-					ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+			if ( m_PresetManager )
+			{
+				ARMor8VoiceState preset = m_PresetManager->prevPreset<ARMor8VoiceState>();
+				this->setState( preset );
+				IARMor8PresetEventListener::PublishEvent(
+						ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+			}
 		}
 			break;
 		case PARAM_CHANNEL::WRITE_PRESET:
 		{
-			ARMor8VoiceState presetToWrite = this->getState();
-			m_PresetManager->writePreset<ARMor8VoiceState>( presetToWrite, m_PresetManager->getCurrentPresetNum() );
+			if ( m_PresetManager )
+			{
+				ARMor8VoiceState presetToWrite = this->getState();
+				m_PresetManager->writePreset<ARMor8VoiceState>( presetToWrite, m_PresetManager->getCurrentPresetNum() );
+			}
 		}
 
 			break;
