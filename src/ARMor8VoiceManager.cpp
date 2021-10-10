@@ -4,7 +4,6 @@
 #include "MidiHandler.hpp"
 #include "PresetManager.hpp"
 #include "AudioConstants.hpp"
-#include <string.h>
 #include <cmath>
 
 ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
@@ -186,31 +185,16 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
-	// first clear write buffer
-	memset( writeBuffer, 0, sizeof(float) * ABUFFER_SIZE );
-
 	if ( ! m_Monophonic ) // if polyphonic, we sum the voices
 	{
 		for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 		{
-			ARMor8Voice& currentVoice = *m_Voices[voice];
-			currentVoice.setFilterCoefficients();
-
-			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
-			{
-				writeBuffer[sample] += currentVoice.nextSample();
-			}
+			m_Voices[voice]->call( writeBuffer );
 		}
 	}
 	else // if monophonic, we only output the first voice
 	{
-		ARMor8Voice& voice = *m_Voices[0];
-		voice.setFilterCoefficients();
-
-		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
-		{
-			writeBuffer[sample] += voice.nextSample();
-		}
+		m_Voices[0]->call( writeBuffer );
 	}
 }
 

@@ -57,9 +57,6 @@ MainComponent::MainComponent() :
 	uiSim( 128, 64, CP_FORMAT::MONOCHROME_1BIT ),
 	screenRep( juce::Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
 {
-	// TODO remove this after testing
-	messageQueueTester();
-
 	// FLUSH DENORMALS TO ZERO!
 	_MM_SET_FLUSH_ZERO_MODE( _MM_FLUSH_ZERO_ON );
 	_MM_SET_DENORMALS_ZERO_MODE( _MM_DENORMALS_ZERO_ON );

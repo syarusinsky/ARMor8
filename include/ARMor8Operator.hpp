@@ -28,17 +28,19 @@ enum class EGModDestination : unsigned int
 	FILT_FREQUENCY
 };
 
-class ARMor8Operator : public IKeyEventListener, public IPitchEventListener
+class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, public IBufferCallback<float>
 {
 	public:
 		ARMor8Operator (PolyBLEPOsc* osc, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude,
 				float frequency);
 		~ARMor8Operator() override;
 
+		void cachePerBlockValues(); // this should be called once per call(), since it caches eg val, freq val, filt freq, ect
+
 		float nextSample();
 		float currentValue();
 
-		void setFilterCoefficients(); // sets the filter coefficients internally, to be called once per call()
+		void call (float* writeBuffer) override;
 
 		void onKeyEvent (const KeyEvent& keyEvent) override;
 
@@ -50,7 +52,6 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener
 		void setEnvelopeGenerator (ADSREnvelopeGenerator<EG_RESPONSE>* eg);
 		void setModSourceAmplitude (ARMor8Operator* modSource, float amplitude = 1.0f);
 		void setEGModDestination (const EGModDestination& modDest, const bool on);
-		void unsetEGModDestination (const EGModDestination& modDest);
 		void setFrequency (const float frequency);
 		void setDetune (const int cents);
 		void setEGFreqModAmount (const float modAmount);
@@ -67,17 +68,12 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener
 
 		float getFrequency() { return m_Frequency; }
 		int getDetune() { return m_Detune; }
-		bool egModAmplitudeSet() { if (m_EGModDestinations.count(EGModDestination::AMPLITUDE)) { return true; } return false; }
-		bool egModFrequencySet() { if (m_EGModDestinations.count(EGModDestination::FREQUENCY)) { return true; } return false; }
-		bool egModFilterSet(){ if (m_EGModDestinations.count(EGModDestination::FILT_FREQUENCY)){ return true; } return false; }
+		bool egModAmplitudeSet() { if (m_UseAmplitudeMod) { return true; } return false; }
+		bool egModFrequencySet() { if (m_UseFrequencyMod) { return true; } return false; }
+		bool egModFilterSet(){ if (m_UseFiltFreqMod){ return true; } return false; }
 		float getModulationAmount (ARMor8Operator* modSource)
 		{
-			if ( m_ModAmplitudes.count(modSource) )
-			{
-				return m_ModAmplitudes.at( modSource );
-			}
-
-			return 0.0f;
+			return m_ModAmplitudes.at( modSource );
 		}
 		float getAmplitude() { return m_Amplitude; }
 		float getFilterFreq() { return m_FilterCenterFreq; }
@@ -98,10 +94,15 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener
 		bool 					m_UseRatio;
 		std::set<ARMor8Operator*> 		m_ModSources;
 		std::map<ARMor8Operator*, float> 	m_ModAmplitudes;
-		std::set<EGModDestination> 		m_EGModDestinations;
+		bool 					m_UseAmplitudeMod;
+		bool 					m_UseFrequencyMod;
+		bool 					m_UseFiltFreqMod;
 		float         m_Amplitude;
+		float         m_AmplitudeCached;
 		float         m_Frequency;
+		float         m_FrequencyCached;
 		int           m_Detune;
+		float         m_DetuneCached;
 		float         m_Ratio;
 		float         m_RatioFrequency;
 		float         m_CurrentValue;

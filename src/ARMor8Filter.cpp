@@ -1,5 +1,7 @@
 #include "ARMor8Filter.hpp"
 
+#include "AudioConstants.hpp"
+
 ARMor8Filter::ARMor8Filter() :
 	m_Filter1(),
 	m_Filter2(),
@@ -54,4 +56,12 @@ void ARMor8Filter::setResonance (float resonance)
 float ARMor8Filter::getResonance()
 {
 	return m_Resonance;
+}
+
+void ARMor8Filter::call (float* writeBuffer)
+{
+	for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+	{
+		writeBuffer[sample] = this->processSample( writeBuffer[sample] );
+	}
 }

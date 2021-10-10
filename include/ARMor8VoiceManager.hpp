@@ -9,15 +9,12 @@
 
 #include "ARMor8Voice.hpp"
 #include "ARMor8Constants.hpp"
-#include "IBufferCallback.hpp"
-#include "IMidiEventListener.hpp"
-#include "IPitchEventListener.hpp"
 #include "IARMor8ParameterEventListener.hpp"
 
 class MidiHandler;
 class PresetManager;
 
-const unsigned int MAX_VOICES = 6;
+constexpr unsigned int MAX_VOICES = 6;
 
 class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListener, public IPitchEventListener,
 				public IARMor8ParameterEventListener

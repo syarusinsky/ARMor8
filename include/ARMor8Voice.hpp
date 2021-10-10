@@ -152,7 +152,7 @@ struct ARMor8PresetHeader
 	}
 };
 
-class ARMor8Voice
+class ARMor8Voice : public IBufferCallback<float>, public IKeyEventListener
 {
 	public:
 		ARMor8Voice();
@@ -161,7 +161,6 @@ class ARMor8Voice
 		void setOperatorFreq (unsigned int opNum, float freq);
 		void setOperatorDetune (unsigned int opNum, int cents);
 		void setOperatorWave (unsigned int opNum, const OscillatorMode& wave);
-		void setOperatorEG (unsigned int opNum, ADSREnvelopeGenerator<EG_RESPONSE>* eg);
 		void setOperatorEGAttack (unsigned int opNum, float seconds, float expo);
 		void setOperatorEGDecay (unsigned int opNum, float seconds, float expo);
 		void setOperatorEGSustain (unsigned int opNum, float lvl);
@@ -201,12 +200,14 @@ class ARMor8Voice
 		void setState (const ARMor8VoiceState& state);
 
 		float nextSample();
-		void setFilterCoefficients(); // sets the filter coefficients internally, to be called once per call()
+		void cachePerBlockValues(); // this should be called once per call(), since it caches eg val, freq val, filt freq, ect
 
-		void onKeyEvent (const KeyEvent& keyEvent);
+		void onKeyEvent (const KeyEvent& keyEvent) override;
 		const KeyEvent& getActiveKeyEvent();
 
 		void onPitchEvent (const PitchEvent& pitchEvent);
+
+		void call (float* writeBuffer) override;
 
 	private:
 		PolyBLEPOsc       			m_Osc1;

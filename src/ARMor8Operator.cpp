@@ -1,5 +1,6 @@
 #include "ARMor8Operator.hpp"
 
+#include "ARMor8Constants.hpp"
 #include "AudioConstants.hpp"
 #include "MidiConstants.hpp"
 #include "PolyBLEPOsc.hpp"
@@ -12,10 +13,15 @@ ARMor8Operator::ARMor8Operator (PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESP
 	m_FilterCenterFreq( 20000.0f ),
 	m_UseRatio( false ),
 	m_ModSources(),
-	m_EGModDestinations(),
+	m_UseAmplitudeMod( false ),
+	m_UseFrequencyMod( false ),
+	m_UseFiltFreqMod( false ),
 	m_Amplitude( amplitude ),
+	m_AmplitudeCached( amplitude ),
 	m_Frequency( frequency ),
+	m_FrequencyCached( frequency ),
 	m_Detune( 0 ),
+	m_DetuneCached( 1.0f ),
 	m_Ratio( 1.0f ),
 	m_RatioFrequency( frequency ),
 	m_CurrentValue( 0.0f ),
@@ -35,82 +41,68 @@ ARMor8Operator::~ARMor8Operator()
 {
 }
 
-float ARMor8Operator::nextSample()
+void ARMor8Operator::cachePerBlockValues()
 {
-	if ( m_Osc )
+	float egValue = m_EG->nextValue();
+
+	m_AmplitudeCached = 1.0f - ( m_AmpVelSens * m_CurrentVelocity );
+
+	if ( m_UseAmplitudeMod )
 	{
-		float egValue = 1.0f;
-		if ( m_EG )
-		{
-			egValue = m_EG->nextValue();
-		}
-
-		float currentValAmplitude = 1.0f - ( m_AmpVelSens * m_CurrentVelocity );
-
-		if ( m_EGModDestinations.count(EGModDestination::AMPLITUDE) )
-		{
-			currentValAmplitude *= egValue;
-		}
-
-		if ( (m_GlideIncr >= 0.0f && m_GlideFrequency < m_RatioFrequency) || (m_GlideIncr <  0.0f && m_GlideFrequency > m_RatioFrequency) )
-		{
-			m_GlideFrequency += m_GlideIncr;
-		}
-
-		float frequency = ( m_UseRatio ) ? m_GlideFrequency : m_Frequency;
-		frequency += m_FrequencyOffset;
-		frequency = frequency * powf( 2.0f, (m_Detune / 1200.0f) );
-
-		if ( m_EGModDestinations.count(EGModDestination::FREQUENCY) )
-		{
-			frequency = (frequency * egValue) + 1.0f;
-		}
-
-		for ( ARMor8Operator* modSource : m_ModSources )
-		{
-			std::map<ARMor8Operator*, float>::iterator amplitude = m_ModAmplitudes.find( modSource );
-			if ( amplitude != m_ModAmplitudes.end() )
-			{
-				frequency += ( (*amplitude).second * modSource->currentValue() );
-			}
-		}
-
-		m_Osc->setFrequency( frequency );
-		m_CurrentValue = ( m_Osc->nextSample() ) * currentValAmplitude;
-
-		if ( m_Filter )
-		{
-			m_CurrentValue = m_Filter->processSample( m_CurrentValue );
-		}
-
-		return m_CurrentValue * m_Amplitude;
+		m_AmplitudeCached *= egValue;
 	}
 
-	return 0.0f;
+	if ( (m_GlideIncr >= 0.0f && m_GlideFrequency < m_RatioFrequency) || (m_GlideIncr <  0.0f && m_GlideFrequency > m_RatioFrequency) )
+	{
+		m_GlideFrequency += ( m_GlideIncr * ABUFFER_SIZE );
+
+		if ( (m_GlideIncr >= 0.0f && m_GlideFrequency > m_RatioFrequency) || (m_GlideIncr <  0.0f && m_GlideFrequency < m_RatioFrequency) )
+		{
+			m_GlideFrequency = m_RatioFrequency;
+		}
+	}
+
+	m_FrequencyCached = ( m_UseRatio ) ? m_GlideFrequency : m_Frequency;
+	m_FrequencyCached += m_FrequencyOffset;
+	m_FrequencyCached *= m_DetuneCached;
+
+	if ( m_UseFrequencyMod )
+	{
+		m_FrequencyCached = ( m_FrequencyCached * egValue ) + 1.0f;
+	}
+
+	float filtFrequency = m_FilterCenterFreq;
+	filtFrequency *= ( 1.0f - (m_FiltVelSens * m_CurrentVelocity) );
+
+	if ( m_UseFiltFreqMod )
+	{
+		filtFrequency *= egValue;
+	}
+
+	m_Filter->setCoefficients( filtFrequency );
+}
+
+float ARMor8Operator::nextSample()
+{
+	float frequency = m_FrequencyCached;
+
+	for ( ARMor8Operator* modSource : m_ModSources )
+	{
+		std::map<ARMor8Operator*, float>::iterator amplitude = m_ModAmplitudes.find( modSource );
+		frequency += ( (*amplitude).second * modSource->currentValue() );
+	}
+
+	m_Osc->setFrequency( frequency );
+	m_CurrentValue = ( m_Osc->nextSample() ) * m_AmplitudeCached;
+
+	m_CurrentValue = m_Filter->processSample( m_CurrentValue );
+
+	return m_CurrentValue * m_Amplitude;
 }
 
 float ARMor8Operator::currentValue()
 {
 	return m_CurrentValue;
-}
-
-void ARMor8Operator::setFilterCoefficients()
-{
-	float egValue = 1.0f;
-	if ( m_EG )
-	{
-		egValue = m_EG->currentValue();
-	}
-
-	float frequency = m_FilterCenterFreq;
-	frequency *= ( 1.0f - (m_FiltVelSens * m_CurrentVelocity) );
-	
-	if ( m_EGModDestinations.count(EGModDestination::FILT_FREQUENCY) )
-	{
-		frequency *= egValue;
-	}
-	
-	m_Filter->setCoefficients( frequency );
 }
 
 void ARMor8Operator::onKeyEvent (const KeyEvent& keyEvent)
@@ -513,19 +505,18 @@ void ARMor8Operator::setModSourceAmplitude (ARMor8Operator* modSource, float amp
 
 void ARMor8Operator::setEGModDestination (const EGModDestination& modDest, const bool on)
 {
-	if ( on )
+	if ( modDest == EGModDestination::AMPLITUDE )
 	{
-		m_EGModDestinations.insert( modDest );
+		m_UseAmplitudeMod = on;
 	}
-	else
+	else if ( modDest == EGModDestination::FREQUENCY )
 	{
-		m_EGModDestinations.erase( modDest );
+		m_UseFrequencyMod = on;
 	}
-}
-
-void ARMor8Operator::unsetEGModDestination (const EGModDestination& modDest)
-{
-	m_EGModDestinations.erase( modDest );
+	else if ( modDest == EGModDestination::FILT_FREQUENCY )
+	{
+		m_UseFiltFreqMod = on;
+	}
 }
 
 void ARMor8Operator::setFrequency (const float frequency)
@@ -569,6 +560,7 @@ void ARMor8Operator::setFrequency (const float frequency)
 void ARMor8Operator::setDetune (const int cents)
 {
 	m_Detune = cents;
+	m_DetuneCached = powf( 2.0f, (m_Detune / 1200.0f) );
 }
 
 void ARMor8Operator::setAmplitude (const float amplitude)
@@ -608,7 +600,7 @@ void ARMor8Operator::setFrequencyOffset (const float freqOffset)
 
 void ARMor8Operator::setGlideTime (const float glideTime)
 {
-	m_GlideTime = glideTime;
+	m_GlideTime = glideTime; // since this is calculated 'per block'
 
 	if ( glideTime <= 0.0f )
 	{
@@ -628,4 +620,14 @@ void ARMor8Operator::setGlideRetrigger (const bool useRetrigger)
 void ARMor8Operator::setUseGlide (const bool useGlide)
 {
 	m_UseGlide = useGlide;
+}
+
+void ARMor8Operator::call (float* writeBuffer)
+{
+	this->cachePerBlockValues();
+
+	for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+	{
+		writeBuffer[sample] += this->nextSample();
+	}
 }

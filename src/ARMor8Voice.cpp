@@ -1,6 +1,9 @@
 #include "ARMor8Voice.hpp"
 
-const unsigned int numOps = 4;
+#include "AudioConstants.hpp"
+
+static constexpr float PER_BLOCK_OFFSET = 1.0f / static_cast<float>( ABUFFER_SIZE );
+static constexpr unsigned int numOps = 4;
 
 ARMor8Voice::ARMor8Voice() :
 	m_Osc1(),
@@ -69,24 +72,11 @@ void ARMor8Voice::setOperatorWave (unsigned int opNum, const OscillatorMode& wav
 	}
 }
 
-void ARMor8Voice::setOperatorEG (unsigned int opNum, ADSREnvelopeGenerator<EG_RESPONSE>* eg)
-{
-	if ( eg && opNum < numOps )
-	{
-		ADSREnvelopeGenerator<EG_RESPONSE>* egToDelete = m_Operators[opNum]->getEnvelopeGenerator();
-		if ( egToDelete )
-		{
-			delete egToDelete;
-		}
-
-		m_Operators[opNum]->setEnvelopeGenerator( eg );
-	}
-}
-
 void ARMor8Voice::setOperatorEGAttack (unsigned int opNum, float seconds, float expo)
 {
 	if ( opNum < numOps )
 	{
+		seconds *= PER_BLOCK_OFFSET;
 		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setAttack( seconds, expo );
 	}
 }
@@ -95,6 +85,7 @@ void ARMor8Voice::setOperatorEGDecay (unsigned int opNum, float seconds, float e
 {
 	if ( opNum < numOps )
 	{
+		seconds *= PER_BLOCK_OFFSET;
 		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setDecay( seconds, expo );
 	}
 }
@@ -111,6 +102,7 @@ void ARMor8Voice::setOperatorEGRelease (unsigned int opNum, float seconds, float
 {
 	if ( opNum < numOps )
 	{
+		seconds *= PER_BLOCK_OFFSET;
 		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setRelease( seconds, expo );
 	}
 }
@@ -149,12 +141,12 @@ float ARMor8Voice::nextSample()
 	return output;
 }
 
-void ARMor8Voice::setFilterCoefficients()
+void ARMor8Voice::cachePerBlockValues()
 {
-	m_Op1.setFilterCoefficients();
-	m_Op2.setFilterCoefficients();
-	m_Op3.setFilterCoefficients();
-	m_Op4.setFilterCoefficients();
+	m_Op1.cachePerBlockValues();
+	m_Op2.cachePerBlockValues();
+	m_Op3.cachePerBlockValues();
+	m_Op4.cachePerBlockValues();
 }
 
 void ARMor8Voice::onKeyEvent (const KeyEvent& keyEvent)
@@ -549,10 +541,10 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op1.setFrequency( state.frequency1 );
 	m_Op1.setRatio( state.useRatio1 );
 	m_Op1.setWave( state.wave1 );
-	m_Eg1.setAttack( state.attack1, state.attackExpo1 );
-	m_Eg1.setDecay( state.decay1, state.decayExpo1 );
+	this->setOperatorEGAttack( 0, state.attack1, state.attackExpo1 );
+	this->setOperatorEGDecay( 0, state.decay1, state.decayExpo1 );
 	m_Eg1.setSustain( state.sustain1 );
-	m_Eg1.setRelease( state.release1, state.releaseExpo1 );
+	this->setOperatorEGRelease( 0, state.release1, state.releaseExpo1 );
 	if ( state.egAmplitudeMod1 )
 	{
 		m_Op1.setEGModDestination( EGModDestination::AMPLITUDE, true );
@@ -593,10 +585,10 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op2.setFrequency( state.frequency2 );
 	m_Op2.setRatio( state.useRatio2 );
 	m_Op2.setWave( state.wave2 );
-	m_Eg2.setAttack( state.attack2, state.attackExpo2 );
-	m_Eg2.setDecay( state.decay2, state.decayExpo2 );
+	this->setOperatorEGAttack( 1,  state.attack2, state.attackExpo2 );
+	this->setOperatorEGDecay( 1, state.decay2, state.decayExpo2 );
 	m_Eg2.setSustain( state.sustain2 );
-	m_Eg2.setRelease( state.release2, state.releaseExpo2 );
+	this->setOperatorEGRelease( 1, state.release2, state.releaseExpo2 );
 	if ( state.egAmplitudeMod2 )
 	{
 		m_Op2.setEGModDestination( EGModDestination::AMPLITUDE, true );
@@ -637,10 +629,10 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op3.setFrequency( state.frequency3 );
 	m_Op3.setRatio( state.useRatio3 );
 	m_Op3.setWave( state.wave3 );
-	m_Eg3.setAttack( state.attack3, state.attackExpo3 );
-	m_Eg3.setDecay( state.decay3, state.decayExpo3 );
+	this->setOperatorEGAttack( 2, state.attack3, state.attackExpo3 );
+	this->setOperatorEGDecay( 2, state.decay3, state.decayExpo3 );
 	m_Eg3.setSustain( state.sustain3 );
-	m_Eg3.setRelease( state.release3, state.releaseExpo3 );
+	this->setOperatorEGRelease( 2, state.release3, state.releaseExpo3 );
 	if ( state.egAmplitudeMod3 )
 	{
 		m_Op3.setEGModDestination( EGModDestination::AMPLITUDE, true );
@@ -681,10 +673,10 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op4.setFrequency( state.frequency4 );
 	m_Op4.setRatio( state.useRatio4 );
 	m_Op4.setWave( state.wave4 );
-	m_Eg4.setAttack( state.attack4, state.attackExpo4 );
-	m_Eg4.setDecay( state.decay4, state.decayExpo4 );
+	this->setOperatorEGAttack( 3, state.attack4, state.attackExpo4 );
+	this->setOperatorEGDecay( 3, state.decay4, state.decayExpo4 );
 	m_Eg4.setSustain( state.sustain4 );
-	m_Eg4.setRelease( state.release4, state.releaseExpo4 );
+	this->setOperatorEGRelease( 3, state.release4, state.releaseExpo4 );
 	if ( state.egAmplitudeMod4 )
 	{
 		m_Op4.setEGModDestination( EGModDestination::AMPLITUDE, true );
@@ -721,9 +713,19 @@ void ARMor8Voice::setState (const ARMor8VoiceState& state)
 	m_Op4.setDetune( state.detune4 );
 
 	// global states
+	this->setGlideTime( state.glideTime );
 	for ( unsigned int op = 0; op < numOps; op++ )
 	{
-		m_Operators[op]->setGlideTime( state.glideTime );
 		m_Operators[op]->setGlideRetrigger( state.glideRetrigger );
+	}
+}
+
+void ARMor8Voice::call (float* writeBuffer)
+{
+	this->cachePerBlockValues();
+
+	for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+	{
+		writeBuffer[sample] += this->nextSample();
 	}
 }

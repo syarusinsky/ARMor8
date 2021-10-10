@@ -103,7 +103,7 @@ class EventQueue
 };
 
 #ifndef TARGET_BUILD
-void messageQueueTester();
+// void messageQueueTester();
 #endif // ifndef TARGET_BUILD
 
 #endif // EVENTQUEUE_HPP

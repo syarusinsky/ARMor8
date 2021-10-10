@@ -8,8 +8,9 @@
 ****************************************************************/
 
 #include "OnePoleFilter.hpp"
+#include "IBufferCallback.hpp"
 
-class ARMor8Filter : public IFilter<float>
+class ARMor8Filter : public IFilter<float>, public IBufferCallback<float>
 {
 	public:
 		ARMor8Filter();
@@ -20,6 +21,8 @@ class ARMor8Filter : public IFilter<float>
 
 		void setResonance (float resonance) override;
 		float getResonance() override;
+
+		void call (float* writeBuffer) override;
 
 	private:
 		OnePoleFilter<float> 	m_Filter1;

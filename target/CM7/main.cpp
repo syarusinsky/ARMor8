@@ -8,6 +8,7 @@
 #include "MidiHandler.hpp"
 #include "ARMor8VoiceManager.hpp"
 #include "AudioBuffer.hpp"
+#include "AudioConstants.hpp"
 
 #define SYS_CLOCK_FREQUENCY = 480000000;
 
@@ -232,7 +233,7 @@ int main(void)
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
 	// audio timer setup (for 40 kHz sampling rate at 480 MHz timer clock)
-	LLPD::tim6_counter_setup( 0, 6000, 40000 );
+	LLPD::tim6_counter_setup( 0, 12000, 40000 );
 	LLPD::tim6_counter_enable_interrupts();
 	LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
@@ -272,12 +273,8 @@ int main(void)
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT1_ADC_PIN );
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT2_ADC_PIN );
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT3_ADC_PIN );
-	// LLPD::gpio_analog_setup( AUDIO_IN_PORT, AUDIO1_IN_PIN );
-	// LLPD::gpio_analog_setup( AUDIO_IN_PORT, AUDIO2_IN_PIN );
 	LLPD::adc_init( ADC_NUM::ADC_1_2, ADC_CYCLES_PER_SAMPLE::CPS_64p5 );
-	// LLPD::adc_init( ADC_NUM::ADC_3, ADC_CYCLES_PER_SAMPLE::CPS_32p5 );
 	LLPD::adc_set_channel_order( ADC_NUM::ADC_1_2, 3, EFFECT1_ADC_CHANNEL, EFFECT2_ADC_CHANNEL, EFFECT3_ADC_CHANNEL );
-	// LLPD::adc_set_channel_order( ADC_NUM::ADC_3, 2, AUDIO1_IN_ADC_CHANNEL, AUDIO2_IN_ADC_CHANNEL );
 
 	// pushbutton setup
 	LLPD::gpio_digital_input_setup( EFFECT_BUTTON_PORT, EFFECT1_BUTTON_PIN, GPIO_PUPD::PULL_UP );
@@ -364,27 +361,71 @@ int main(void)
 		}
 	}
 
+	// flush denormals
+	__set_FPSCR( __get_FPSCR() | (1 << 24) );
+
 	uint8_t* paramEventQueueMem = reinterpret_cast<uint8_t*>( D3_SRAM_BASE ) + ( D3_SRAM_UNUSED_OFFSET_IN_BYTES );
 	EventQueue<ARMor8ParameterEvent>* paramEventQueue = reinterpret_cast<EventQueue<ARMor8ParameterEvent>*>( paramEventQueueMem );
 	ARMor8ParameterEventBridge paramEventBridge( paramEventQueue );
 
 	// TODO need to add preset manager
+	// TODO this is super glitchy sounding, not optimized enough?
 	ARMor8VoiceManager voiceManager( midiHandlerPtr, nullptr );
 	voiceManager.bindToKeyEventSystem();
 	voiceManager.bindToPitchEventSystem();
 	voiceManager.bindToARMor8ParameterEventSystem();
+	voiceManager.setMonophonic( false );
+	voiceManager.setOperatorFreq( 0, 500.0f );
+	voiceManager.setOperatorFreq( 1, 500.0f );
+	voiceManager.setOperatorFreq( 2, 500.0f );
+	voiceManager.setOperatorFreq( 3, 500.0f );
+	voiceManager.setOperatorAmplitude( 0, 0.05f );
+	voiceManager.setOperatorAmplitude( 1, 0.0f );
+	voiceManager.setOperatorAmplitude( 2, 0.0f );
+	voiceManager.setOperatorAmplitude( 3, 0.0f );
+
+	/*
+	// TODO this works
+	PolyBLEPOsc osc;
+	osc.setFrequency( 500.0f );
+	osc.setOscillatorMode( OscillatorMode::SINE );
+	ExponentialResponse expoResponse;
+	ADSREnvelopeGenerator<ExponentialResponse> eg( 0.0f, 0.2f, 0.5f, 0.3f, &expoResponse, &expoResponse, &expoResponse );
+	ARMor8Filter filt;
+	filt.setCoefficients( 20000.0f );
+	filt.setResonance( 0.0f );
+	ARMor8Operator op( &osc, &eg, &filt, 1.0f, 500.0f );
+	*/
+
+	/*
+	// TODO this was choppy sounding, but was fixed after enabling icache
+	ARMor8Voice voice;
+	voice.setOperatorFreq( 0, 500.0f );
+	voice.setOperatorDetune( 0, 0 );
+	voice.setOperatorAmplitude( 0, 0.5f );
+	voice.setOperatorAmplitude( 1, 0.0f );
+	voice.setOperatorAmplitude( 2, 0.0f );
+	voice.setOperatorAmplitude( 3, 0.0f );
+	voice.setOperatorFilterFreq( 0, 20000.0f );
+	voice.setOperatorFilterRes( 0, 0.0f );
+	voice.setOperatorRatio( 0, false );
+	*/
 
 	AudioBuffer<float> audioBuffer;
 	audioBuffer.registerCallback( &voiceManager );
 	audioBufferPtr = &audioBuffer;
 
+	// enable instruction cache
+	// TODO this actually fixed the choppy sounding single voice
+	SCB_EnableICache();
+
 	while ( true )
 	{
-		LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
+		// LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
 
-		paramEventBridge.processQueuedParameterEvents();
+		// paramEventBridge.processQueuedParameterEvents();
 
-		midiHandler.dispatchEvents();
+		// midiHandler.dispatchEvents();
 
 		audioBuffer.pollToFillBuffers();
 	}
@@ -396,7 +437,7 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 	{
 		if ( audioBufferPtr )
 		{
-			uint16_t outVal = static_cast<uint16_t>( audioBufferPtr->getNextSample(0.0f) * 4095.0f );
+			uint16_t outVal = static_cast<uint16_t>( (audioBufferPtr->getNextSample(0.0f) * 2047.0f) + 2048.0f );
 
 			LLPD::dac_send( outVal, outVal );
 		}

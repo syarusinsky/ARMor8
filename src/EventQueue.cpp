@@ -1,5 +1,6 @@
 #include "EventQueue.hpp"
 
+/*
 #ifndef TARGET_BUILD
 
 // TODO delete all this after testing
@@ -63,3 +64,5 @@ void messageQueueTester()
 }
 
 #endif // ifndef TARGET_BUILD
+
+*/
