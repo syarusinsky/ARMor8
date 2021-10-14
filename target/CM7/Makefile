@@ -76,6 +76,7 @@ CFLAGS += -Wall
 CFLAGS += -Wdouble-promotion
 CFLAGS += -Wfloat-conversion
 CFLAGS += -fsingle-precision-constant
+CFLAGS += -ffast-math
 # (set error messages to appear on a single line.)
 CFLAGS += -fmessage-length=0
 # (set system to ignore semihosted junk)
@@ -91,6 +92,8 @@ CFLAGS += -DTARGET_BUILD
 # (allow SIGL to use software rendering)
 CFLAGS += -DSOFTWARE_RENDERING
 CFLAGS += -DROTATE_DISPLAY_180_DEGREES
+CFLAGS += -DARM_MATH_CM7
+CFLAGS += -D__FPU_PRESENT
 
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)
@@ -104,6 +107,7 @@ AS_SRC = $(STM32_CUBE_FILES_DIR)/startup_stm32h745zitx.s
 
 # c files to compile
 C_SRC =  $(STM32_CUBE_FILES_DIR)/system_stm32h7xx_dualcore_boot_cm4_cm7.c
+C_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.c)
 
 # c++ files to compile
 CPP_SRC = ./main.cpp

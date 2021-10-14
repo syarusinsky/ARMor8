@@ -1324,6 +1324,8 @@ void ARMor8UiManager::assignEffectPot()
 		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_Effect3PotAssignmentIndex),
 					m_Effect3PotAssignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::POT3_ASSIGNMENT)) );
 	}
+
+	this->lockAllPots();
 }
 
 void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val, bool menuThreshBroken)

@@ -421,11 +421,11 @@ int main(void)
 
 	while ( true )
 	{
-		// LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
+		LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
 
-		// paramEventBridge.processQueuedParameterEvents();
+		paramEventBridge.processQueuedParameterEvents();
 
-		// midiHandler.dispatchEvents();
+		midiHandler.dispatchEvents();
 
 		audioBuffer.pollToFillBuffers();
 	}

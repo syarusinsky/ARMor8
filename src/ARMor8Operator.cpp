@@ -71,6 +71,9 @@ void ARMor8Operator::cachePerBlockValues()
 		m_FrequencyCached = ( m_FrequencyCached * egValue ) + 1.0f;
 	}
 
+	m_Osc->setFrequency( m_FrequencyCached );
+	m_Osc->applyTriangleFilter();
+
 	float filtFrequency = m_FilterCenterFreq;
 	filtFrequency *= ( 1.0f - (m_FiltVelSens * m_CurrentVelocity) );
 
