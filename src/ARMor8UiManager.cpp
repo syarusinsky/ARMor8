@@ -1963,18 +1963,21 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		{
 			m_EffectPotToAssign = 1;
 			m_Effect1PotAssignmentOp = m_OpCurrentlyBeingEdited;
+			this->lockAllPots();
 			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect2Index ) // assign effect pot 2
 		{
 			m_EffectPotToAssign = 2;
 			m_Effect2PotAssignmentOp = m_OpCurrentlyBeingEdited;
+			this->lockAllPots();
 			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuAssignEffect3Index ) // assign effect pot 3
 		{
 			m_EffectPotToAssign = 3;
 			m_Effect3PotAssignmentOp = m_OpCurrentlyBeingEdited;
+			this->lockAllPots();
 			this->enterAssignEffectPotMenu();
 		}
 		else if ( cursorIndex == m_SettingsMenuSelectOperatorIndex ) // select operator to edit

@@ -100,6 +100,7 @@ class Oled_Manager : public IARMor8LCDRefreshEventListener
 		uint8_t* 	m_DisplayBuffer;
 };
 
+// this class is to receive the published parameter events from ui manager and put them in the event queue for the m7 core to retrieve
 class ARMor8ParameterEventBridge : public IARMor8ParameterEventListener
 {
 	public:
@@ -115,11 +116,36 @@ class ARMor8ParameterEventBridge : public IARMor8ParameterEventListener
 		EventQueue<ARMor8ParameterEvent>* m_EventQueuePtr;
 };
 
+// this class is to retrieve preset events from the m7 core via the preset event queue and republish them to the ui manager
+class ARMor8PresetEventBridge
+{
+	public:
+		ARMor8PresetEventBridge (EventQueue<ARMor8PresetEvent>* eventQueuePtr) : m_EventQueuePtr( eventQueuePtr ) {}
+		~ARMor8PresetEventBridge() {}
+
+		void processQueuedPresetEvents()
+		{
+			ARMor8VoiceState voiceState;
+			ARMor8PresetEvent presetEvent( voiceState, 0, 0 );
+			bool readCorrectly = m_EventQueuePtr->readEvent( presetEvent );
+			while ( readCorrectly )
+			{
+				IARMor8PresetEventListener::PublishEvent( presetEvent );
+
+				readCorrectly = m_EventQueuePtr->readEvent( presetEvent );
+			}
+		}
+
+	private:
+		EventQueue<ARMor8PresetEvent>* m_EventQueuePtr;
+};
+
 int main(void)
 {
 	LLPD::rcc_clock_start_max_cpu2();
 
 	EventQueue<ARMor8ParameterEvent>* paramEventQueue = nullptr;
+	EventQueue<ARMor8PresetEvent>* presetEventQueue = nullptr;
 
 	// wait for setupCompleteFlag to inform that audio timer is setup
 	while ( true )
@@ -133,7 +159,10 @@ int main(void)
 
 				paramEventQueue = new ( sram4Ptr ) EventQueue<ARMor8ParameterEvent>(
 									sram4Ptr + sizeof(EventQueue<ARMor8ParameterEvent>),
-									sizeof(ARMor8ParameterEvent) * 1000, 1 );
+									sizeof(ARMor8ParameterEvent) * ARMOR8_PARAMETER_EVENT_QUEUE_SIZE, 1 );
+				uint8_t* presetEventQueueMem = sram4Ptr + sizeof( EventQueue<ARMor8ParameterEvent> )
+									+ ( sizeof(ARMor8ParameterEvent) * ARMOR8_PARAMETER_EVENT_QUEUE_SIZE );
+				presetEventQueue = reinterpret_cast<EventQueue<ARMor8PresetEvent>*>( presetEventQueueMem );
 
 				*setupCompleteFlag = false;
 
@@ -151,13 +180,17 @@ int main(void)
 	ARMor8UiManager uiManager( SH1106_LCDWIDTH, SH1106_LCDHEIGHT, CP_FORMAT::MONOCHROME_1BIT );
 	uiManager.bindToButtonEventSystem();
 	uiManager.bindToPotEventSystem();
+	uiManager.bindToARMor8PresetEventSystem();
 	uiManager.setFont( &font );
 	uiManagerPtr = &uiManager;
 	uiManager.endLoading();
 
 	// parameter event bridge setup
-	ARMor8ParameterEventBridge paramEventBride( paramEventQueue );
-	paramEventBride.bindToARMor8ParameterEventSystem();
+	ARMor8ParameterEventBridge paramEventBridge( paramEventQueue );
+	paramEventBridge.bindToARMor8ParameterEventSystem();
+
+	// preset event bridge setup
+	ARMor8PresetEventBridge presetEventBridge( presetEventQueue );
 
 	// OLED setup
 	Oled_Manager oled( uiManager.getFrameBuffer()->getPixels() );
@@ -169,6 +202,8 @@ int main(void)
 
 	while ( true )
 	{
+		presetEventBridge.processQueuedPresetEvents();
+
 		uiManager.processEffect1Btn( ! LLPD::gpio_input_get(EFFECT_BUTTON_PORT, EFFECT1_BUTTON_PIN) );
 		uiManager.processEffect2Btn( ! LLPD::gpio_input_get(EFFECT_BUTTON_PORT, EFFECT2_BUTTON_PIN) );
 

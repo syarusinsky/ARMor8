@@ -592,6 +592,17 @@ void ARMor8VoiceManager::setState (const ARMor8VoiceState& state)
 	m_Pot3AssignmentOp = state.pot3AssignmentOp;
 }
 
+void ARMor8VoiceManager::loadCurrentPreset()
+{
+	if ( m_PresetManager )
+	{
+		ARMor8VoiceState preset = m_PresetManager->retrievePreset<ARMor8VoiceState>( m_PresetManager->getCurrentPresetNum() );
+		this->setState( preset );
+		IARMor8PresetEventListener::PublishEvent(
+				ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
+	}
+}
+
 ARMor8PresetHeader ARMor8VoiceManager::getPresetHeader()
 {
 	return m_PresetHeader;

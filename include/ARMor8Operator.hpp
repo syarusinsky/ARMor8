@@ -15,6 +15,7 @@
 #include "IPitchEventListener.hpp"
 #include "ExponentialResponse.hpp"
 #include "ADSREnvelopeGenerator.hpp"
+#include "ARMor8Constants.hpp"
 
 #define EG_RESPONSE ExponentialResponse
 
@@ -32,7 +33,7 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 {
 	public:
 		ARMor8Operator (PolyBLEPOsc* osc, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude,
-				float frequency);
+				float frequency, ARMor8Operator* mod1, ARMor8Operator* mod2, ARMor8Operator* mod3, ARMor8Operator* mod4);
 		~ARMor8Operator() override;
 
 		void cachePerBlockValues(); // this should be called once per call(), since it caches eg val, freq val, filt freq, ect
@@ -73,7 +74,24 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		bool egModFilterSet(){ if (m_UseFiltFreqMod){ return true; } return false; }
 		float getModulationAmount (ARMor8Operator* modSource)
 		{
-			return m_ModAmplitudes.at( modSource );
+			if ( modSource == m_ModOperators[0] )
+			{
+				return m_ModOperatorAmplitudes[0];
+			}
+			else if ( modSource == m_ModOperators[1] )
+			{
+				return m_ModOperatorAmplitudes[1];
+			}
+			else if ( modSource == m_ModOperators[2] )
+			{
+				return m_ModOperatorAmplitudes[2];
+			}
+			else if ( modSource == m_ModOperators[3] )
+			{
+				return m_ModOperatorAmplitudes[3];
+			}
+
+			return 0.0f;
 		}
 		float getAmplitude() { return m_Amplitude; }
 		float getFilterFreq() { return m_FilterCenterFreq; }
@@ -92,8 +110,8 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		ARMor8Filter* 				m_Filter;
 		float 					m_FilterCenterFreq;
 		bool 					m_UseRatio;
-		std::set<ARMor8Operator*> 		m_ModSources;
-		std::map<ARMor8Operator*, float> 	m_ModAmplitudes;
+		ARMor8Operator* 			m_ModOperators[ARMOR8_NUM_OPERATORS_PER_VOICE];
+		float 					m_ModOperatorAmplitudes[ARMOR8_NUM_OPERATORS_PER_VOICE];
 		bool 					m_UseAmplitudeMod;
 		bool 					m_UseFrequencyMod;
 		bool 					m_UseFiltFreqMod;

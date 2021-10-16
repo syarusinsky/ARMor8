@@ -31,10 +31,10 @@ ARMor8Voice::ARMor8Voice() :
 	m_Filt3(),
 	m_Filt4(),
 	m_KeyEventServer(),
-	m_Op1( &m_Osc1, &m_Eg1, &m_Filt1, 1.0f, 1000.0f ),
-	m_Op2( &m_Osc2, &m_Eg2, &m_Filt2, 1.0f, 1000.0f ),
-	m_Op3( &m_Osc3, &m_Eg3, &m_Filt3, 1.0f, 1000.0f ),
-	m_Op4( &m_Osc4, &m_Eg4, &m_Filt4, 1.0f, 1000.0f ),
+	m_Op1( &m_Osc1, &m_Eg1, &m_Filt1, 1.0f, 1000.0f, &m_Op1, &m_Op2, &m_Op3, &m_Op4 ),
+	m_Op2( &m_Osc2, &m_Eg2, &m_Filt2, 1.0f, 1000.0f, &m_Op1, &m_Op2, &m_Op3, &m_Op4 ),
+	m_Op3( &m_Osc3, &m_Eg3, &m_Filt3, 1.0f, 1000.0f, &m_Op1, &m_Op2, &m_Op3, &m_Op4 ),
+	m_Op4( &m_Osc4, &m_Eg4, &m_Filt4, 1.0f, 1000.0f, &m_Op1, &m_Op2, &m_Op3, &m_Op4 ),
 	m_Operators{ &m_Op1, &m_Op2, &m_Op3, &m_Op4 },
 	m_ActiveKeyEvent()
 {

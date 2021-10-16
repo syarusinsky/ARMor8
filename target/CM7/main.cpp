@@ -4,11 +4,12 @@
 #include "SRAM_23K256.hpp"
 #include "SDCard.hpp"
 #include "EventQueue.hpp"
-#include "IEventListener.hpp"
 #include "MidiHandler.hpp"
 #include "ARMor8VoiceManager.hpp"
+#include "ARMor8PresetUpgrader.hpp"
 #include "AudioBuffer.hpp"
 #include "AudioConstants.hpp"
+#include "IARMor8PresetEventListener.hpp"
 
 #define SYS_CLOCK_FREQUENCY = 480000000;
 
@@ -65,6 +66,58 @@ AudioBuffer<float>* volatile audioBufferPtr = nullptr;
 #define SD_CARD_SPI_NUM 		SPI_NUM::SPI_4
 #define OLED_SPI_NUM 			SPI_NUM::SPI_3
 
+// this class is specifically to check if the eeprom has been initialized with the correct code at the end of the eeprom addresses
+class Eeprom_CAT24C64_Manager_ARMor8 : public Eeprom_CAT24C64_Manager
+{
+	public:
+		Eeprom_CAT24C64_Manager_ARMor8 (const I2C_NUM& i2cNum, const std::vector<Eeprom_CAT24C64_AddressConfig>& addressConfigs) :
+			Eeprom_CAT24C64_Manager( i2cNum, addressConfigs ) {}
+
+		bool needsInitialization() override
+		{
+			for ( unsigned int byte = 0; byte < sizeof(m_InitCode); byte++ )
+			{
+				uint8_t value = this->readByte( m_InitCodeStartAddress + byte );
+				if ( value != m_InitCode[byte] )
+				{
+					LLPD::usart_log( LOGGING_USART_NUM, "EEPROM init code not detected, initializing now..." );
+
+					return true;
+				}
+			}
+
+			LLPD::usart_log( LOGGING_USART_NUM, "EEPROM init code detected, loading preset now..." );
+
+			return false;
+		}
+
+		void afterInitialize() override
+		{
+			for ( unsigned int byte = 0; byte < sizeof(m_InitCode); byte++ )
+			{
+				this->writeByte( m_InitCodeStartAddress + byte, m_InitCode[byte] );
+			}
+
+			for ( unsigned int byte = 0; byte < sizeof(m_InitCode); byte++ )
+			{
+				uint8_t value = this->readByte( m_InitCodeStartAddress + byte );
+				if ( value != m_InitCode[byte] )
+				{
+					LLPD::usart_log( LOGGING_USART_NUM, "EEPROM failed to initialize, check connections and setup..." );
+
+					return;
+				}
+			}
+
+			LLPD::usart_log( LOGGING_USART_NUM, "EEPROM initialized successfully, loading preset now..." );
+		}
+
+	private:
+		uint8_t m_InitCode[8] = { 0b10100100, 0b11100010, 0b11001010, 0b00011110, 0b11001100, 0b01101001, 0b11110100, 0b01111110 };
+		unsigned int m_InitCodeStartAddress = ( Eeprom_CAT24C64::EEPROM_SIZE * m_Eeproms.size() ) - sizeof( m_InitCode );
+};
+
+// this class is to retrieve parameter events from the m4 core via the parameter event queue and republish to the voice manager
 class ARMor8ParameterEventBridge
 {
 	public:
@@ -85,6 +138,22 @@ class ARMor8ParameterEventBridge
 
 	private:
 		EventQueue<ARMor8ParameterEvent>* m_EventQueuePtr;
+};
+
+// this class is to receive the published preset events from the voice manager and put them in the event queue for the m4 core to retrieve
+class ARMor8PresetEventBridge : public IARMor8PresetEventListener
+{
+	public:
+		ARMor8PresetEventBridge (EventQueue<ARMor8PresetEvent>* eventQueuePtr) : m_EventQueuePtr( eventQueuePtr ) {}
+		~ARMor8PresetEventBridge() override {}
+
+		void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override
+		{
+			m_EventQueuePtr->writeEvent( presetEvent );
+		}
+
+	private:
+		EventQueue<ARMor8PresetEvent>* m_EventQueuePtr;
 };
 
 // these pins are unconnected on Ultra_FX_SYN Rev 2 development board, so we disable them as per the ST recommendations
@@ -280,64 +349,29 @@ int main(void)
 	LLPD::gpio_digital_input_setup( EFFECT_BUTTON_PORT, EFFECT1_BUTTON_PIN, GPIO_PUPD::PULL_UP );
 	LLPD::gpio_digital_input_setup( EFFECT_BUTTON_PORT, EFFECT2_BUTTON_PIN, GPIO_PUPD::PULL_UP );
 
-	// SRAM setup and test
-	std::vector<Sram_23K256_GPIO_Config> spiGpioConfigs;
-	spiGpioConfigs.emplace_back( SRAM_CS_PORT, SRAM1_CS_PIN );
-	spiGpioConfigs.emplace_back( SRAM_CS_PORT, SRAM2_CS_PIN );
-	spiGpioConfigs.emplace_back( SRAM_CS_PORT, SRAM3_CS_PIN );
-	spiGpioConfigs.emplace_back( SRAM_CS_PORT, SRAM4_CS_PIN );
-	Sram_23K256_Manager srams( SRAM_SPI_NUM, spiGpioConfigs );
-	SharedData<uint8_t> sramValsToWrite = SharedData<uint8_t>::MakeSharedData( 3 );
-	sramValsToWrite[0] = 25; sramValsToWrite[1] = 16; sramValsToWrite[2] = 8;
-	srams.writeToMedia( sramValsToWrite, 45 );
-	srams.writeToMedia( sramValsToWrite, 45 + Sram_23K256::SRAM_SIZE );
-	srams.writeToMedia( sramValsToWrite, 45 + Sram_23K256::SRAM_SIZE * 2 );
-	srams.writeToMedia( sramValsToWrite, 45 + Sram_23K256::SRAM_SIZE * 3 );
-	SharedData<uint8_t> sram1Verification = srams.readFromMedia( 3, 45 );
-	SharedData<uint8_t> sram2Verification = srams.readFromMedia( 3, 45 + Sram_23K256::SRAM_SIZE );
-	SharedData<uint8_t> sram3Verification = srams.readFromMedia( 3, 45 + Sram_23K256::SRAM_SIZE * 2 );
-	SharedData<uint8_t> sram4Verification = srams.readFromMedia( 3, 45 + Sram_23K256::SRAM_SIZE * 3 );
-	if ( sram1Verification[0] == 25 && sram1Verification[1] == 16 && sram1Verification[2] == 8 &&
-			sram2Verification[0] == 25 && sram2Verification[1] == 16 && sram2Verification[2] == 8 &&
-			sram3Verification[0] == 25 && sram3Verification[1] == 16 && sram3Verification[2] == 8 &&
-			sram4Verification[0] == 25 && sram4Verification[1] == 16 && sram4Verification[2] == 8 )
-	{
-		LLPD::usart_log( LOGGING_USART_NUM, "srams verified..." );
-	}
-	else
-	{
-		LLPD::usart_log( LOGGING_USART_NUM, "WARNING!!! srams failed verification..." );
-	}
-
 	// EEPROM setup and test
 	std::vector<Eeprom_CAT24C64_AddressConfig> eepromAddressConfigs;
 	eepromAddressConfigs.emplace_back( EEPROM1_ADDRESS );
 	eepromAddressConfigs.emplace_back( EEPROM2_ADDRESS );
 	eepromAddressConfigs.emplace_back( EEPROM3_ADDRESS );
 	eepromAddressConfigs.emplace_back( EEPROM4_ADDRESS );
-	Eeprom_CAT24C64_Manager eeproms( EEPROM_I2C_NUM, eepromAddressConfigs );
-	// TODO comment the verification lines out if you're using the eeprom for persistent memory
-	SharedData<uint8_t> eepromValsToWrite = SharedData<uint8_t>::MakeSharedData( 3 );
-	eepromValsToWrite[0] = 64; eepromValsToWrite[1] = 23; eepromValsToWrite[2] = 17;
-	eeproms.writeToMedia( eepromValsToWrite, 45 );
-	eeproms.writeToMedia( eepromValsToWrite, 45 + Eeprom_CAT24C64::EEPROM_SIZE );
-	SharedData<uint8_t> eeprom1Verification = eeproms.readFromMedia( 3, 45 );
-	SharedData<uint8_t> eeprom2Verification = eeproms.readFromMedia( 3, 45 + Eeprom_CAT24C64::EEPROM_SIZE );
-	if ( eeprom1Verification[0] == 64 && eeprom1Verification[1] == 23 && eeprom1Verification[2] == 17 &&
-			eeprom2Verification[0] == 64 && eeprom2Verification[1] == 23 && eeprom2Verification[2] == 17 )
-	{
-		LLPD::usart_log( LOGGING_USART_NUM, "eeproms verified..." );
-	}
-	else
-	{
-		LLPD::usart_log( LOGGING_USART_NUM, "WARNING!!! eeproms failed verification..." );
-	}
+	Eeprom_CAT24C64_Manager_ARMor8 eeproms( EEPROM_I2C_NUM, eepromAddressConfigs );
 
 	LLPD::usart_log( LOGGING_USART_NUM, "Ultra_FX_SYN setup complete, entering while loop -------------------------------" );
 
 	// setup midi handler
 	MidiHandler midiHandler;
 	midiHandlerPtr = &midiHandler;
+
+	// setup preset event queue (memory comes after parameter event queue)
+	uint8_t* presetEventQueueMem = reinterpret_cast<uint8_t*>( D3_SRAM_BASE ) + ( D3_SRAM_UNUSED_OFFSET_IN_BYTES )
+									+ sizeof( EventQueue<ARMor8ParameterEvent> )
+									+ ( sizeof(ARMor8ParameterEvent) * ARMOR8_PARAMETER_EVENT_QUEUE_SIZE );
+	EventQueue<ARMor8PresetEvent>* presetEventQueue = new ( presetEventQueueMem ) EventQueue<ARMor8PresetEvent>( presetEventQueueMem
+								+ sizeof(EventQueue<ARMor8PresetEvent>), sizeof(ARMor8PresetEvent)
+								* ARMOR8_PRESET_EVENT_QUEUE_SIZE, 2 );
+	ARMor8PresetEventBridge presetEventBridge( presetEventQueue );
+	presetEventBridge.bindToARMor8PresetEventSystem();
 
 	// inform CM4 core that setup is complete
 	while ( ! LLPD::hsem_try_take(0) ) {}
@@ -364,59 +398,149 @@ int main(void)
 	// flush denormals
 	__set_FPSCR( __get_FPSCR() | (1 << 24) );
 
+	// prepare event queues
 	uint8_t* paramEventQueueMem = reinterpret_cast<uint8_t*>( D3_SRAM_BASE ) + ( D3_SRAM_UNUSED_OFFSET_IN_BYTES );
 	EventQueue<ARMor8ParameterEvent>* paramEventQueue = reinterpret_cast<EventQueue<ARMor8ParameterEvent>*>( paramEventQueueMem );
 	ARMor8ParameterEventBridge paramEventBridge( paramEventQueue );
 
-	// TODO need to add preset manager
-	// TODO this is super glitchy sounding, not optimized enough?
-	ARMor8VoiceManager voiceManager( midiHandlerPtr, nullptr );
+	// prepare presetManager
+	PresetManager presetManager( sizeof(ARMor8PresetHeader), 20, &eeproms );
+
+	// prepare voice manager
+	ARMor8VoiceManager voiceManager( midiHandlerPtr, &presetManager );
 	voiceManager.bindToKeyEventSystem();
 	voiceManager.bindToPitchEventSystem();
 	voiceManager.bindToARMor8ParameterEventSystem();
-	voiceManager.setMonophonic( false );
-	voiceManager.setOperatorFreq( 0, 500.0f );
-	voiceManager.setOperatorFreq( 1, 500.0f );
-	voiceManager.setOperatorFreq( 2, 500.0f );
-	voiceManager.setOperatorFreq( 3, 500.0f );
-	voiceManager.setOperatorAmplitude( 0, 0.05f );
-	voiceManager.setOperatorAmplitude( 1, 0.0f );
-	voiceManager.setOperatorAmplitude( 2, 0.0f );
-	voiceManager.setOperatorAmplitude( 3, 0.0f );
 
-	/*
-	// TODO this works
-	PolyBLEPOsc osc;
-	osc.setFrequency( 500.0f );
-	osc.setOscillatorMode( OscillatorMode::SINE );
-	ExponentialResponse expoResponse;
-	ADSREnvelopeGenerator<ExponentialResponse> eg( 0.0f, 0.2f, 0.5f, 0.3f, &expoResponse, &expoResponse, &expoResponse );
-	ARMor8Filter filt;
-	filt.setCoefficients( 20000.0f );
-	filt.setResonance( 0.0f );
-	ARMor8Operator op( &osc, &eg, &filt, 1.0f, 500.0f );
-	*/
+	// define initialized preset values
+	ARMor8VoiceState initPreset =
+	{
+		// operator 1
+		500.0f,
+		false,
+		OscillatorMode::SINE,
+		0.002f,
+		0.0f,
+		0.002f,
+		0.0f,
+		1.0f,
+		0.002f,
+		0.0f,
+		false,
+		false,
+		false,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.1f,
+		20000.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0,
 
-	/*
-	// TODO this was choppy sounding, but was fixed after enabling icache
-	ARMor8Voice voice;
-	voice.setOperatorFreq( 0, 500.0f );
-	voice.setOperatorDetune( 0, 0 );
-	voice.setOperatorAmplitude( 0, 0.5f );
-	voice.setOperatorAmplitude( 1, 0.0f );
-	voice.setOperatorAmplitude( 2, 0.0f );
-	voice.setOperatorAmplitude( 3, 0.0f );
-	voice.setOperatorFilterFreq( 0, 20000.0f );
-	voice.setOperatorFilterRes( 0, 0.0f );
-	voice.setOperatorRatio( 0, false );
-	*/
+		// operator 2
+		500.0f,
+		false,
+		OscillatorMode::SINE,
+		0.002f,
+		0.0f,
+		0.002f,
+		0.0f,
+		1.0f,
+		0.002f,
+		0.0f,
+		false,
+		false,
+		false,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		20000.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0,
 
+		// operator 3
+		500.0f,
+		false,
+		OscillatorMode::SINE,
+		0.002f,
+		0.0f,
+		0.002f,
+		0.0f,
+		1.0f,
+		0.002f,
+		0.0f,
+		false,
+		false,
+		false,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		20000.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0,
+
+		// operator 4
+		500.0f,
+		false,
+		OscillatorMode::SINE,
+		0.002f,
+		0.0f,
+		0.002f,
+		0.0f,
+		1.0f,
+		0.002f,
+		0.0f,
+		false,
+		false,
+		false,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		20000.0f,
+		0.0f,
+		0.0f,
+		0.0f,
+		0,
+
+		// global
+		false,
+		0,
+		0.0f,
+		false,
+		0,
+		1,
+		1,
+		1,
+		2,
+		1
+	};
+
+	// upgrade and initialize presets if necessary
+	ARMor8PresetUpgrader presetUpgrader( initPreset, voiceManager.getPresetHeader() );
+	presetManager.upgradePresets( &presetUpgrader );
+
+	// connect to audio buffer
 	AudioBuffer<float> audioBuffer;
 	audioBuffer.registerCallback( &voiceManager );
 	audioBufferPtr = &audioBuffer;
 
+	// load the first preset
+	voiceManager.loadCurrentPreset();
+
 	// enable instruction cache
-	// TODO this actually fixed the choppy sounding single voice
 	SCB_EnableICache();
 
 	while ( true )
@@ -448,9 +572,11 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 
 extern "C" void USART2_IRQHandler (void) // logging usart
 {
+	/*
 	// loopback test code for usart recieve
 	uint16_t data = LLPD::usart_receive( LOGGING_USART_NUM );
 	LLPD::usart_transmit( LOGGING_USART_NUM, data );
+	*/
 }
 
 extern "C" void USART6_IRQHandler (void) // midi usart

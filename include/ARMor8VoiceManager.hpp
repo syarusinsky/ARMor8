@@ -51,6 +51,7 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 
 		ARMor8VoiceState getState();
 		void setState(const ARMor8VoiceState& state);
+		void loadCurrentPreset();
 
 		ARMor8PresetHeader getPresetHeader();
 

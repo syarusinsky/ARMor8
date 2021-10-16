@@ -45,6 +45,11 @@ constexpr float ARMOR8_GLIDE_TIME_MAX = 1.0f;
 constexpr unsigned int ARMOR8_POT_STABIL_NUM = 50; // pot stabilization stuff
 constexpr float ARMOR8_POT_MENU_CHANGE_THRESH = 0.5f; // threshold to break for a status submenu change
 
+constexpr unsigned int ARMOR8_PARAMETER_EVENT_QUEUE_SIZE = 1000;
+constexpr unsigned int ARMOR8_PRESET_EVENT_QUEUE_SIZE = 10;
+
+constexpr unsigned int ARMOR8_NUM_OPERATORS_PER_VOICE = 4;
+
 enum class PARAM_CHANNEL : unsigned int
 {
 	FREQUENCY 	= 0,

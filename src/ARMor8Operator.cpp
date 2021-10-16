@@ -6,13 +6,15 @@
 #include "PolyBLEPOsc.hpp"
 #include <math.h>
 
-ARMor8Operator::ARMor8Operator (PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude, float frequency) :
+ARMor8Operator::ARMor8Operator (PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude, float frequency,
+				ARMor8Operator* mod1, ARMor8Operator* mod2, ARMor8Operator* mod3, ARMor8Operator* mod4) :
 	m_Osc( wave ),
 	m_EG( eg ),
 	m_Filter( filt ),
 	m_FilterCenterFreq( 20000.0f ),
 	m_UseRatio( false ),
-	m_ModSources(),
+	m_ModOperators{ mod1, mod2, mod3, mod4 },
+	m_ModOperatorAmplitudes{ 0.0f },
 	m_UseAmplitudeMod( false ),
 	m_UseFrequencyMod( false ),
 	m_UseFiltFreqMod( false ),
@@ -89,10 +91,9 @@ float ARMor8Operator::nextSample()
 {
 	float frequency = m_FrequencyCached;
 
-	for ( ARMor8Operator* modSource : m_ModSources )
+	for ( unsigned int modNum = 0; modNum < ARMOR8_NUM_OPERATORS_PER_VOICE; modNum++ )
 	{
-		std::map<ARMor8Operator*, float>::iterator amplitude = m_ModAmplitudes.find( modSource );
-		frequency += ( (*amplitude).second * modSource->currentValue() );
+		frequency += m_ModOperators[modNum]->currentValue() * m_ModOperatorAmplitudes[modNum];
 	}
 
 	m_Osc->setFrequency( frequency );
@@ -494,15 +495,21 @@ void ARMor8Operator::setEnvelopeGenerator (ADSREnvelopeGenerator<EG_RESPONSE>* e
 
 void ARMor8Operator::setModSourceAmplitude (ARMor8Operator* modSource, float amplitude)
 {
-	m_ModSources.insert( modSource );
-
-	if ( !m_ModAmplitudes.count(modSource) )
+	if ( modSource == m_ModOperators[0] )
 	{
-		m_ModAmplitudes.insert( std::pair<ARMor8Operator*, float>(modSource, amplitude) );
+		m_ModOperatorAmplitudes[0] = amplitude;
 	}
-	else
+	else if ( modSource == m_ModOperators[1] )
 	{
-		m_ModAmplitudes[modSource] = amplitude;
+		m_ModOperatorAmplitudes[1] = amplitude;
+	}
+	else if ( modSource == m_ModOperators[2] )
+	{
+		m_ModOperatorAmplitudes[2] = amplitude;
+	}
+	else if ( modSource == m_ModOperators[3] )
+	{
+		m_ModOperatorAmplitudes[3] = amplitude;
 	}
 }
 
