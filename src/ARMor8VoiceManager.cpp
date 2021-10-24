@@ -5,6 +5,7 @@
 #include "PresetManager.hpp"
 #include "AudioConstants.hpp"
 #include <cmath>
+#include <algorithm>
 
 ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
 	m_MidiHandler( midiHandler ),
@@ -185,6 +186,8 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
+	std::fill( writeBuffer, writeBuffer + ABUFFER_SIZE, 0.0f );
+
 	if ( ! m_Monophonic ) // if polyphonic, we sum the voices
 	{
 		for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )

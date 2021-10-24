@@ -29,6 +29,7 @@ ARMor8Operator::ARMor8Operator (PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESP
 	m_CurrentValue( 0.0f ),
 	m_AmpVelSens( 0.0f ),
 	m_FiltVelSens( 0.0f ),
+	m_CurrentVelocity( 1.0f ),
 	m_FrequencyOffset( 0.0f ),
 	m_GlideFrequency( 0.0f ),
 	m_GlideTime( 0.0f ),
