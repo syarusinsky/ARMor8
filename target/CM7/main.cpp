@@ -80,13 +80,13 @@ class Eeprom_CAT24C64_Manager_ARMor8 : public Eeprom_CAT24C64_Manager
 				uint8_t value = this->readByte( m_InitCodeStartAddress + byte );
 				if ( value != m_InitCode[byte] )
 				{
-					LLPD::usart_log( LOGGING_USART_NUM, "EEPROM init code not detected, initializing now..." );
+					// LLPD::usart_log( LOGGING_USART_NUM, "EEPROM init code not detected, initializing now..." );
 
 					return true;
 				}
 			}
 
-			LLPD::usart_log( LOGGING_USART_NUM, "EEPROM init code detected, loading preset now..." );
+			// LLPD::usart_log( LOGGING_USART_NUM, "EEPROM init code detected, loading preset now..." );
 
 			return false;
 		}
@@ -103,13 +103,13 @@ class Eeprom_CAT24C64_Manager_ARMor8 : public Eeprom_CAT24C64_Manager
 				uint8_t value = this->readByte( m_InitCodeStartAddress + byte );
 				if ( value != m_InitCode[byte] )
 				{
-					LLPD::usart_log( LOGGING_USART_NUM, "EEPROM failed to initialize, check connections and setup..." );
+					// LLPD::usart_log( LOGGING_USART_NUM, "EEPROM failed to initialize, check connections and setup..." );
 
 					return;
 				}
 			}
 
-			LLPD::usart_log( LOGGING_USART_NUM, "EEPROM initialized successfully, loading preset now..." );
+			// LLPD::usart_log( LOGGING_USART_NUM, "EEPROM initialized successfully, loading preset now..." );
 		}
 
 	private:
@@ -295,48 +295,33 @@ int main(void)
 	LLPD::gpio_enable_clock( GPIO_PORT::H );
 
 	// USART setup
-	LLPD::usart_init( LOGGING_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::NONE, USART_CONF::TX_AND_RX,
-				USART_STOP_BITS::BITS_1, 120000000, 9600 );
-	LLPD::usart_log( LOGGING_USART_NUM, "Ultra_FX_SYN starting up ----------------------------" );
+	// LLPD::usart_init( LOGGING_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::NONE, USART_CONF::TX_AND_RX,
+	// 			USART_STOP_BITS::BITS_1, 120000000, 9600 );
+	// LLPD::usart_log( LOGGING_USART_NUM, "Ultra_FX_SYN starting up ----------------------------" );
 	LLPD::usart_init( MIDI_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::EVEN, USART_CONF::TX_AND_RX,
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
 	// audio timer setup (for 40 kHz sampling rate at 480 MHz timer clock)
 	LLPD::tim6_counter_setup( 0, 12000, 40000 );
 	LLPD::tim6_counter_enable_interrupts();
-	LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
+	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
 	// DAC setup
 	LLPD::dac_init( true );
-	LLPD::usart_log( LOGGING_USART_NUM, "dac initialized..." );
-
-	// Op Amp setup
-	LLPD::gpio_analog_setup( OP_AMP1_INV_OUT_PORT, OP_AMP1_INVERT_PIN );
-	LLPD::gpio_analog_setup( OP_AMP1_INV_OUT_PORT, OP_AMP1_OUTPUT_PIN );
-	LLPD::gpio_analog_setup( OP_AMP1_NONINVR_PORT, OP_AMP1_NON_INVERT_PIN );
-	LLPD::opamp_init( OPAMP_NUM::OPAMP_1 );
-	LLPD::gpio_analog_setup( OP_AMP2_PORT, OP_AMP2_INVERT_PIN );
-	LLPD::gpio_analog_setup( OP_AMP2_PORT, OP_AMP2_OUTPUT_PIN );
-	LLPD::gpio_analog_setup( OP_AMP2_PORT, OP_AMP2_NON_INVERT_PIN );
-	LLPD::opamp_init( OPAMP_NUM::OPAMP_2 );
-	LLPD::usart_log( LOGGING_USART_NUM, "op amp initialized..." );
+	// LLPD::usart_log( LOGGING_USART_NUM, "dac initialized..." );
 
 	// spi initialization
-	LLPD::spi_master_init( SRAM_SPI_NUM, SPI_BAUD_RATE::SYSCLK_DIV_BY_256, SPI_CLK_POL::LOW_IDLE, SPI_CLK_PHASE::FIRST,
-				SPI_DUPLEX::FULL, SPI_FRAME_FORMAT::MSB_FIRST, SPI_DATA_SIZE::BITS_8 );
-	LLPD::spi_master_init( SD_CARD_SPI_NUM, SPI_BAUD_RATE::SYSCLK_DIV_BY_256, SPI_CLK_POL::LOW_IDLE, SPI_CLK_PHASE::FIRST,
-				SPI_DUPLEX::FULL, SPI_FRAME_FORMAT::MSB_FIRST, SPI_DATA_SIZE::BITS_8 );
 	LLPD::spi_master_init( OLED_SPI_NUM, SPI_BAUD_RATE::SYSCLK_DIV_BY_256, SPI_CLK_POL::LOW_IDLE, SPI_CLK_PHASE::FIRST,
 				SPI_DUPLEX::FULL, SPI_FRAME_FORMAT::MSB_FIRST, SPI_DATA_SIZE::BITS_8 );
-	LLPD::usart_log( LOGGING_USART_NUM, "spi initialized..." );
+	// LLPD::usart_log( LOGGING_USART_NUM, "spi initialized..." );
 
 	// i2c initialization
 	LLPD::i2c_master_setup( EEPROM_I2C_NUM, 0x308075AE );
-	LLPD::usart_log( LOGGING_USART_NUM, "i2c initialized..." );
+	// LLPD::usart_log( LOGGING_USART_NUM, "i2c initialized..." );
 
 	// audio timer start
 	LLPD::tim6_counter_start();
-	LLPD::usart_log( LOGGING_USART_NUM, "tim6 started..." );
+	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 started..." );
 
 	// adc setup (note this must be done after the tim6_counter_start() call since it uses the delay funtion)
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT1_ADC_PIN );
@@ -357,7 +342,7 @@ int main(void)
 	eepromAddressConfigs.emplace_back( EEPROM4_ADDRESS );
 	Eeprom_CAT24C64_Manager_ARMor8 eeproms( EEPROM_I2C_NUM, eepromAddressConfigs );
 
-	LLPD::usart_log( LOGGING_USART_NUM, "Ultra_FX_SYN setup complete, entering while loop -------------------------------" );
+	// LLPD::usart_log( LOGGING_USART_NUM, "Ultra_FX_SYN setup complete, entering while loop -------------------------------" );
 
 	// setup midi handler
 	MidiHandler midiHandler;

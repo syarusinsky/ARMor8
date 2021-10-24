@@ -540,17 +540,17 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 			break;
 		case PARAM_CHANNEL::POT1_ASSIGNMENT:
 			m_Pot1AssignmentIndex = static_cast<unsigned int>( val );
-			m_Pot1AssignmentOp = op;
+			m_Pot1AssignmentOp = op + 1; // to offset previous offset
 
 			break;
 		case PARAM_CHANNEL::POT2_ASSIGNMENT:
 			m_Pot2AssignmentIndex = static_cast<unsigned int>( val );
-			m_Pot2AssignmentOp = op;
+			m_Pot2AssignmentOp = op + 1; // to offset previous offset
 
 			break;
 		case PARAM_CHANNEL::POT3_ASSIGNMENT:
 			m_Pot3AssignmentIndex = static_cast<unsigned int>( val );
-			m_Pot3AssignmentOp = op;
+			m_Pot3AssignmentOp = op + 1; // to offset previous offset
 
 			break;
 		default:
@@ -561,7 +561,6 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 ARMor8VoiceState ARMor8VoiceManager::getState()
 {
 	ARMor8VoiceState state = m_Voices[0]->getState();
-	state.monophonic = m_Monophonic;
 	state.pitchBendSemitones = m_PitchBendSemitones;
 	state.pot1AssignmentIndex = m_Pot1AssignmentIndex;
 	state.pot1AssignmentOp = m_Pot1AssignmentOp;

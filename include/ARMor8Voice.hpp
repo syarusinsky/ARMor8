@@ -240,6 +240,9 @@ class ARMor8Voice : public IBufferCallback<float>, public IKeyEventListener
 		ARMor8Operator 				m_Op3;
 		ARMor8Operator 				m_Op4;
 		ARMor8Operator* 			m_Operators[4];
+		float 					m_AttackTimes[4]; // for keeping state values before PER_BLOCK_OFFSET calculations
+		float 					m_DecayTimes[4];
+		float 					m_ReleaseTimes[4];
 
 		KeyEvent                		m_ActiveKeyEvent;
 };

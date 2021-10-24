@@ -389,11 +389,11 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 	unsigned int pitchBendSemitones = voiceState.pitchBendSemitones;
 	float filterRes     = 0.0f;
 	m_Effect1PotAssignmentIndex = voiceState.pot1AssignmentIndex;
-	m_Effect1PotAssignmentOp = voiceState.pot1AssignmentOp + 1;
+	m_Effect1PotAssignmentOp = voiceState.pot1AssignmentOp;
 	m_Effect2PotAssignmentIndex = voiceState.pot2AssignmentIndex;
-	m_Effect2PotAssignmentOp = voiceState.pot2AssignmentOp + 1;
+	m_Effect2PotAssignmentOp = voiceState.pot2AssignmentOp;
 	m_Effect3PotAssignmentIndex = voiceState.pot3AssignmentIndex;
-	m_Effect3PotAssignmentOp = voiceState.pot3AssignmentOp + 1;
+	m_Effect3PotAssignmentOp = voiceState.pot3AssignmentOp;
 
 	switch ( m_OpCurrentlyBeingEdited )
 	{
@@ -1339,10 +1339,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float frequencyAmount = val * ARMOR8_FREQUENCY_MAX;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(frequencyAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FREQUENCY)) );
-		this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.74f, 0.62f, 0.82f );
 			m_Graphics->setColor( true );
@@ -1350,8 +1352,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.74f, 0.62f, 0.82f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateFrequencyStr( frequencyAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1361,10 +1365,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float detuneAmountFloat = static_cast<float>( detuneAmount );
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(detuneAmountFloat, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::DETUNE)) );
-		this->updateDetuneStr( detuneAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateDetuneStr( detuneAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.0f, 1.0f, 0.08f );
 			m_Graphics->setColor( true );
@@ -1372,8 +1378,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.0f, 1.0f, 0.08f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateDetuneStr( detuneAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1383,10 +1391,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float attackAmount = ( val * (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) ) + ARMOR8_ATTACK_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(attackAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_ATTACK)) );
-		this->updateAttackStr( attackAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateAttackStr( attackAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.5f, 0.26f );
 			m_Graphics->setColor( true );
@@ -1394,8 +1404,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.5f, 0.26f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateAttackStr( attackAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1405,10 +1417,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float decayAmount = ( val * (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) ) + ARMOR8_DECAY_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(decayAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_DECAY)) );
-		this->updateDecayStr( decayAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateDecayStr( decayAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.28f, 0.5f, 0.38f );
 			m_Graphics->setColor( true );
@@ -1416,8 +1430,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.28f, 0.5f, 0.38f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateDecayStr( decayAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1426,10 +1442,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float sustainAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(sustainAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_SUSTAIN)) );
-		this->updateSustainStr( sustainAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateSustainStr( sustainAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.39f, 0.5f, 0.49f );
 			m_Graphics->setColor( true );
@@ -1437,8 +1455,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.39f, 0.5f, 0.49f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateSustainStr( sustainAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1448,10 +1468,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float releaseAmount = ( val * (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) ) + ARMOR8_RELEASE_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(releaseAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_RELEASE)) );
-		this->updateReleaseStr( releaseAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateReleaseStr( releaseAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.5f, 0.5f, 0.6f );
 			m_Graphics->setColor( true );
@@ -1459,8 +1481,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.5f, 0.5f, 0.6f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateReleaseStr( releaseAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1469,10 +1493,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float attackExpoAmount = ( val * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(attackExpoAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_ATTACK_EXPO)) );
-		this->updateAttackExpoStr( attackExpoAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateAttackExpoStr( attackExpoAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.16f, 0.6f, 0.26f );
 			m_Graphics->setColor( true );
@@ -1480,8 +1506,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.16f, 0.6f, 0.26f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateAttackExpoStr( attackExpoAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1490,10 +1518,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float decayExpoAmount = ( val * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(decayExpoAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_DECAY_EXPO)) );
-		this->updateDecayExpoStr( decayExpoAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateDecayExpoStr( decayExpoAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.3f, 0.6f, 0.4f );
 			m_Graphics->setColor( true );
@@ -1501,8 +1531,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.3f, 0.6f, 0.4f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateDecayExpoStr( decayExpoAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1511,10 +1543,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float releaseExpoAmount = ( val * (ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN) ) + ARMOR8_EXPO_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(releaseExpoAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::EG_RELEASE_EXPO)) );
-		this->updateReleaseExpoStr( releaseExpoAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateReleaseExpoStr( releaseExpoAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.42f, 0.6f, 0.52f );
 			m_Graphics->setColor( true );
@@ -1522,8 +1556,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.42f, 0.6f, 0.52f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateReleaseExpoStr( releaseExpoAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1534,10 +1570,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(op1ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
 					static_cast<unsigned int>(PARAM_CHANNEL::OP_1_MOD_AMOUNT)) );
-		this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.52f, 0.16f, 1.1f, 0.26f );
 			m_Graphics->setColor( true );
@@ -1545,8 +1583,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.16f, 1.0f, 0.28f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen, false );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1557,10 +1597,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(op2ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
 					static_cast<unsigned int>(PARAM_CHANNEL::OP_2_MOD_AMOUNT)) );
-		this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.52f, 0.28f, 1.1f, 0.38f );
 			m_Graphics->setColor( true );
@@ -1568,8 +1610,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.28f, 1.0f, 0.38f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen, false );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1580,10 +1624,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(op3ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
 					static_cast<unsigned int>(PARAM_CHANNEL::OP_3_MOD_AMOUNT)) );
-		this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.52f, 0.39f, 1.1f, 0.49f );
 			m_Graphics->setColor( true );
@@ -1591,8 +1637,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.39f, 1.0f, 0.49f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen, false );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1603,10 +1651,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(op4ModAmount * ARMOR8_OP_MOD_MAX, assignmentOp,
 					static_cast<unsigned int>(PARAM_CHANNEL::OP_4_MOD_AMOUNT)) );
-		this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.52f, 0.50f, 1.1f, 0.60f );
 			m_Graphics->setColor( true );
@@ -1614,8 +1664,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.52f, 0.50f, 1.0f, 0.60f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen, false );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1625,10 +1677,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float amplitudeAmount = val * ARMOR8_AMPLITUDE_MAX;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(amplitudeAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::AMPLITUDE)) );
-		this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.65f, 0.62f, 0.73f );
 			m_Graphics->setColor( true );
@@ -1636,8 +1690,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.65f, 0.62f, 0.73f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateAmplitudeStr( amplitudeAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1647,10 +1703,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float filtFrequencyAmount = ( val * (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) ) + ARMOR8_FILT_FREQ_MIN;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(filtFrequencyAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILTER_FREQ)) );
-		this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.83f, 0.62f, 0.92f );
 			m_Graphics->setColor( true );
@@ -1658,8 +1716,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.83f, 0.62f, 0.92f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 		{
+			this->updateFiltFreqStr( filtFrequencyAmount, buffer, bufferLen );
+
 			this->returnToStatusMenu();
 		}
 	}
@@ -1668,10 +1728,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float filtResAmount = val * ARMOR8_FILT_RES_MAX;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(filtResAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILTER_RES)) );
-		this->updateFiltResStr( filtResAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateFiltResStr( filtResAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.71f, 0.3f, 0.93f, 0.4f );
 			m_Graphics->setColor( true );
@@ -1679,8 +1741,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.71f, 0.3f, 0.93f, 0.4f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited &&  menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateFiltResStr( filtResAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1689,10 +1753,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float amplitudeVelAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(amplitudeVelAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::AMP_VEL_SENS)) );
-		this->updateAmplitudeVelStr( amplitudeVelAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateAmplitudeVelStr( amplitudeVelAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.6f, 0.6f, 0.7f );
 			m_Graphics->setColor( true );
@@ -1700,8 +1766,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.6f, 0.6f, 0.7f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateAmplitudeVelStr( amplitudeVelAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1710,10 +1778,12 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 		float filterVelAmount = val;
 		IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(filterVelAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::FILT_VEL_SENS)) );
-		this->updateFilterVelStr( filterVelAmount, buffer, bufferLen );
 
-		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
+		if ( assignmentOp == m_OpCurrentlyBeingEdited
+				&& (m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT) )
 		{
+			this->updateFilterVelStr( filterVelAmount, buffer, bufferLen );
+
 			m_Graphics->setColor( false );
 			m_Graphics->drawBoxFilled( 0.0f, 0.72f, 0.6f, 0.81f );
 			m_Graphics->setColor( true );
@@ -1721,8 +1791,10 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 
 			this->publishPartialLCDRefreshEvent( 0.0f, 0.72f, 0.6f, 0.81f );
 		}
-		else if ( menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
+		else if ( assignmentOp == m_OpCurrentlyBeingEdited && menuThreshBroken && m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN )
 		{
+			this->updateFilterVelStr( filterVelAmount, buffer, bufferLen );
+
 			this->enterStatusAdditionalMenu();
 		}
 	}
@@ -1734,6 +1806,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 				ARMor8ParameterEvent(pitchBendAmountFloat, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::PITCH_BEND_SEMI)) );
 		this->updatePitchBendStr( pitchBendAmount, buffer, bufferLen );
 
+		// operator independent (global value)
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
 		{
 			m_Graphics->setColor( false );
@@ -1755,6 +1828,7 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 				ARMor8ParameterEvent(glideTimeAmount, assignmentOp, static_cast<unsigned int>(PARAM_CHANNEL::GLIDE_TIME)) );
 		this->updateGlideStr( glideTimeAmount, buffer, bufferLen );
 
+		// operator independent (global value)
 		if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL || m_CurrentMenu == ARMOR8_MENUS::ASSIGN_EFFECT_POT )
 		{
 			m_Graphics->setColor( false );

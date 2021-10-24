@@ -36,6 +36,9 @@ ARMor8Voice::ARMor8Voice() :
 	m_Op3( &m_Osc3, &m_Eg3, &m_Filt3, 1.0f, 1000.0f, &m_Op1, &m_Op2, &m_Op3, &m_Op4 ),
 	m_Op4( &m_Osc4, &m_Eg4, &m_Filt4, 1.0f, 1000.0f, &m_Op1, &m_Op2, &m_Op3, &m_Op4 ),
 	m_Operators{ &m_Op1, &m_Op2, &m_Op3, &m_Op4 },
+	m_AttackTimes{ 0.0f },
+	m_DecayTimes{ 0.0f },
+	m_ReleaseTimes{ 0.0f },
 	m_ActiveKeyEvent()
 {
 	m_KeyEventServer.registerListener(&m_Op1);
@@ -76,6 +79,7 @@ void ARMor8Voice::setOperatorEGAttack (unsigned int opNum, float seconds, float 
 {
 	if ( opNum < numOps )
 	{
+		m_AttackTimes[opNum] = seconds;
 		seconds *= PER_BLOCK_OFFSET;
 		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setAttack( seconds, expo );
 	}
@@ -85,6 +89,7 @@ void ARMor8Voice::setOperatorEGDecay (unsigned int opNum, float seconds, float e
 {
 	if ( opNum < numOps )
 	{
+		m_DecayTimes[opNum] = seconds;
 		seconds *= PER_BLOCK_OFFSET;
 		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setDecay( seconds, expo );
 	}
@@ -102,6 +107,7 @@ void ARMor8Voice::setOperatorEGRelease (unsigned int opNum, float seconds, float
 {
 	if ( opNum < numOps )
 	{
+		m_ReleaseTimes[opNum] = seconds;
 		seconds *= PER_BLOCK_OFFSET;
 		( (ADSREnvelopeGenerator<EG_RESPONSE>*) m_Operators[opNum]->getEnvelopeGenerator() )->setRelease( seconds, expo );
 	}
@@ -304,53 +310,32 @@ bool ARMor8Voice::getOperatorEGModDestination (unsigned int opNum, const EGModDe
 
 float ARMor8Voice::getOperatorAttack (unsigned int opNum)
 {
-	switch ( opNum )
+	if ( opNum < numOps )
 	{
-		case 0:
-			return m_Eg1.getAttack();
-		case 1:
-			return m_Eg2.getAttack();
-		case 2:
-			return m_Eg3.getAttack();
-		case 3:
-			return m_Eg4.getAttack();
-		default:
-			return 0.0f;
+		return m_AttackTimes[opNum];
 	}
+
+	return 0.0f;
 }
 
 float ARMor8Voice::getOperatorDecay (unsigned int opNum)
 {
-	switch ( opNum )
+	if ( opNum < numOps )
 	{
-		case 0:
-			return m_Eg1.getDecay();
-		case 1:
-			return m_Eg2.getDecay();
-		case 2:
-			return m_Eg3.getDecay();
-		case 3:
-			return m_Eg4.getDecay();
-		default:
-			return 0.0f;
+		return m_DecayTimes[opNum];
 	}
+
+	return 0.0f;
 }
 
 float ARMor8Voice::getOperatorRelease (unsigned int opNum)
 {
-	switch ( opNum )
+	if ( opNum < numOps )
 	{
-		case 0:
-			return m_Eg1.getRelease();
-		case 1:
-			return m_Eg2.getRelease();
-		case 2:
-			return m_Eg3.getRelease();
-		case 3:
-			return m_Eg4.getRelease();
-		default:
-			return 0.0f;
+		return m_ReleaseTimes[opNum];
 	}
+
+	return 0.0f;
 }
 
 float ARMor8Voice::getOperatorAttackExpo (unsigned int opNum)
@@ -431,12 +416,12 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.frequency1 = m_Op1.getFrequency();
 	state.useRatio1 = m_Op1.getRatio();
 	state.wave1 = m_Op1.getWave();
-	state.attack1 = m_Eg1.getAttack();
+	state.attack1 = m_AttackTimes[0];
 	state.attackExpo1 = m_AtkResponse1.getSlope();
-	state.decay1 = m_Eg1.getDecay();
+	state.decay1 = m_DecayTimes[0];
 	state.decayExpo1 = m_DecResponse1.getSlope();
 	state.sustain1 = m_Eg1.getSustain();
-	state.release1 = m_Eg1.getRelease();
+	state.release1 = m_ReleaseTimes[0];
 	state.releaseExpo1 = m_RelResponse1.getSlope();
 	state.egAmplitudeMod1 = m_Op1.egModAmplitudeSet();
 	state.egFrequencyMod1 = m_Op1.egModFrequencySet();
@@ -456,12 +441,12 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.frequency2 = m_Op2.getFrequency();
 	state.useRatio2 = m_Op2.getRatio();
 	state.wave2 = m_Op2.getWave();
-	state.attack2 = m_Eg2.getAttack();
+	state.attack2 = m_AttackTimes[1];
 	state.attackExpo2 = m_AtkResponse2.getSlope();
-	state.decay2 = m_Eg2.getDecay();
+	state.decay2 = m_DecayTimes[1];
 	state.decayExpo2 = m_DecResponse2.getSlope();
 	state.sustain2 = m_Eg2.getSustain();
-	state.release2 = m_Eg2.getRelease();
+	state.release2 = m_ReleaseTimes[1];
 	state.releaseExpo2 = m_RelResponse2.getSlope();
 	state.egAmplitudeMod2 = m_Op2.egModAmplitudeSet();
 	state.egFrequencyMod2 = m_Op2.egModFrequencySet();
@@ -481,12 +466,12 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.frequency3 = m_Op3.getFrequency();
 	state.useRatio3 = m_Op3.getRatio();
 	state.wave3 = m_Op3.getWave();
-	state.attack3 = m_Eg3.getAttack();
+	state.attack3 = m_AttackTimes[2];
 	state.attackExpo3 = m_AtkResponse3.getSlope();
-	state.decay3 = m_Eg3.getDecay();
+	state.decay3 = m_DecayTimes[2];
 	state.decayExpo3 = m_DecResponse3.getSlope();
 	state.sustain3 = m_Eg3.getSustain();
-	state.release3 = m_Eg3.getRelease();
+	state.release3 = m_ReleaseTimes[2];
 	state.releaseExpo3 = m_RelResponse3.getSlope();
 	state.egAmplitudeMod3 = m_Op3.egModAmplitudeSet();
 	state.egFrequencyMod3 = m_Op3.egModFrequencySet();
@@ -506,12 +491,12 @@ ARMor8VoiceState ARMor8Voice::getState()
 	state.frequency4 = m_Op4.getFrequency();
 	state.useRatio4 = m_Op4.getRatio();
 	state.wave4 = m_Op4.getWave();
-	state.attack4 = m_Eg4.getAttack();
+	state.attack4 = m_AttackTimes[3];
 	state.attackExpo4 = m_AtkResponse4.getSlope();
-	state.decay4 = m_Eg4.getDecay();
+	state.decay4 = m_DecayTimes[3];
 	state.decayExpo4 = m_DecResponse4.getSlope();
 	state.sustain4 = m_Eg4.getSustain();
-	state.release4 = m_Eg4.getRelease();
+	state.release4 = m_ReleaseTimes[3];
 	state.releaseExpo4 = m_RelResponse4.getSlope();
 	state.egAmplitudeMod4 = m_Op4.egModAmplitudeSet();
 	state.egFrequencyMod4 = m_Op4.egModFrequencySet();
