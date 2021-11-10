@@ -18,6 +18,7 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 	m_Voice5(),
 	m_Voice6(),
 	m_Voices { &m_Voice1, &m_Voice2, &m_Voice3, &m_Voice4, &m_Voice5, &m_Voice6 },
+	m_SleepMode( true ),
 	m_Pot1AssignmentIndex( 0 ),
 	m_Pot1AssignmentOp( 0 ),
 	m_Pot2AssignmentIndex( 1 ),
@@ -186,18 +187,31 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
-	std::fill( writeBuffer, writeBuffer + ABUFFER_SIZE, 0.0f );
-
-	if ( ! m_Monophonic ) // if polyphonic, we sum the voices
+	if ( ! m_SleepMode )
 	{
-		for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
+		if ( ! m_Monophonic ) // if polyphonic, we sum the voices
 		{
-			m_Voices[voice]->call( writeBuffer );
+			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
+			{
+				m_Voices[voice]->call( writeBuffer );
+			}
 		}
-	}
-	else // if monophonic, we only output the first voice
-	{
-		m_Voices[0]->call( writeBuffer );
+		else // if monophonic, we only output the first voice
+		{
+			m_Voices[0]->call( writeBuffer );
+		}
+
+		// sleep mode, so that we get rid of the annoying noise when idle
+		bool putToSleep = true;
+		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+		{
+			if ( writeBuffer[sample] != 0.0f )
+			{
+				putToSleep = false;
+			}
+		}
+
+		m_SleepMode = ( putToSleep ) ? true : false;
 	}
 }
 
@@ -212,6 +226,8 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 	{
 		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
 		{
+			m_SleepMode = false;
+
 			bool containsKeyEvent = false;
 			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 			{
@@ -264,6 +280,8 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 	{
 		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
 		{
+			m_SleepMode = false;
+
 			// if a key is currently playing
 			KeyPressedEnum activeKeyPressed = m_ActiveKeyEvents[0].pressed();
 			if ( activeKeyPressed == KeyPressedEnum::PRESSED || activeKeyPressed == KeyPressedEnum::HELD )

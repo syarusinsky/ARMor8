@@ -319,6 +319,11 @@ void disableUnusedPins()
 					GPIO_OUTPUT_SPEED::LOW );
 	LLPD::gpio_output_setup( GPIO_PORT::G, GPIO_PIN::PIN_14, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::LOW );
+
+	LLPD::gpio_output_setup( AUDIO_IN_PORT, AUDIO1_IN_PIN, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
+					GPIO_OUTPUT_SPEED::LOW );
+	LLPD::gpio_output_setup( AUDIO_IN_PORT, AUDIO2_IN_PIN, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
+					GPIO_OUTPUT_SPEED::LOW );
 }
 
 int main(void)
@@ -347,7 +352,7 @@ int main(void)
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
 	// audio timer setup (for 40 kHz sampling rate at 480 MHz timer clock)
-	LLPD::tim6_counter_setup( 0, 12000, 40000 );
+	LLPD::tim6_counter_setup( 3, 3000, 40000 );
 	LLPD::tim6_counter_enable_interrupts();
 	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
