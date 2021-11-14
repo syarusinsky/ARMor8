@@ -84,6 +84,7 @@ OBJECTS_APP := \
   $(JUCE_OBJDIR)/OnePoleFilter_1f5d4f76.o \
   $(JUCE_OBJDIR)/ARMor8Operator_bb4d848c.o \
   $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o \
+  $(JUCE_OBJDIR)/Limiter_18b57008.o \
   $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o \
   $(JUCE_OBJDIR)/IARMor8PresetEventListener_71c133bc.o \
   $(JUCE_OBJDIR)/IARMor8ParameterEventListener_628ba5c2.o \
@@ -208,6 +209,11 @@ $(JUCE_OBJDIR)/ARMor8Operator_bb4d848c.o: ../../../src/ARMor8Operator.cpp
 $(JUCE_OBJDIR)/PolyBLEPOsc_ceb07cde.o: ../../../lib/SAL/src/PolyBLEPOsc.cpp
 	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling PolyBLEPOsc.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/Limiter_18b57008.o: ../../../lib/SAL/src/Limiter.cpp
+	-$(V_AT)mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling Limiter.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) $(JUCE_CPPFLAGS_APP) $(JUCE_CFLAGS_APP) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/ARMor8VoiceManager_2d476103.o: ../../../src/ARMor8VoiceManager.cpp

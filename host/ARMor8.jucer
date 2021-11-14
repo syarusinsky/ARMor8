@@ -65,6 +65,8 @@
             file="../lib/SAL/include/KeyEventServer.hpp"/>
       <FILE id="Os98yK" name="LinearResponse.hpp" compile="0" resource="0"
             file="../lib/SAL/include/LinearResponse.hpp"/>
+      <FILE id="CK48yK" name="Limiter.hpp" compile="0" resource="0" file="../lib/SAL/include/Limiter.hpp"/>
+      <FILE id="CK4wxQ" name="Limiter.cpp" compile="1" resource="0" file="../lib/SAL/src/Limiter.cpp"/>
       <FILE id="Jqsyx9" name="MidiConstants.hpp" compile="0" resource="0"
             file="../lib/SAL/include/MidiConstants.hpp"/>
       <FILE id="J3AaOm" name="MidiHandler.hpp" compile="0" resource="0" file="../lib/SAL/include/MidiHandler.hpp"/>

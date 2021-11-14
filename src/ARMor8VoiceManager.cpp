@@ -27,7 +27,8 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 	m_Pot3AssignmentOp( 0 ),
 	m_ActiveKeyEventIndex( 0 ),
 	m_PitchBendSemitones( 1 ),
-	m_PresetHeader( {1, 2, 0, true} )
+	m_PresetHeader( {1, 2, 0, true} ),
+	m_Limiter( 1.0f, 50.0f, 0.8f, 1.0f )
 {
 }
 
@@ -212,6 +213,8 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 		}
 
 		m_SleepMode = ( putToSleep ) ? true : false;
+
+		m_Limiter.call( writeBuffer );
 	}
 }
 

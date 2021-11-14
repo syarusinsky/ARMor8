@@ -10,6 +10,7 @@
 #include "ARMor8Voice.hpp"
 #include "ARMor8Constants.hpp"
 #include "IARMor8ParameterEventListener.hpp"
+#include "Limiter.hpp"
 
 class MidiHandler;
 class PresetManager;
@@ -90,6 +91,8 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 		unsigned int m_PitchBendSemitones;
 
 		ARMor8PresetHeader m_PresetHeader;
+
+		Limiter        m_Limiter;
 };
 
 #endif // ARMOR8VOICEMANAGER_HPP

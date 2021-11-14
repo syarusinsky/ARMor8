@@ -132,13 +132,13 @@ release: $(TARGET)_release.bin
 	$(CC) -x assembler-with-cpp $(ASFLAGS) $< -o $@
 
 %_release.o: %.c
-	$(CC) -c -g -O2 $(CFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
 
 %_release.o: %.cpp
-	$(CC) -c -g -O2 $(CFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
 
 $(TARGET)_release.elf: $(RELEASE_OBJS)
-	$(CC) $^ $(LFLAGS) -O2 -o $@
+	$(CC) $^ $(LFLAGS) -O1 -o $@
 
 $(TARGET)_release.bin: $(TARGET)_release.elf
 	$(OC) -S -O binary $< $@
