@@ -113,7 +113,7 @@ class Eeprom_CAT24C64_Manager_ARMor8 : public Eeprom_CAT24C64_Manager
 		}
 
 	private:
-		uint8_t m_InitCode[8] = { 0b10100100, 0b11100010, 0b11001010, 0b00011110, 0b11001100, 0b01101001, 0b11110100, 0b01111110 };
+		uint8_t m_InitCode[8] = { 0b10010100, 0b11100010, 0b11001010, 0b00011110, 0b11001100, 0b01101001, 0b11110100, 0b01111110 };
 		unsigned int m_InitCodeStartAddress = ( Eeprom_CAT24C64::EEPROM_SIZE * m_Eeproms.size() ) - sizeof( m_InitCode );
 };
 

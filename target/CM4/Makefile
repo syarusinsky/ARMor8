@@ -138,7 +138,7 @@ release: $(TARGET)_release.bin
 	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
 
 $(TARGET)_release.elf: $(RELEASE_OBJS)
-	$(CC) $^ $(LFLAGS) -o $@
+	$(CC) $^ $(LFLAGS) -O1 -o $@
 
 $(TARGET)_release.bin: $(TARGET)_release.elf
 	$(OC) -S -O binary $< $@

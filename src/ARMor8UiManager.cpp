@@ -2065,6 +2065,7 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		else if ( cursorIndex == m_SettingsMenuUseRatioFreqIndex ) // toggle ratio for frequency
 		{
 			m_UsingRatio = !m_UsingRatio;
+			this->updateRatioFixedStr();
 			this->draw();
 			IARMor8ParameterEventListener::PublishEvent(
 				ARMor8ParameterEvent(static_cast<float>(m_UsingRatio), m_OpCurrentlyBeingEdited,
@@ -2125,9 +2126,11 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		else if ( cursorIndex == m_SettingsMenuMonophonicIndex ) // toggle monophonic mode
 		{
 			m_UsingMono = !m_UsingMono;
+			float floatVal = ( m_UsingMono ) ? 1.0f : 0.0f;
+			this->updateMonoPolyStr();
 			this->draw();
-			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(m_UsingMono),
-						m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::MONOPHONIC)) );
+			IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(floatVal, m_OpCurrentlyBeingEdited,
+									static_cast<unsigned int>(PARAM_CHANNEL::MONOPHONIC)) );
 		}
 		else if ( cursorIndex == m_SettingsMenuWritePresetIndex ) // write preset (leads to confirmation page)
 		{

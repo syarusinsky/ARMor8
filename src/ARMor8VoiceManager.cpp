@@ -513,7 +513,7 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 
 			break;
 		case PARAM_CHANNEL::MONOPHONIC:
-			m_Monophonic = static_cast<float>(val);
+			m_Monophonic = static_cast<bool>(val);
 
 			break;
 		case PARAM_CHANNEL::SELECT_WAVEFORM:
@@ -585,6 +585,7 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 ARMor8VoiceState ARMor8VoiceManager::getState()
 {
 	ARMor8VoiceState state = m_Voices[0]->getState();
+	state.monophonic = m_Monophonic;
 	state.pitchBendSemitones = m_PitchBendSemitones;
 	state.pot1AssignmentIndex = m_Pot1AssignmentIndex;
 	state.pot1AssignmentOp = m_Pot1AssignmentOp;
