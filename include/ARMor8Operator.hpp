@@ -72,6 +72,7 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		bool egModAmplitudeSet() { if (m_UseAmplitudeMod) { return true; } return false; }
 		bool egModFrequencySet() { if (m_UseFrequencyMod) { return true; } return false; }
 		bool egModFilterSet(){ if (m_UseFiltFreqMod){ return true; } return false; }
+		ARMor8Operator** getModOperators() { return m_ModOperators; }
 		float getModulationAmount (ARMor8Operator* modSource)
 		{
 			if ( modSource == m_ModOperators[0] )

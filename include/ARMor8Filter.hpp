@@ -25,12 +25,25 @@ class ARMor8Filter : public IFilter<float>, public IBufferCallback<float>
 		void call (float* writeBuffer) override;
 
 	private:
+#ifdef OLD_FILTER
 		OnePoleFilter<float> 	m_Filter1;
 		OnePoleFilter<float> 	m_Filter2;
 		OnePoleFilter<float> 	m_Filter3;
 		OnePoleFilter<float> 	m_Filter4;
-		float 			m_Resonance;
 		float 			m_PrevSample;
+#else
+		float 			m_A0;
+		float 			m_B1;
+		float 			m_B2;
+		float 			m_B3;
+		float 			m_B4;
+		float 			m_PrevSample0;
+		float 			m_PrevSample1;
+		float 			m_PrevSample2;
+		float 			m_PrevSample3;
+		float 			m_PrevSample4;
+#endif // OLD_FILTER
+		float 			m_Resonance;
 };
 
 #endif // ARMOR8FILTER_HPP

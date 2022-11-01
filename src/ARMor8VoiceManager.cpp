@@ -505,7 +505,7 @@ void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& par
 
 			break;
 		case PARAM_CHANNEL::EG_DEST_FILT:
-			this->setOperatorEGModDestination( op, EGModDestination::FILT_FREQUENCY, static_cast<bool>(&val) );
+			this->setOperatorEGModDestination( op, EGModDestination::FILT_FREQUENCY, static_cast<bool>(val) );
 
 			break;
 		case PARAM_CHANNEL::GLIDE_RETRIG:

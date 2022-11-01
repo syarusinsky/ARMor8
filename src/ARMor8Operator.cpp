@@ -46,7 +46,7 @@ ARMor8Operator::~ARMor8Operator()
 
 void ARMor8Operator::cachePerBlockValues()
 {
-	float egValue = m_EG->nextValue();
+	const float egValue = m_EG->nextValue();
 
 	m_AmplitudeCached = 1.0f - ( m_AmpVelSens * m_CurrentVelocity );
 
@@ -462,6 +462,12 @@ void ARMor8Operator::onKeyEvent (const KeyEvent& keyEvent)
 		else
 		{
 			m_GlideIncr = (m_RatioFrequency - m_GlideFrequency) / m_GlideNumSamples;
+		}
+
+		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
+		{
+			// this prevents popping sound
+			m_Osc->resetPhase();
 		}
 	}
 }
