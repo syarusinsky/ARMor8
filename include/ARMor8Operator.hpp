@@ -32,8 +32,8 @@ enum class EGModDestination : unsigned int
 class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, public IBufferCallback<float>
 {
 	public:
-		ARMor8Operator (PolyBLEPOsc* osc, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude,
-				float frequency, ARMor8Operator* mod1, ARMor8Operator* mod2, ARMor8Operator* mod3, ARMor8Operator* mod4);
+		ARMor8Operator (PolyBLEPOsc& osc, ADSREnvelopeGenerator<EG_RESPONSE>& eg, ARMor8Filter& filt, float amplitude,
+				float frequency, ARMor8Operator& mod1, ARMor8Operator& mod2, ARMor8Operator& mod3, ARMor8Operator& mod4);
 		~ARMor8Operator() override;
 
 		void cachePerBlockValues(); // this should be called once per call(), since it caches eg val, freq val, filt freq, ect
@@ -49,8 +49,7 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 
 		OscillatorMode getWave();
 		void setWave (const OscillatorMode& wave);
-		ADSREnvelopeGenerator<EG_RESPONSE>* getEnvelopeGenerator();
-		void setEnvelopeGenerator (ADSREnvelopeGenerator<EG_RESPONSE>* eg);
+		ADSREnvelopeGenerator<EG_RESPONSE>& getEnvelopeGenerator();
 		void setModSourceAmplitude (ARMor8Operator* modSource, float amplitude = 1.0f);
 		void setEGModDestination (const EGModDestination& modDest, const bool on);
 		void setFrequency (const float frequency);
@@ -72,22 +71,21 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		bool egModAmplitudeSet() { if (m_UseAmplitudeMod) { return true; } return false; }
 		bool egModFrequencySet() { if (m_UseFrequencyMod) { return true; } return false; }
 		bool egModFilterSet(){ if (m_UseFiltFreqMod){ return true; } return false; }
-		ARMor8Operator** getModOperators() { return m_ModOperators; }
 		float getModulationAmount (ARMor8Operator* modSource)
 		{
-			if ( modSource == m_ModOperators[0] )
+			if ( modSource == &m_ModOperator1 )
 			{
 				return m_ModOperatorAmplitudes[0];
 			}
-			else if ( modSource == m_ModOperators[1] )
+			else if ( modSource == &m_ModOperator2 )
 			{
 				return m_ModOperatorAmplitudes[1];
 			}
-			else if ( modSource == m_ModOperators[2] )
+			else if ( modSource == &m_ModOperator2 )
 			{
 				return m_ModOperatorAmplitudes[2];
 			}
-			else if ( modSource == m_ModOperators[3] )
+			else if ( modSource == &m_ModOperator3 )
 			{
 				return m_ModOperatorAmplitudes[3];
 			}
@@ -96,7 +94,7 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		}
 		float getAmplitude() { return m_Amplitude; }
 		float getFilterFreq() { return m_FilterCenterFreq; }
-		float getFilterRes() { return m_Filter->getResonance(); }
+		float getFilterRes() { return m_Filter.getResonance(); }
 		bool getRatio() { return m_UseRatio; }
 		float getAmpVelSens() { return m_AmpVelSens; }
 		float getFiltVelSens() { return m_FiltVelSens; }
@@ -106,13 +104,16 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		bool getUseGlide() { return m_UseGlide; }
 
 	private:
-		PolyBLEPOsc* 				m_Osc;
-		ADSREnvelopeGenerator<EG_RESPONSE>* 	m_EG;
-		ARMor8Filter* 				m_Filter;
+		PolyBLEPOsc& 				m_Osc;
+		ADSREnvelopeGenerator<EG_RESPONSE>& 	m_EG;
+		ARMor8Filter& 				m_Filter;
+		ARMor8Operator& 			m_ModOperator1;
+		ARMor8Operator& 			m_ModOperator2;
+		ARMor8Operator& 			m_ModOperator3;
+		ARMor8Operator& 			m_ModOperator4;
+		float 					m_ModOperatorAmplitudes[ARMOR8_NUM_OPERATORS_PER_VOICE];
 		float 					m_FilterCenterFreq;
 		bool 					m_UseRatio;
-		ARMor8Operator* 			m_ModOperators[ARMOR8_NUM_OPERATORS_PER_VOICE];
-		float 					m_ModOperatorAmplitudes[ARMOR8_NUM_OPERATORS_PER_VOICE];
 		bool 					m_UseAmplitudeMod;
 		bool 					m_UseFrequencyMod;
 		bool 					m_UseFiltFreqMod;

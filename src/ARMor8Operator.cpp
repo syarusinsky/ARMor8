@@ -6,15 +6,18 @@
 #include "PolyBLEPOsc.hpp"
 #include <math.h>
 
-ARMor8Operator::ARMor8Operator (PolyBLEPOsc* wave, ADSREnvelopeGenerator<EG_RESPONSE>* eg, ARMor8Filter* filt, float amplitude, float frequency,
-				ARMor8Operator* mod1, ARMor8Operator* mod2, ARMor8Operator* mod3, ARMor8Operator* mod4) :
+ARMor8Operator::ARMor8Operator (PolyBLEPOsc& wave, ADSREnvelopeGenerator<EG_RESPONSE>& eg, ARMor8Filter& filt, float amplitude, float frequency,
+				ARMor8Operator& mod1, ARMor8Operator& mod2, ARMor8Operator& mod3, ARMor8Operator& mod4) :
 	m_Osc( wave ),
 	m_EG( eg ),
 	m_Filter( filt ),
+	m_ModOperator1( mod1 ),
+	m_ModOperator2( mod2 ),
+	m_ModOperator3( mod3 ),
+	m_ModOperator4( mod4 ),
+	m_ModOperatorAmplitudes{ 0.0f },
 	m_FilterCenterFreq( 20000.0f ),
 	m_UseRatio( false ),
-	m_ModOperators{ mod1, mod2, mod3, mod4 },
-	m_ModOperatorAmplitudes{ 0.0f },
 	m_UseAmplitudeMod( false ),
 	m_UseFrequencyMod( false ),
 	m_UseFiltFreqMod( false ),
@@ -46,7 +49,7 @@ ARMor8Operator::~ARMor8Operator()
 
 void ARMor8Operator::cachePerBlockValues()
 {
-	const float egValue = m_EG->nextValue();
+	const float egValue = m_EG.nextValue();
 
 	m_AmplitudeCached = 1.0f - ( m_AmpVelSens * m_CurrentVelocity );
 
@@ -74,8 +77,8 @@ void ARMor8Operator::cachePerBlockValues()
 		m_FrequencyCached = ( m_FrequencyCached * egValue ) + 1.0f;
 	}
 
-	m_Osc->setFrequency( m_FrequencyCached );
-	m_Osc->applyTriangleFilter();
+	m_Osc.setFrequency( m_FrequencyCached );
+	m_Osc.applyTriangleFilter();
 
 	float filtFrequency = m_FilterCenterFreq;
 	filtFrequency *= ( 1.0f - (m_FiltVelSens * m_CurrentVelocity) );
@@ -85,22 +88,22 @@ void ARMor8Operator::cachePerBlockValues()
 		filtFrequency *= egValue;
 	}
 
-	m_Filter->setCoefficients( filtFrequency );
+	m_Filter.setCoefficients( filtFrequency );
 }
 
 float ARMor8Operator::nextSample()
 {
 	float frequency = m_FrequencyCached;
 
-	for ( unsigned int modNum = 0; modNum < ARMOR8_NUM_OPERATORS_PER_VOICE; modNum++ )
-	{
-		frequency += m_ModOperators[modNum]->currentValue() * m_ModOperatorAmplitudes[modNum];
-	}
+	frequency += m_ModOperator1.currentValue() * m_ModOperatorAmplitudes[0];
+	frequency += m_ModOperator2.currentValue() * m_ModOperatorAmplitudes[1];
+	frequency += m_ModOperator3.currentValue() * m_ModOperatorAmplitudes[2];
+	frequency += m_ModOperator4.currentValue() * m_ModOperatorAmplitudes[3];
 
-	m_Osc->setFrequency( frequency );
-	m_CurrentValue = ( m_Osc->nextSample() ) * m_AmplitudeCached;
+	m_Osc.setFrequency( frequency );
+	m_CurrentValue = ( m_Osc.nextSample() ) * m_AmplitudeCached;
 
-	m_CurrentValue = m_Filter->processSample( m_CurrentValue );
+	m_CurrentValue = m_Filter.processSample( m_CurrentValue );
 
 	return m_CurrentValue * m_Amplitude;
 }
@@ -117,10 +120,7 @@ void ARMor8Operator::onKeyEvent (const KeyEvent& keyEvent)
 		m_CurrentVelocity = 1.0f - ( (float)keyEvent.velocity() / 127.0f );
 	}
 
-	if ( m_EG )
-	{
-		m_EG->onKeyEvent( keyEvent );
-	}
+	m_EG.onKeyEvent( keyEvent );
 
 	if ( m_UseRatio )
 	{
@@ -467,7 +467,7 @@ void ARMor8Operator::onKeyEvent (const KeyEvent& keyEvent)
 		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
 		{
 			// this prevents popping sound
-			m_Osc->resetPhase();
+			m_Osc.resetPhase();
 		}
 	}
 }
@@ -479,42 +479,34 @@ void ARMor8Operator::onPitchEvent (const PitchEvent& pitchEvent)
 
 OscillatorMode ARMor8Operator::getWave()
 {
-	return m_Osc->getOscillatorMode();
+	return m_Osc.getOscillatorMode();
 }
 
 void ARMor8Operator::setWave (const OscillatorMode& wave)
 {
-	m_Osc->setOscillatorMode( wave );
+	m_Osc.setOscillatorMode( wave );
 }
 
-ADSREnvelopeGenerator<EG_RESPONSE>* ARMor8Operator::getEnvelopeGenerator()
+ADSREnvelopeGenerator<EG_RESPONSE>& ARMor8Operator::getEnvelopeGenerator()
 {
 	return m_EG;
 }
 
-void ARMor8Operator::setEnvelopeGenerator (ADSREnvelopeGenerator<EG_RESPONSE>* eg)
-{
-	if ( eg )
-	{
-		m_EG = eg;
-	}
-}
-
 void ARMor8Operator::setModSourceAmplitude (ARMor8Operator* modSource, float amplitude)
 {
-	if ( modSource == m_ModOperators[0] )
+	if ( modSource == &m_ModOperator1 )
 	{
 		m_ModOperatorAmplitudes[0] = amplitude;
 	}
-	else if ( modSource == m_ModOperators[1] )
+	else if ( modSource == &m_ModOperator2 )
 	{
 		m_ModOperatorAmplitudes[1] = amplitude;
 	}
-	else if ( modSource == m_ModOperators[2] )
+	else if ( modSource == &m_ModOperator3 )
 	{
 		m_ModOperatorAmplitudes[2] = amplitude;
 	}
-	else if ( modSource == m_ModOperators[3] )
+	else if ( modSource == &m_ModOperator4 )
 	{
 		m_ModOperatorAmplitudes[3] = amplitude;
 	}
@@ -592,7 +584,7 @@ void ARMor8Operator::setFilterFreq (const float frequency)
 
 void ARMor8Operator::setFilterRes (const float resonance)
 {
-	m_Filter->setResonance( resonance );
+	m_Filter.setResonance( resonance );
 }
 
 void ARMor8Operator::setRatio (const bool useRatio)

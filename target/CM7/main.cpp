@@ -592,14 +592,11 @@ int main(void)
 
 extern "C" void TIM6_DAC_IRQHandler (void)
 {
-	if ( ! LLPD::tim6_isr_handle_delay() ) // if not currently in a delay function,...
+	if ( ! LLPD::tim6_isr_handle_delay() && audioBufferPtr ) // if not currently in a delay function,...
 	{
-		if ( audioBufferPtr )
-		{
 			uint16_t outVal = static_cast<uint16_t>( (audioBufferPtr->getNextSample(0.0f) * 2047.0f) + 2048.0f );
 
 			LLPD::dac_send( outVal, outVal );
-		}
 	}
 
 	LLPD::tim6_counter_clear_interrupt_flag();

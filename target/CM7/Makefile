@@ -24,18 +24,12 @@ SAL_FILES_DIR = ../../lib/SAL
 SAL_INCLUDE_DIR = $(SAL_FILES_DIR)/include
 SAL_SRC_DIR = $(SAL_FILES_DIR)/src
 
-# sigl files directory
-SIGL_FILES_DIR = ../../lib/SIGL
-SIGL_INCLUDE_DIR = $(SIGL_FILES_DIR)/include
-SIGL_SRC_DIR = $(SIGL_FILES_DIR)/src
-
 # include directories
 INCLUDE =  -I$(STM32_CUBE_INCLUDE_DIR)
 INCLUDE += -I$(LLPD_INCLUDE_DIR)
 INCLUDE += -I$(DEVLIB_INCLUDE_DIR)
 INCLUDE += -I$(ARMOR8_INCLUDE_DIR)
 INCLUDE += -I$(SAL_INCLUDE_DIR)
-INCLUDE += -I$(SIGL_INCLUDE_DIR)
 
 # linker scripts
 LD_SCRIPT = $(STM32_CUBE_FILES_DIR)/ld/CM7/STM32H745ZITX_FLASH.ld
@@ -57,8 +51,7 @@ OS  = $(TOOLCHAIN)/arm-none-eabi-size
 ASFLAGS += -c
 ASFLAGS += -O0
 ASFLAGS += -mcpu=$(MCU_SPEC)
-ASFLAGS += -marm
-ASFLAGS += -mthumb
+ASFLAGS += -mthumb-interwork
 ASFLAGS += -mhard-float
 ASFLAGS += -mfloat-abi=hard
 ASFLAGS += -mfpu=fpv5-sp-d16
@@ -69,8 +62,7 @@ ASFLAGS += -fmessage-length=0
 # c/c++ compilation directives
 CFLAGS =  -std=gnu++11
 CFLAGS += -mcpu=$(MCU_SPEC)
-CFLAGS += -marm
-CFLAGS += -mthumb
+CFLAGS += -mthumb-interwork
 CFLAGS += -mhard-float
 CFLAGS += -mfloat-abi=hard
 CFLAGS += -mfpu=fpv5-sp-d16
@@ -88,60 +80,118 @@ CFLAGS += -fno-exceptions
 CFLAGS += -fno-rtti
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
-CFLAGS += -falign-functions
-CFLAGS += -falign-jumps
-CFLAGS += -falign-labels
-CFLAGS += -falign-loops
-CFLAGS += -fcaller-saves
-CFLAGS += -fcode-hoisting
-CFLAGS += -fcrossjumping
-CFLAGS += -fcse-follow-jumps
-CFLAGS += -fcse-skip-blocks
-CFLAGS += -fdelete-null-pointer-checks
-CFLAGS += -fdevirtualize
-CFLAGS += -fdevirtualize-speculatively
-CFLAGS += -fexpensive-optimizations
-CFLAGS += -ffinite-loops
-CFLAGS += -fgcse
-CFLAGS += -fgcse-lm
-CFLAGS += -fhoist-adjacent-loads
-CFLAGS += -finline-functions
-CFLAGS += -finline-small-functions
-CFLAGS += -findirect-inlining
-CFLAGS += -fipa-bit-cp
-CFLAGS += -fipa-cp
-CFLAGS += -fipa-icf
-CFLAGS += -fipa-ra
-CFLAGS += -fipa-sra
-CFLAGS += -fipa-vrp
-CFLAGS += -flra-remat
-CFLAGS += -foptimize-sibling-calls
-CFLAGS += -foptimize-strlen
-CFLAGS += -fpartial-inlining
-CFLAGS += -fpeephole2
-CFLAGS += -freorder-functions
-CFLAGS += -frerun-cse-after-loop
-CFLAGS += -fschedule-insns
-CFLAGS += -fschedule-insns2
-CFLAGS += -fsched-interblock
-CFLAGS += -fsched-spec
-CFLAGS += -fstore-merging
-CFLAGS += -fstrict-aliasing
-CFLAGS += -fthread-jumps
 CFLAGS += -DCORE_CM7
 CFLAGS += -DSTM32H745xx
 CFLAGS += -DTARGET_BUILD
-# (allow SIGL to use software rendering)
-CFLAGS += -DSOFTWARE_RENDERING
-CFLAGS += -DROTATE_DISPLAY_180_DEGREES
 CFLAGS += -DARM_MATH_CM7
 CFLAGS += -D__FPU_PRESENT
+
+OFLAGS  = -fauto-inc-dec
+OFLAGS += -fbranch-count-reg
+OFLAGS += -fcombine-stack-adjustments
+OFLAGS += -fcompare-elim
+OFLAGS += -fcprop-registers
+OFLAGS += -fdce
+OFLAGS += -fdefer-pop
+OFLAGS += -fdse
+OFLAGS += -fforward-propagate
+OFLAGS += -fguess-branch-probability
+OFLAGS += -fif-conversion
+OFLAGS += -fif-conversion2
+OFLAGS += -finline-functions-called-once
+OFLAGS += -fipa-modref
+OFLAGS += -fipa-profile
+OFLAGS += -fipa-pure-const
+OFLAGS += -fipa-reference
+OFLAGS += -fipa-reference-addressable
+OFLAGS += -fmerge-constants
+OFLAGS += -fmove-loop-invariants
+OFLAGS += -fmove-loop-stores
+OFLAGS += -fomit-frame-pointer
+OFLAGS += -freorder-blocks
+OFLAGS += -fshrink-wrap
+OFLAGS += -fshrink-wrap-separate
+OFLAGS += -fsplit-wide-types
+OFLAGS += -fssa-backprop
+OFLAGS += -fssa-phiopt
+OFLAGS += -ftree-bit-ccp
+OFLAGS += -ftree-ccp
+OFLAGS += -ftree-ch
+OFLAGS += -ftree-coalesce-vars
+OFLAGS += -ftree-copy-prop
+OFLAGS += -ftree-dce
+OFLAGS += -ftree-dominator-opts
+OFLAGS += -ftree-dse
+OFLAGS += -ftree-forwprop
+OFLAGS += -ftree-fre
+OFLAGS += -ftree-phiprop
+OFLAGS += -ftree-pta
+OFLAGS += -ftree-scev-cprop
+OFLAGS += -ftree-sink
+OFLAGS += -ftree-slsr
+OFLAGS += -ftree-sra
+OFLAGS += -ftree-ter
+OFLAGS += -funit-at-a-time
+OFLAGS += -falign-functions
+OFLAGS += -falign-jumps
+OFLAGS += -falign-labels
+OFLAGS += -falign-loops
+OFLAGS += -fcaller-saves
+OFLAGS += -fcode-hoisting
+OFLAGS += -fcrossjumping
+OFLAGS += -fcse-follow-jumps
+OFLAGS += -fcse-skip-blocks
+OFLAGS += -fdelete-null-pointer-checks
+OFLAGS += -fdevirtualize
+OFLAGS += -fdevirtualize-speculatively
+OFLAGS += -fexpensive-optimizations
+OFLAGS += -ffinite-loops
+OFLAGS += -fgcse
+OFLAGS += -fgcse-lm
+OFLAGS += -fhoist-adjacent-loads
+OFLAGS += -finline-functions
+OFLAGS += -finline-small-functions
+OFLAGS += -findirect-inlining
+OFLAGS += -fipa-bit-cp
+OFLAGS += -fipa-cp
+OFLAGS += -fipa-icf
+OFLAGS += -fipa-ra
+OFLAGS += -fipa-sra
+OFLAGS += -fipa-vrp
+OFLAGS += -flra-remat
+OFLAGS += -foptimize-sibling-calls
+OFLAGS += -foptimize-strlen
+OFLAGS += -fpartial-inlining
+OFLAGS += -fpeephole2
+OFLAGS += -freorder-functions
+OFLAGS += -frerun-cse-after-loop
+OFLAGS += -fschedule-insns
+OFLAGS += -fschedule-insns2
+OFLAGS += -fsched-interblock
+OFLAGS += -fsched-spec
+OFLAGS += -fstore-merging
+OFLAGS += -fstrict-aliasing
+OFLAGS += -fthread-jumps
+OFLAGS += -fgcse-after-reload
+OFLAGS += -fipa-cp-clone
+OFLAGS += -floop-interchange
+OFLAGS += -floop-unroll-and-jam
+OFLAGS += -fpeel-loops
+OFLAGS += -fpredictive-commoning
+OFLAGS += -fsplit-loops
+OFLAGS += -fsplit-paths
+OFLAGS += -ftree-loop-distribution
+OFLAGS += -ftree-partial-pre
+OFLAGS += -funswitch-loops
+OFLAGS += -fvect-cost-model=dynamic
+OFLAGS += -fversion-loops-for-strides
 
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)
 LFLAGS =  $(CFLAGS)
 LFLAGS += -lstdc++_nano
 LFLAGS += -Wl,--gc-sections
+LFLAGS += -flto
 LFLAGS += -T$(LSCRIPT)
 
 # assembly files to compile
@@ -159,6 +209,9 @@ CPP_SRC += $(wildcard $(ARMOR8_SRC_DIR)/*.cpp)
 CPP_SRC += $(wildcard $(SAL_SRC_DIR)/*.cpp)
 CPP_SRC += $(wildcard $(SIGL_SRC_DIR)/*.cpp)
 
+CPP_SRC_TMP := $(CPP_SRC)
+CPP_SRC = $(filter-out $(ARMOR8_SRC_DIR)/ARMor8UiManager.cpp, $(CPP_SRC_TMP))
+
 RELEASE_OBJS =  $(AS_SRC:.s=_release.o)
 RELEASE_OBJS += $(C_SRC:.c=_release.o)
 RELEASE_OBJS += $(CPP_SRC:.cpp=_release.o)
@@ -174,13 +227,13 @@ release: $(TARGET)_release.bin
 	$(CC) -x assembler-with-cpp $(ASFLAGS) $< -o $@
 
 %_release.o: %.c
-	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -O1 $(CFLAGS) $(OFLAGS) $(INCLUDE) $< -o $@
 
 %_release.o: %.cpp
-	$(CC) -c -g -O1 $(CFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -O1 $(CFLAGS) $(OFLAGS) $(INCLUDE) $< -o $@
 
 $(TARGET)_release.elf: $(RELEASE_OBJS)
-	$(CC) $^ $(LFLAGS) -O1 -o $@
+	$(CC) $^ $(LFLAGS) -O3 -o $@
 
 $(TARGET)_release.bin: $(TARGET)_release.elf
 	$(OC) -S -O binary $< $@
@@ -207,9 +260,12 @@ $(TARGET)_debug.bin: $(TARGET)_debug.elf
 
 .PHONY: clean
 clean:
+	@echo "CPP_SRC_TMP is: $(CPP_SRC_TMP)"
 	rm -f $(RELEASE_OBJS)
 	rm -f $(DEBUG_OBJS)
 	rm -f $(TARGET)_release.elf
 	rm -f $(TARGET)_release.bin
 	rm -f $(TARGET)_debug.elf
 	rm -f $(TARGET)_debug.bin
+
+all:
