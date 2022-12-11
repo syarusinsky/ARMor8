@@ -1585,6 +1585,7 @@ void MainComponent::setMidiInput (int index)
 
 void MainComponent::handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message)
 {
+	std::cout << message.getDescription() << std::endl;
 	for ( int byte = 0; byte < message.getRawDataSize(); byte++ )
 	{
 		midiHandler.processByte( message.getRawData()[byte] );

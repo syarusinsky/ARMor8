@@ -247,7 +247,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 {
 	if ( ! m_Monophonic ) // polyphonic implementation
 	{
-		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
+		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.velocity() > ARMOR8_MIN_MIDI_VELOCITY )
 		{
 			bool containsKeyEvent = false;
 			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
@@ -365,7 +365,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 	}
 	else // monophonic implementation
 	{
-		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED )
+		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.velocity() > ARMOR8_MIN_MIDI_VELOCITY )
 		{
 			// if a key is currently playing
 			KeyPressedEnum activeKeyPressed = m_ActiveKeyEvents[0].pressed();

@@ -3,6 +3,8 @@
 
 #include <limits>
 
+constexpr unsigned int ARMOR8_MIN_MIDI_VELOCITY = 30; // the lowest midi velocity to trigger a key press
+
 // Operator Thresholds (X means times, so 6X means 6 times the original; D means divided by)
 constexpr float OP_THRESHOLD_6X = 15000.0f;
 constexpr float OP_THRESHOLD_5X = 10000.0f;
