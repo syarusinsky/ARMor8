@@ -247,7 +247,8 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 {
 	if ( ! m_Monophonic ) // polyphonic implementation
 	{
-		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.velocity() > ARMOR8_MIN_MIDI_VELOCITY )
+		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.getChannel() == ARMOR8_MIDI_CHANNEL
+				&& keyEvent.velocity() > ARMOR8_MIN_MIDI_VELOCITY )
 		{
 			bool containsKeyEvent = false;
 			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
@@ -327,7 +328,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 				return;
 			}
 		}
-		else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED )
+		else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED && keyEvent.getChannel() == ARMOR8_MIDI_CHANNEL )
 		{
 			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
 			{
@@ -365,7 +366,8 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 	}
 	else // monophonic implementation
 	{
-		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.velocity() > ARMOR8_MIN_MIDI_VELOCITY )
+		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.getChannel() == ARMOR8_MIDI_CHANNEL
+				&& keyEvent.velocity() > ARMOR8_MIN_MIDI_VELOCITY )
 		{
 			// if a key is currently playing
 			KeyPressedEnum activeKeyPressed = m_ActiveKeyEvents[0].pressed();
@@ -416,7 +418,7 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 				return;
 			}
 		}
-		else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED )
+		else if ( keyEvent.pressed() == KeyPressedEnum::RELEASED && keyEvent.getChannel() == ARMOR8_MIDI_CHANNEL )
 		{
 			// look for this note in the active key events array
 			for ( unsigned int voice = 0; voice < MAX_VOICES; voice++ )
@@ -479,12 +481,15 @@ void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 
 void ARMor8VoiceManager::onPitchEvent (const PitchEvent& pitchEvent)
 {
-	m_Voice1.onPitchEvent( pitchEvent );
-	m_Voice2.onPitchEvent( pitchEvent );
-	m_Voice3.onPitchEvent( pitchEvent );
-	m_Voice4.onPitchEvent( pitchEvent );
-	m_Voice5.onPitchEvent( pitchEvent );
-	m_Voice6.onPitchEvent( pitchEvent );
+	if ( pitchEvent.getChannel() == ARMOR8_MIDI_CHANNEL )
+	{
+		m_Voice1.onPitchEvent( pitchEvent );
+		m_Voice2.onPitchEvent( pitchEvent );
+		m_Voice3.onPitchEvent( pitchEvent );
+		m_Voice4.onPitchEvent( pitchEvent );
+		m_Voice5.onPitchEvent( pitchEvent );
+		m_Voice6.onPitchEvent( pitchEvent );
+	}
 }
 
 void ARMor8VoiceManager::onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent)

@@ -3,6 +3,10 @@
 
 #include <limits>
 
+#ifndef ARMOR8_MIDI_CHANNEL
+constexpr unsigned int ARMOR8_MIDI_CHANNEL = 0;
+#endif
+
 constexpr unsigned int ARMOR8_MIN_MIDI_VELOCITY = 30; // the lowest midi velocity to trigger a key press
 
 // Operator Thresholds (X means times, so 6X means 6 times the original; D means divided by)
