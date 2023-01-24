@@ -328,6 +328,29 @@ void disableUnusedPins()
 
 int main(void)
 {
+	// TODO maybe move this stuff as well as caching to the HAL?
+	// disable mpu
+	__DMB();
+	SCB->SHCSR &= ~SCB_SHCSR_MEMFAULTENA_Msk;
+	MPU->CTRL = 0;
+	// region config for sram4 as non-cacheable
+	MPU->RNR = 0;
+	MPU->RBAR = D3_SRAM_BASE;
+	MPU->RASR = 	0 			 	<< 	MPU_RASR_XN_Pos 	|
+			ARM_MPU_AP_FULL 	 	<< 	MPU_RASR_AP_Pos 	|
+			0 			 	<< 	MPU_RASR_TEX_Pos 	|
+			0 			 	<< 	MPU_RASR_S_Pos 		|
+			0 			 	<< 	MPU_RASR_C_Pos 		|
+			0 			 	<< 	MPU_RASR_B_Pos 		|
+			0 			 	<< 	MPU_RASR_SRD_Pos 	|
+			ARM_MPU_REGION_SIZE_64KB 	<< 	MPU_RASR_SIZE_Pos 	|
+			1 				<< 	MPU_RASR_ENABLE_Pos;
+	// enable mpu
+	MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_ENABLE_Msk;
+	SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
+	__DSB();
+	__ISB();
+
 	// setup clock 480MHz (also prescales peripheral clocks to fit rate limitations)
 	LLPD::rcc_clock_start_max_cpu1();
 
@@ -351,8 +374,8 @@ int main(void)
 	LLPD::usart_init( MIDI_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::EVEN, USART_CONF::TX_AND_RX,
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
-	// audio timer setup (for 40 kHz sampling rate at 480 MHz timer clock)
-	LLPD::tim6_counter_setup( 3, 3000, 40000 );
+	// audio timer setup (for 40 kHz sampling rate at 480 MHz / 2 timer clock)
+	LLPD::tim6_counter_setup( 0, 6000, 40000 );
 	LLPD::tim6_counter_enable_interrupts();
 	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
@@ -578,8 +601,22 @@ int main(void)
 	// enable instruction cache
 	SCB_EnableICache();
 
+	// enable data cache (will only be useful for constant values stored in flash)
+	SCB_InvalidateDCache();
+	SCB_EnableDCache();
+
 	while ( true )
 	{
+		// static volatile unsigned int counter = 0;
+		// counter++;
+
+		// if ( counter == 100 )
+		// {
+		// 	LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
+
+		// 	counter = 0;
+		// }
+
 		LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
 
 		paramEventBridge.processQueuedParameterEvents();
@@ -594,9 +631,9 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 {
 	if ( ! LLPD::tim6_isr_handle_delay() && audioBufferPtr ) // if not currently in a delay function,...
 	{
-			uint16_t outVal = static_cast<uint16_t>( (audioBufferPtr->getNextSample(0.0f) * 2047.0f) + 2048.0f );
+		uint16_t outVal = static_cast<uint16_t>( (audioBufferPtr->getNextSample(0.0f) * 2047.0f) + 2048.0f );
 
-			LLPD::dac_send( outVal, outVal );
+		LLPD::dac_send( outVal, outVal );
 	}
 
 	LLPD::tim6_counter_clear_interrupt_flag();
@@ -614,6 +651,7 @@ extern "C" void USART2_IRQHandler (void) // logging usart
 extern "C" void USART6_IRQHandler (void) // midi usart
 {
 	uint16_t data = LLPD::usart_receive( MIDI_USART_NUM );
+	LLPD::usart_transmit( MIDI_USART_NUM, data );
 	if ( midiHandlerPtr )
 	{
 		midiHandlerPtr->processByte( data );

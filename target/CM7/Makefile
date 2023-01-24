@@ -86,106 +86,6 @@ CFLAGS += -DTARGET_BUILD
 CFLAGS += -DARM_MATH_CM7
 CFLAGS += -D__FPU_PRESENT
 
-OFLAGS  = -fauto-inc-dec
-OFLAGS += -fbranch-count-reg
-OFLAGS += -fcombine-stack-adjustments
-OFLAGS += -fcompare-elim
-OFLAGS += -fcprop-registers
-OFLAGS += -fdce
-OFLAGS += -fdefer-pop
-OFLAGS += -fdse
-OFLAGS += -fforward-propagate
-OFLAGS += -fguess-branch-probability
-OFLAGS += -fif-conversion
-OFLAGS += -fif-conversion2
-OFLAGS += -finline-functions-called-once
-OFLAGS += -fipa-modref
-OFLAGS += -fipa-profile
-OFLAGS += -fipa-pure-const
-OFLAGS += -fipa-reference
-OFLAGS += -fipa-reference-addressable
-OFLAGS += -fmerge-constants
-OFLAGS += -fmove-loop-invariants
-OFLAGS += -fmove-loop-stores
-OFLAGS += -fomit-frame-pointer
-OFLAGS += -freorder-blocks
-OFLAGS += -fshrink-wrap
-OFLAGS += -fshrink-wrap-separate
-OFLAGS += -fsplit-wide-types
-OFLAGS += -fssa-backprop
-OFLAGS += -fssa-phiopt
-OFLAGS += -ftree-bit-ccp
-OFLAGS += -ftree-ccp
-OFLAGS += -ftree-ch
-OFLAGS += -ftree-coalesce-vars
-OFLAGS += -ftree-copy-prop
-OFLAGS += -ftree-dce
-OFLAGS += -ftree-dominator-opts
-OFLAGS += -ftree-dse
-OFLAGS += -ftree-forwprop
-OFLAGS += -ftree-fre
-OFLAGS += -ftree-phiprop
-OFLAGS += -ftree-pta
-OFLAGS += -ftree-scev-cprop
-OFLAGS += -ftree-sink
-OFLAGS += -ftree-slsr
-OFLAGS += -ftree-sra
-OFLAGS += -ftree-ter
-OFLAGS += -funit-at-a-time
-OFLAGS += -falign-functions
-OFLAGS += -falign-jumps
-OFLAGS += -falign-labels
-OFLAGS += -falign-loops
-OFLAGS += -fcaller-saves
-OFLAGS += -fcode-hoisting
-OFLAGS += -fcrossjumping
-OFLAGS += -fcse-follow-jumps
-OFLAGS += -fcse-skip-blocks
-OFLAGS += -fdelete-null-pointer-checks
-OFLAGS += -fdevirtualize
-OFLAGS += -fdevirtualize-speculatively
-OFLAGS += -fexpensive-optimizations
-OFLAGS += -ffinite-loops
-OFLAGS += -fgcse
-OFLAGS += -fgcse-lm
-OFLAGS += -fhoist-adjacent-loads
-OFLAGS += -finline-functions
-OFLAGS += -finline-small-functions
-OFLAGS += -findirect-inlining
-OFLAGS += -fipa-bit-cp
-OFLAGS += -fipa-cp
-OFLAGS += -fipa-icf
-OFLAGS += -fipa-ra
-OFLAGS += -fipa-sra
-OFLAGS += -fipa-vrp
-OFLAGS += -flra-remat
-OFLAGS += -foptimize-sibling-calls
-OFLAGS += -foptimize-strlen
-OFLAGS += -fpartial-inlining
-OFLAGS += -fpeephole2
-OFLAGS += -freorder-functions
-OFLAGS += -frerun-cse-after-loop
-OFLAGS += -fschedule-insns
-OFLAGS += -fschedule-insns2
-OFLAGS += -fsched-interblock
-OFLAGS += -fsched-spec
-OFLAGS += -fstore-merging
-OFLAGS += -fstrict-aliasing
-OFLAGS += -fthread-jumps
-OFLAGS += -fgcse-after-reload
-OFLAGS += -fipa-cp-clone
-OFLAGS += -floop-interchange
-OFLAGS += -floop-unroll-and-jam
-OFLAGS += -fpeel-loops
-OFLAGS += -fpredictive-commoning
-OFLAGS += -fsplit-loops
-OFLAGS += -fsplit-paths
-OFLAGS += -ftree-loop-distribution
-OFLAGS += -ftree-partial-pre
-OFLAGS += -funswitch-loops
-OFLAGS += -fvect-cost-model=dynamic
-OFLAGS += -fversion-loops-for-strides
-
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)
 LFLAGS =  $(CFLAGS)
@@ -227,10 +127,10 @@ release: $(TARGET)_release.bin
 	$(CC) -x assembler-with-cpp $(ASFLAGS) $< -o $@
 
 %_release.o: %.c
-	$(CC) -c -O1 $(CFLAGS) $(OFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -g -O3 $(CFLAGS) $(INCLUDE) $< -o $@
 
 %_release.o: %.cpp
-	$(CC) -c -O1 $(CFLAGS) $(OFLAGS) $(INCLUDE) $< -o $@
+	$(CC) -c -g -O3 $(CFLAGS) $(INCLUDE) $< -o $@
 
 $(TARGET)_release.elf: $(RELEASE_OBJS)
 	$(CC) $^ $(LFLAGS) -O3 -o $@
