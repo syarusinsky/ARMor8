@@ -374,8 +374,8 @@ int main(void)
 	LLPD::usart_init( MIDI_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::EVEN, USART_CONF::TX_AND_RX,
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
-	// audio timer setup (for 40 kHz sampling rate at 480 MHz / 2 timer clock)
-	LLPD::tim6_counter_setup( 0, 6000, 40000 );
+	// audio timer setup (for 35 kHz sampling rate at 480 MHz / 2 timer clock)
+	LLPD::tim6_counter_setup( 0, 6857, 35000 );
 	LLPD::tim6_counter_enable_interrupts();
 	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
@@ -607,19 +607,9 @@ int main(void)
 
 	while ( true )
 	{
-		// static volatile unsigned int counter = 0;
-		// counter++;
-
-		// if ( counter == 100 )
-		// {
-		// 	LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
-
-		// 	counter = 0;
-		// }
+		paramEventBridge.processQueuedParameterEvents();
 
 		LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
-
-		paramEventBridge.processQueuedParameterEvents();
 
 		midiHandler.dispatchEvents();
 
@@ -631,7 +621,7 @@ extern "C" void TIM6_DAC_IRQHandler (void)
 {
 	if ( ! LLPD::tim6_isr_handle_delay() && audioBufferPtr ) // if not currently in a delay function,...
 	{
-		uint16_t outVal = static_cast<uint16_t>( (audioBufferPtr->getNextSample(0.0f) * 2047.0f) + 2048.0f );
+		const uint16_t outVal = static_cast<uint16_t>( (audioBufferPtr->getNextSample(0.0f) * 2047.0f) + 2048.0f );
 
 		LLPD::dac_send( outVal, outVal );
 	}
