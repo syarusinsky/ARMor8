@@ -371,7 +371,7 @@ int main(void)
 	// LLPD::usart_init( LOGGING_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::NONE, USART_CONF::TX_AND_RX,
 	// 			USART_STOP_BITS::BITS_1, 120000000, 9600 );
 	// LLPD::usart_log( LOGGING_USART_NUM, "Ultra_FX_SYN starting up ----------------------------" );
-	LLPD::usart_init( MIDI_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::EVEN, USART_CONF::TX_AND_RX,
+	LLPD::usart_init( MIDI_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::NONE, USART_CONF::TX_AND_RX,
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
 	// audio timer setup (for 35 kHz sampling rate at 480 MHz / 2 timer clock)
