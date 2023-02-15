@@ -89,7 +89,7 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 
 		ARMor8PresetHeader m_PresetHeader;
 
-		Limiter        m_Limiter;
+		Limiter<float>        m_Limiter;
 };
 
 #endif // ARMOR8VOICEMANAGER_HPP
