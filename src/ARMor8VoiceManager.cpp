@@ -245,6 +245,14 @@ void ARMor8VoiceManager::setMonophonic (bool on)
 
 void ARMor8VoiceManager::onKeyEvent (const KeyEvent& keyEvent)
 {
+	// if we get a 'note-on' midi message with 0 for velocity, that's actually just a 'note-off' message, cakewalk does this for some reason
+	if ( keyEvent.velocity() == 0 && keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.getChannel() == ARMOR8_MIDI_CHANNEL )
+	{
+		this->onKeyEvent( KeyEvent(KeyPressedEnum::RELEASED, keyEvent.note(), keyEvent.velocity(), keyEvent.getChannel()) );
+
+		return;
+	}
+
 	if ( ! m_Monophonic ) // polyphonic implementation
 	{
 		if ( keyEvent.pressed() == KeyPressedEnum::PRESSED && keyEvent.getChannel() == ARMOR8_MIDI_CHANNEL
