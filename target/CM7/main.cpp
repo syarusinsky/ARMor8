@@ -16,6 +16,10 @@
 // global variables
 MidiHandler* volatile midiHandlerPtr = nullptr;
 AudioBuffer<float>* volatile audioBufferPtr = nullptr;
+// because we use DTCM and the DMA controller can't access that, we use axi sram
+constexpr unsigned int dmaAudioBufferSize = ABUFFER_SIZE * 2 * sizeof(uint16_t); // x2 for packed left/right
+uint16_t* dmaAudioBuffer1 = (uint16_t*) D1_AXISRAM_BASE;
+uint16_t* dmaAudioBuffer2 = (uint16_t*) ( D1_AXISRAM_BASE + dmaAudioBufferSize );
 
 // peripheral defines
 #define OP_AMP1_INV_OUT_PORT 		GPIO_PORT::C
@@ -345,6 +349,18 @@ int main(void)
 			0 			 	<< 	MPU_RASR_SRD_Pos 	|
 			ARM_MPU_REGION_SIZE_64KB 	<< 	MPU_RASR_SIZE_Pos 	|
 			1 				<< 	MPU_RASR_ENABLE_Pos;
+	// region config for axi sram as non-cacheable
+	MPU->RNR = 1;
+	MPU->RBAR = D1_AXISRAM_BASE;
+	MPU->RASR = 	0 			 	<< 	MPU_RASR_XN_Pos 	|
+			ARM_MPU_AP_FULL 	 	<< 	MPU_RASR_AP_Pos 	|
+			0 			 	<< 	MPU_RASR_TEX_Pos 	|
+			0 			 	<< 	MPU_RASR_S_Pos 		|
+			0 			 	<< 	MPU_RASR_C_Pos 		|
+			0 			 	<< 	MPU_RASR_B_Pos 		|
+			0 			 	<< 	MPU_RASR_SRD_Pos 	|
+			ARM_MPU_REGION_SIZE_64KB 	<< 	MPU_RASR_SIZE_Pos 	|
+			1 				<< 	MPU_RASR_ENABLE_Pos;
 	// enable mpu
 	MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_ENABLE_Msk;
 	SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
@@ -376,11 +392,23 @@ int main(void)
 
 	// audio timer setup (for 30 kHz sampling rate at 480 MHz / 2 timer clock)
 	LLPD::tim6_counter_setup( 0, 8000, 30000 );
-	LLPD::tim6_counter_enable_interrupts();
+	// LLPD::tim6_counter_enable_interrupts(); // you need this for interrupt-based audio
 	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
+	// zero-out the dma audio buffers
+	for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+	{
+		uint16_t sampleVal = 4095 / 2;
+		// left/right packed
+		dmaAudioBuffer1[(sample * 2) + 0] = sampleVal;
+		dmaAudioBuffer1[(sample * 2) + 1] = sampleVal;
+		dmaAudioBuffer2[(sample * 2) + 0] = sampleVal;
+		dmaAudioBuffer2[(sample * 2) + 1] = sampleVal;
+	}
+
 	// DAC setup
-	LLPD::dac_init( true );
+	// LLPD::dac_init( true ); // for interrupt-based audio
+	LLPD::dac_init_use_dma( true, (uint32_t*) dmaAudioBuffer1, (uint32_t*) dmaAudioBuffer2, ABUFFER_SIZE );
 	// LLPD::usart_log( LOGGING_USART_NUM, "dac initialized..." );
 
 	// spi initialization
@@ -465,7 +493,8 @@ int main(void)
 	PresetManager presetManager( sizeof(ARMor8PresetHeader), 20, &eeproms );
 
 	// prepare voice manager
-	ARMor8VoiceManager voiceManager( midiHandlerPtr, &presetManager );
+	// ARMor8VoiceManager voiceManager( midiHandlerPtr, &presetManager ); // for interrupt-based audio
+	ARMor8VoiceManager voiceManager( midiHandlerPtr, &presetManager, dmaAudioBuffer1 );
 	voiceManager.bindToKeyEventSystem();
 	voiceManager.bindToPitchEventSystem();
 	voiceManager.bindToARMor8ParameterEventSystem();
@@ -605,6 +634,9 @@ int main(void)
 	SCB_InvalidateDCache();
 	SCB_EnableDCache();
 
+	// remove for interrupt-based audio
+	uint16_t* prevDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
+
 	while ( true )
 	{
 		paramEventBridge.processQueuedParameterEvents();
@@ -613,7 +645,19 @@ int main(void)
 
 		midiHandler.dispatchEvents();
 
-		audioBuffer.pollToFillBuffers();
+		// for interrupt-based audio
+		// audioBuffer.pollToFillBuffers();
+
+		// for dma-based audio
+		uint16_t* newDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
+		if ( prevDmaBuffer != newDmaBuffer )
+		{
+			voiceManager.setCurrentDmaBuffer( newDmaBuffer );
+			audioBuffer.triggerCallbacksOnNextPoll( LLPD::dac_dma_using_buffer1() );
+			audioBuffer.pollToFillBuffers();
+
+			prevDmaBuffer = newDmaBuffer;
+		}
 	}
 }
 

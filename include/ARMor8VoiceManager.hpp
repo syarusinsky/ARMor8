@@ -11,6 +11,7 @@
 #include "ARMor8Constants.hpp"
 #include "IARMor8ParameterEventListener.hpp"
 #include "Limiter.hpp"
+#include <cstdint>
 
 class MidiHandler;
 class PresetManager;
@@ -21,7 +22,7 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 				public IARMor8ParameterEventListener
 {
 	public:
-		ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager);
+		ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager, uint16_t* dmaBufferCurrent = nullptr);
 		~ARMor8VoiceManager() override;
 
 		void setMonophonic (bool on);
@@ -64,6 +65,8 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 
 		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
 
+		void setCurrentDmaBuffer (uint16_t* dmaBuffer);
+
 	private:
 		MidiHandler*   m_MidiHandler;
 		PresetManager* m_PresetManager;
@@ -82,14 +85,16 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 		unsigned int   m_Pot3AssignmentIndex;
 		unsigned int   m_Pot3AssignmentOp;
 
-		KeyEvent m_ActiveKeyEvents[MAX_VOICES];
-		unsigned int m_ActiveKeyEventIndex;
+		KeyEvent                m_ActiveKeyEvents[MAX_VOICES];
+		unsigned int            m_ActiveKeyEventIndex;
 
-		unsigned int m_PitchBendSemitones;
+		unsigned int            m_PitchBendSemitones;
 
-		ARMor8PresetHeader m_PresetHeader;
+		ARMor8PresetHeader      m_PresetHeader;
 
-		Limiter<float>        m_Limiter;
+		Limiter<float>          m_Limiter;
+
+		uint16_t* 		m_DMABufferCurrent;
 };
 
 #endif // ARMOR8VOICEMANAGER_HPP

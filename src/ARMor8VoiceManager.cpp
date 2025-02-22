@@ -5,9 +5,10 @@
 #include "PresetManager.hpp"
 #include "AudioConstants.hpp"
 #include <cmath>
+#include <cstring>
 #include <algorithm>
 
-ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager) :
+ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager, uint16_t* dmaBufferCurrent) :
 	m_MidiHandler( midiHandler ),
 	m_PresetManager( presetManager ),
 	m_Monophonic( false ),
@@ -26,7 +27,8 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 	m_ActiveKeyEventIndex( 0 ),
 	m_PitchBendSemitones( 1 ),
 	m_PresetHeader( {1, 2, 0, true} ),
-	m_Limiter( 1.0f, 50.0f, 0.8f, 1.0f )
+	m_Limiter( 1.0f, 50.0f, 0.8f, 1.0f ),
+	m_DMABufferCurrent( dmaBufferCurrent )
 {
 }
 
@@ -221,6 +223,9 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
+	// zero memory (this isn't done by default when using dma)
+	std::memset( writeBuffer, 0, ABUFFER_SIZE * sizeof(float) );
+
 	if ( ! m_Monophonic ) // if polyphonic, we sum the voices
 	{
 		m_Voice1.call( writeBuffer );
@@ -236,6 +241,16 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 	}
 
 	m_Limiter.call( writeBuffer );
+
+	// if we're using dma, offset the samples
+	if ( m_DMABufferCurrent )
+	{
+		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+		{
+			m_DMABufferCurrent[(sample * 2) + 0] = static_cast<uint16_t>( (writeBuffer[sample] * 2047.0f) + 2048.0f );
+			m_DMABufferCurrent[(sample * 2) + 1] = static_cast<uint16_t>( (writeBuffer[sample] * 2047.0f) + 2048.0f );
+		}
+	}
 }
 
 void ARMor8VoiceManager::setMonophonic (bool on)
@@ -724,6 +739,11 @@ void ARMor8VoiceManager::loadCurrentPreset()
 		IARMor8PresetEventListener::PublishEvent(
 				ARMor8PresetEvent(this->getState(), m_PresetManager->getCurrentPresetNum(), 0) );
 	}
+}
+
+void ARMor8VoiceManager::setCurrentDmaBuffer (uint16_t* dmaBuffer)
+{
+	m_DMABufferCurrent = dmaBuffer;
 }
 
 ARMor8PresetHeader ARMor8VoiceManager::getPresetHeader()
