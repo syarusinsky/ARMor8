@@ -85,7 +85,7 @@ CFLAGS += -DSTM32H745xx
 CFLAGS += -DTARGET_BUILD
 CFLAGS += -DARM_MATH_CM7
 CFLAGS += -D__FPU_PRESENT
-CFLAGS += -DSAMPLE_RATE=60000 # caching somehow seems to double the frequency??? so this is a temporary measure, should figure out later
+CFLAGS += -DSAMPLE_RATE=80000 # caching somehow seems to double the frequency??? so this is a temporary measure, should figure out later
 
 # linker directives.
 LSCRIPT = ./$(LD_SCRIPT)

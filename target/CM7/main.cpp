@@ -391,7 +391,7 @@ int main(void)
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
 	// audio timer setup (for 30 kHz sampling rate at 480 MHz / 2 timer clock)
-	LLPD::tim6_counter_setup( 0, 8000, 30000 );
+	LLPD::tim6_counter_setup( 0, 6000, 40000 );
 	// LLPD::tim6_counter_enable_interrupts(); // you need this for interrupt-based audio
 	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
 
