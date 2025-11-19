@@ -17,9 +17,12 @@
 MidiHandler* volatile midiHandlerPtr = nullptr;
 AudioBuffer<float>* volatile audioBufferPtr = nullptr;
 // because we use DTCM and the DMA controller can't access that, we use axi sram
-constexpr unsigned int dmaAudioBufferSize = ABUFFER_SIZE * 2 * sizeof(uint16_t); // x2 for packed left/right
-uint16_t* dmaAudioBuffer1 = (uint16_t*) D1_AXISRAM_BASE;
-uint16_t* dmaAudioBuffer2 = (uint16_t*) ( D1_AXISRAM_BASE + dmaAudioBufferSize );
+constexpr unsigned int dmaAudioBufferSize  = ABUFFER_SIZE * 2 * sizeof(uint16_t); // x2 for packed left/right
+constexpr unsigned int dmaSpiDacBufferSize = ABUFFER_SIZE; // 16-bit sized
+uint16_t* dmaAudioBuffer1  = (uint16_t*) D1_AXISRAM_BASE;
+uint16_t* dmaAudioBuffer2  = (uint16_t*) ( D1_AXISRAM_BASE + dmaAudioBufferSize );
+uint16_t* dmaSpiDacBuffer1 = (uint16_t*) ( D1_AXISRAM_BASE + (dmaAudioBufferSize * 2) );
+uint16_t* dmaSpiDacBuffer2 = (uint16_t*) ( dmaSpiDacBuffer1 + dmaSpiDacBufferSize );
 
 // peripheral defines
 #define OP_AMP1_INV_OUT_PORT 		GPIO_PORT::C
@@ -63,12 +66,19 @@ uint16_t* dmaAudioBuffer2 = (uint16_t*) ( D1_AXISRAM_BASE + dmaAudioBufferSize )
 #define OLED_RESET_PIN 			GPIO_PIN::PIN_13
 #define OLED_DC_PIN 			GPIO_PIN::PIN_14
 #define OLED_CS_PIN 			GPIO_PIN::PIN_11
+#define SPI_DAC_MOSI_PORT 		GPIO_PORT::G
+#define SPI_DAC_MOSI_PIN 		GPIO_PIN::PIN_14
+#define SPI_DAC_SCK_PORT 		GPIO_PORT::G
+#define SPI_DAC_SCK_PIN 		GPIO_PIN::PIN_13
+#define SPI_DAC_CS_PORT 		GPIO_PORT::A
+#define SPI_DAC_CS_PIN 			GPIO_PIN::PIN_8
 #define MIDI_USART_NUM 			USART_NUM::USART_6
 #define LOGGING_USART_NUM 		USART_NUM::USART_2
 #define EEPROM_I2C_NUM 			I2C_NUM::I2C_1
 #define SRAM_SPI_NUM 			SPI_NUM::SPI_2
 #define SD_CARD_SPI_NUM 		SPI_NUM::SPI_4
 #define OLED_SPI_NUM 			SPI_NUM::SPI_3
+#define SPI_DAC_SPI_NUM 		SPI_NUM::SPI_6
 
 // this class is specifically to check if the eeprom has been initialized with the correct code at the end of the eeprom addresses
 class Eeprom_CAT24C64_Manager_ARMor8 : public Eeprom_CAT24C64_Manager
@@ -168,8 +178,6 @@ void disableUnusedPins()
 	LLPD::gpio_output_setup( GPIO_PORT::A, GPIO_PIN::PIN_6, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::LOW );
 	LLPD::gpio_output_setup( GPIO_PORT::A, GPIO_PIN::PIN_7, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
-					GPIO_OUTPUT_SPEED::LOW );
-	LLPD::gpio_output_setup( GPIO_PORT::A, GPIO_PIN::PIN_8, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::LOW );
 	LLPD::gpio_output_setup( GPIO_PORT::A, GPIO_PIN::PIN_9, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::LOW );
@@ -317,12 +325,6 @@ void disableUnusedPins()
 					GPIO_OUTPUT_SPEED::LOW );
 	LLPD::gpio_output_setup( GPIO_PORT::G, GPIO_PIN::PIN_11, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::LOW );
-	LLPD::gpio_output_setup( GPIO_PORT::G, GPIO_PIN::PIN_12, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
-					GPIO_OUTPUT_SPEED::LOW );
-	LLPD::gpio_output_setup( GPIO_PORT::G, GPIO_PIN::PIN_13, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
-					GPIO_OUTPUT_SPEED::LOW );
-	LLPD::gpio_output_setup( GPIO_PORT::G, GPIO_PIN::PIN_14, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
-					GPIO_OUTPUT_SPEED::LOW );
 
 	LLPD::gpio_output_setup( AUDIO_IN_PORT, AUDIO1_IN_PIN, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
 					GPIO_OUTPUT_SPEED::LOW );
@@ -380,6 +382,11 @@ int main(void)
 	LLPD::gpio_enable_clock( GPIO_PORT::G );
 	LLPD::gpio_enable_clock( GPIO_PORT::H );
 
+	// setup spi dac cs pin
+	LLPD::gpio_output_setup( SPI_DAC_CS_PORT, SPI_DAC_CS_PIN, GPIO_PUPD::PULL_DOWN, GPIO_OUTPUT_TYPE::PUSH_PULL,
+					GPIO_OUTPUT_SPEED::LOW );
+	LLPD::gpio_output_set( SPI_DAC_CS_PORT, SPI_DAC_CS_PIN, true );
+
 	// disable unused pins
 	disableUnusedPins();
 
@@ -398,31 +405,42 @@ int main(void)
 	// zero-out the dma audio buffers
 	for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 	{
-		uint16_t sampleVal = 4095 / 2;
+		constexpr uint16_t sampleVal = 4095 / 2;
 		// left/right packed
 		dmaAudioBuffer1[(sample * 2) + 0] = sampleVal;
 		dmaAudioBuffer1[(sample * 2) + 1] = sampleVal;
 		dmaAudioBuffer2[(sample * 2) + 0] = sampleVal;
 		dmaAudioBuffer2[(sample * 2) + 1] = sampleVal;
+		// fit to spi-dac range (16-bit)
+		constexpr uint32_t dmaSampleVal = 65535 / 2;
+		dmaSpiDacBuffer1[sample] = dmaSampleVal;
+		dmaSpiDacBuffer2[sample] = dmaSampleVal;
 	}
+
+	// audio timer start
+	LLPD::tim6_counter_start();
+	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 started..." );
+
+	// wait until the spi dac is up
+	LLPD::tim6_delay( 2000000 );
+
+	// spi initialization
+	LLPD::spi_master_init( OLED_SPI_NUM, SPI_BAUD_RATE::SYSCLK_DIV_BY_256, SPI_CLK_POL::LOW_IDLE, SPI_CLK_PHASE::FIRST,
+				SPI_DUPLEX::FULL, SPI_FRAME_FORMAT::MSB_FIRST, SPI_DATA_SIZE::BITS_8 );
+	LLPD::spi_master_init( SPI_DAC_SPI_NUM, SPI_BAUD_RATE::SYSCLK_DIV_BY_128, SPI_CLK_POL::LOW_IDLE, SPI_CLK_PHASE::FIRST,
+				SPI_DUPLEX::SIMPLEX_TX, SPI_FRAME_FORMAT::MSB_FIRST, SPI_DATA_SIZE::BITS_16 );
+	LLPD::gpio_output_set( SPI_DAC_CS_PORT, SPI_DAC_CS_PIN, false );
+	LLPD::spi6_master_tx_dma_enable ( ABUFFER_SIZE, dmaSpiDacBuffer1, dmaSpiDacBuffer2 );
+	// LLPD::usart_log( LOGGING_USART_NUM, "spi initialized..." );
 
 	// DAC setup
 	// LLPD::dac_init( true ); // for interrupt-based audio
 	LLPD::dac_init_use_dma( true, (uint32_t*) dmaAudioBuffer1, (uint32_t*) dmaAudioBuffer2, ABUFFER_SIZE );
 	// LLPD::usart_log( LOGGING_USART_NUM, "dac initialized..." );
 
-	// spi initialization
-	LLPD::spi_master_init( OLED_SPI_NUM, SPI_BAUD_RATE::SYSCLK_DIV_BY_256, SPI_CLK_POL::LOW_IDLE, SPI_CLK_PHASE::FIRST,
-				SPI_DUPLEX::FULL, SPI_FRAME_FORMAT::MSB_FIRST, SPI_DATA_SIZE::BITS_8 );
-	// LLPD::usart_log( LOGGING_USART_NUM, "spi initialized..." );
-
 	// i2c initialization
 	LLPD::i2c_master_setup( EEPROM_I2C_NUM, 0x308075AE );
 	// LLPD::usart_log( LOGGING_USART_NUM, "i2c initialized..." );
-
-	// audio timer start
-	LLPD::tim6_counter_start();
-	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 started..." );
 
 	// adc setup (note this must be done after the tim6_counter_start() call since it uses the delay funtion)
 	LLPD::gpio_analog_setup( EFFECT_ADC_PORT, EFFECT1_ADC_PIN );
@@ -636,6 +654,7 @@ int main(void)
 
 	// remove for interrupt-based audio
 	uint16_t* prevDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
+	uint16_t* prevSpiDmaBuffer = ( LLPD::spi6_master_tx_dma_using_buffer1() ) ? dmaSpiDacBuffer1 : dmaSpiDacBuffer2;
 
 	while ( true )
 	{
@@ -645,7 +664,7 @@ int main(void)
 
 		midiHandler.dispatchEvents();
 
-		// for interrupt-based audio
+		// for interrupt-based audio, not currently using spi-dac with this method
 		// audioBuffer.pollToFillBuffers();
 
 		// for dma-based audio
@@ -657,6 +676,21 @@ int main(void)
 			audioBuffer.pollToFillBuffers();
 
 			prevDmaBuffer = newDmaBuffer;
+		}
+
+		// for spi dac dma-based audio
+		uint16_t* newSpiDmaBuffer = ( LLPD::spi6_master_tx_dma_using_buffer1() ) ? dmaSpiDacBuffer1 : dmaSpiDacBuffer2;
+		if ( prevSpiDmaBuffer != newSpiDmaBuffer )
+		{
+			// fill spi-dac buffer
+			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+			{
+				// fit to spi-dac range (16-bit)
+				const uint16_t dmaSampleVal = prevDmaBuffer[sample * 2] * 16;
+				newSpiDmaBuffer[sample] = dmaSampleVal;
+			}
+
+			prevSpiDmaBuffer = newSpiDmaBuffer;
 		}
 	}
 }
