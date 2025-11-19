@@ -685,9 +685,12 @@ int main(void)
 			// fill spi-dac buffer
 			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 			{
-				// fit to spi-dac range (16-bit)
-				const uint16_t dmaSampleVal = prevDmaBuffer[sample * 2] * 16;
+				const uint16_t dmaSampleVal = prevDmaBuffer[sample * 2];
 				newSpiDmaBuffer[sample] = dmaSampleVal;
+
+				// fit the prevDmaBuffer to 12-bit for dac
+				prevDmaBuffer[(sample * 2) + 0] = dmaSampleVal >> 4;
+				prevDmaBuffer[(sample * 2) + 1] = dmaSampleVal >> 4;
 			}
 
 			prevSpiDmaBuffer = newSpiDmaBuffer;

@@ -247,8 +247,7 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 	{
 		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 		{
-			m_DMABufferCurrent[(sample * 2) + 0] = static_cast<uint16_t>( (writeBuffer[sample] * 2047.0f) + 2048.0f );
-			m_DMABufferCurrent[(sample * 2) + 1] = static_cast<uint16_t>( (writeBuffer[sample] * 2047.0f) + 2048.0f );
+			m_DMABufferCurrent[(sample * 2)] = static_cast<uint16_t>( (writeBuffer[sample] * 32767.0f) + 32767.0f );
 		}
 	}
 }
