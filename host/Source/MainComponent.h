@@ -17,6 +17,7 @@
 #include "PresetManager.hpp"
 #include "AudioSettingsComponent.h"
 #include "ARMor8UiManager.hpp"
+#include "SampleRateConverter.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -71,6 +72,8 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		::AudioBuffer<float> sAudioBuffer;
 		ARMor8VoiceManager armor8VoiceManager;
 		bool keyButtonRelease;
+
+		SampleRateConverter<float, float> sampleRateConverter;
 
 		juce::AudioFormatWriter* writer;
 

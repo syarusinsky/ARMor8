@@ -3,6 +3,14 @@
 <JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerFormatVersion="1">
   <MAINGROUP id="Nwhz3w" name="FMSynth">
     <GROUP id="{98D80E54-6CF9-BEAB-7DA1-8D820991FECF}" name="Source">
+      <FILE id="KE7wRv" name="AntiAliasingFilter.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/AntiAliasingFilter.hpp"/>
+      <FILE id="IxAvWQ" name="SampleRateConverter.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/SampleRateConverter.hpp"/>
+      <FILE id="pg9Uvb" name="AntiAliasingFilter.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/AntiAliasingFilter.cpp"/>
+      <FILE id="plINbF" name="SampleRateConverter.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/SampleRateConverter.cpp"/>
       <FILE id="UzOnvO" name="ADSREnvelopeGenerator.cpp" compile="1" resource="0"
             file="../lib/SAL/src/ADSREnvelopeGenerator.cpp"/>
       <FILE id="qbrrWM" name="AudioBuffer.cpp" compile="1" resource="0" file="../lib/SAL/src/AudioBuffer.cpp"/>

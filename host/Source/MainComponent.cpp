@@ -41,6 +41,7 @@ MainComponent::MainComponent() :
 	sAudioBuffer(),
 	armor8VoiceManager( &midiHandler, &presetManager ),
 	keyButtonRelease( false ),
+	sampleRateConverter( 96000, SAMPLE_RATE, 512 ),
 	writer(),
 	effect1Sldr(),
 	effect1Lbl(),
@@ -424,6 +425,11 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 	// but be careful - it will be called on the audio thread, not the GUI thread.
 
 	// For more details, see the help for AudioProcessor::prepareToPlay()
+	sampleRateConverter.setSourceRate( static_cast<unsigned int>(sampleRate) );
+	sampleRateConverter.setSourceBufferSize( samplesPerBlockExpected );
+	sampleRateConverter.resetAAFilters();
+	std::cout << "prepareToPlay called! rate=" << std::to_string(sampleRateConverter.getSourceRate())
+		<< ", bufferSize=" << std::to_string(sampleRateConverter.getSourceBufferSize())	<< std::endl;
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -437,19 +443,45 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 	// bufferToFill.clearActiveBufferRegion();
 	try
 	{
-		float* writePtrR = bufferToFill.buffer->getWritePointer( 1 );
-		float* writePtrL = bufferToFill.buffer->getWritePointer( 0 );
-		const float* readPtrR = bufferToFill.buffer->getReadPointer( 0 );
+		const float* inBufferL = bufferToFill.buffer->getReadPointer( 0, bufferToFill.startSample );
+		const float* inBufferR = bufferToFill.buffer->getReadPointer( 1, bufferToFill.startSample );
+		float* outBufferL = bufferToFill.buffer->getWritePointer( 0, bufferToFill.startSample );
+		float* outBufferR = bufferToFill.buffer->getWritePointer( 1, bufferToFill.startSample );
 
-		for ( int i = 0; i < bufferToFill.numSamples; i++ )
+		// if downsampling, anti-alias filter the source
+		if ( ! sampleRateConverter.sourceToTargetIsUpsampling() )
 		{
-			float value = sAudioBuffer.getNextSample();
-			writePtrR[i] = value;
-			writePtrL[i] = value;
-			// testFile << readPtrR[i] << std::endl;
+			float* inBufferLNonConst = const_cast<float*>( inBufferL );
+			sampleRateConverter.filterSourceToTargetDownsampling( inBufferLNonConst );
 		}
 
-		sAudioBuffer.pollToFillBuffers();
+		const unsigned int maxTargetBufferSize = static_cast<unsigned int>( std::ceil(sampleRateConverter.getFractionalTargetBufferSize()) );
+		float targetBuffer[ maxTargetBufferSize ]; // ceil, since can be fractional
+
+		const unsigned int actualTargetBufferSize = sampleRateConverter.convertFromSourceToTargetDownsampling( inBufferL, targetBuffer );
+
+		// then pass this audio into the target
+		for ( unsigned int sample = 0;
+				sample < actualTargetBufferSize;
+				sample++ )
+		{
+			targetBuffer[sample] = sAudioBuffer.getNextSample( targetBuffer[sample] );
+			sAudioBuffer.pollToFillBuffers();
+		}
+
+		// now we need to convert back
+		sampleRateConverter.convertFromTargetToSourceUpsampling( targetBuffer, actualTargetBufferSize, outBufferL );
+
+		// if upsampling, anti-alias filter the source
+		if ( sampleRateConverter.targetToSourceIsUpsampling() )
+		{
+			sampleRateConverter.filterTargetToSourceUpsampling( outBufferL );
+		}
+
+		for ( auto sample = bufferToFill.startSample; sample < bufferToFill.numSamples; sample++ )
+		{
+			outBufferR[sample] = outBufferL[sample];
+		}
 	}
 	catch ( std::exception& e )
 	{

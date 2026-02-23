@@ -4,7 +4,7 @@
 #include <limits>
 
 #ifndef ARMOR8_MIDI_CHANNEL
-constexpr unsigned int ARMOR8_MIDI_CHANNEL = 1;
+constexpr unsigned int ARMOR8_MIDI_CHANNEL = 0;
 #endif
 
 constexpr unsigned int ARMOR8_MIN_MIDI_VELOCITY = 30; // the lowest midi velocity to trigger a key press
