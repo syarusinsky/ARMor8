@@ -60,7 +60,7 @@ ASFLAGS += -Wall
 ASFLAGS += -fmessage-length=0
 
 # c/c++ compilation directives
-CFLAGS =  -std=gnu++11
+CFLAGS =  -std=gnu++17
 CFLAGS += -mcpu=$(MCU_SPEC)
 CFLAGS += -mthumb-interwork
 CFLAGS += -mhard-float

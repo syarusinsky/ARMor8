@@ -223,6 +223,9 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
+	// TODO need to remove clicking sound (test on host to make sure it sounds good there first)
+	// then need to remove crackling sounds by optimizing code
+
 	// zero memory (this isn't done by default when using dma)
 	std::memset( writeBuffer, 0, ABUFFER_SIZE * sizeof(float) );
 
@@ -242,14 +245,15 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 
 	m_Limiter.call( writeBuffer );
 
-	// if we're using dma, offset the samples
-	if ( m_DMABufferCurrent )
-	{
+	// // if we're using dma, offset the samples (just commenting this out now to remove the branching)
+	// if ( m_DMABufferCurrent )
+	// {
 		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 		{
-			m_DMABufferCurrent[(sample * 2)] = static_cast<uint16_t>( (writeBuffer[sample] * 32767.0f) + 32767.0f );
+			const float sampleVal = std::clamp( writeBuffer[sample], -1.0f, 1.0f );
+			m_DMABufferCurrent[sample] = static_cast<uint16_t>( (sampleVal * 32767.0f) + 32767.0f );
 		}
-	}
+	// }
 }
 
 void ARMor8VoiceManager::setMonophonic (bool on)

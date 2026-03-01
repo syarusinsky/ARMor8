@@ -397,7 +397,7 @@ int main(void)
 	LLPD::usart_init( MIDI_USART_NUM, USART_WORD_LENGTH::BITS_8, USART_PARITY::NONE, USART_CONF::TX_AND_RX,
 					USART_STOP_BITS::BITS_1, 120000000, 31250 );
 
-	// audio timer setup (for 30 kHz sampling rate at 480 MHz / 2 timer clock)
+	// audio timer setup (for 40 kHz sampling rate at 480 MHz / 2 timer clock)
 	LLPD::tim6_counter_setup( 0, 6000, 40000 );
 	// LLPD::tim6_counter_enable_interrupts(); // you need this for interrupt-based audio
 	// LLPD::usart_log( LOGGING_USART_NUM, "tim6 initialized..." );
@@ -435,7 +435,7 @@ int main(void)
 
 	// DAC setup
 	// LLPD::dac_init( true ); // for interrupt-based audio
-	LLPD::dac_init_use_dma( true, (uint32_t*) dmaAudioBuffer1, (uint32_t*) dmaAudioBuffer2, ABUFFER_SIZE );
+	// LLPD::dac_init_use_dma( true, (uint32_t*) dmaAudioBuffer1, (uint32_t*) dmaAudioBuffer2, ABUFFER_SIZE );
 	// LLPD::usart_log( LOGGING_USART_NUM, "dac initialized..." );
 
 	// i2c initialization
@@ -653,7 +653,7 @@ int main(void)
 	SCB_EnableDCache();
 
 	// remove for interrupt-based audio
-	uint16_t* prevDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
+	// uint16_t* prevDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
 	uint16_t* prevSpiDmaBuffer = ( LLPD::spi6_master_tx_dma_using_buffer1() ) ? dmaSpiDacBuffer1 : dmaSpiDacBuffer2;
 
 	while ( true )
@@ -668,30 +668,24 @@ int main(void)
 		// audioBuffer.pollToFillBuffers();
 
 		// for dma-based audio
-		uint16_t* newDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
-		if ( prevDmaBuffer != newDmaBuffer )
-		{
-			voiceManager.setCurrentDmaBuffer( newDmaBuffer );
-			audioBuffer.triggerCallbacksOnNextPoll( LLPD::dac_dma_using_buffer1() );
-			audioBuffer.pollToFillBuffers();
+		// uint16_t* newDmaBuffer = ( LLPD::dac_dma_using_buffer1() ) ? dmaAudioBuffer1 : dmaAudioBuffer2;
+		// if ( prevDmaBuffer != newDmaBuffer )
+		// {
+		// 	voiceManager.setCurrentDmaBuffer( newDmaBuffer );
+		// 	audioBuffer.triggerCallbacksOnNextPoll( LLPD::dac_dma_using_buffer1() );
+		// 	audioBuffer.pollToFillBuffers();
 
-			prevDmaBuffer = newDmaBuffer;
-		}
+		// 	prevDmaBuffer = newDmaBuffer;
+		// }
 
 		// for spi dac dma-based audio
-		uint16_t* newSpiDmaBuffer = ( LLPD::spi6_master_tx_dma_using_buffer1() ) ? dmaSpiDacBuffer1 : dmaSpiDacBuffer2;
+		const bool spi6UsingBuffer1 = LLPD::spi6_master_tx_dma_using_buffer1();
+		uint16_t* newSpiDmaBuffer = ( spi6UsingBuffer1 ) ? dmaSpiDacBuffer1 : dmaSpiDacBuffer2;
 		if ( prevSpiDmaBuffer != newSpiDmaBuffer )
 		{
-			// fill spi-dac buffer
-			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
-			{
-				const uint16_t dmaSampleVal = prevDmaBuffer[sample * 2];
-				newSpiDmaBuffer[sample] = dmaSampleVal;
-
-				// fit the prevDmaBuffer to 12-bit for dac
-				prevDmaBuffer[(sample * 2) + 0] = dmaSampleVal >> 4;
-				prevDmaBuffer[(sample * 2) + 1] = dmaSampleVal >> 4;
-			}
+			voiceManager.setCurrentDmaBuffer( newSpiDmaBuffer );
+			audioBuffer.triggerCallbacksOnNextPoll( spi6UsingBuffer1 );
+			audioBuffer.pollToFillBuffers();
 
 			prevSpiDmaBuffer = newSpiDmaBuffer;
 		}
