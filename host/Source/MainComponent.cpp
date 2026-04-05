@@ -360,6 +360,14 @@ bool MainComponent::keyPressed (const juce::KeyPress& k)
 		effect1Btn.setState( juce::Button::ButtonState::buttonDown );
 		effect2Btn.setState( juce::Button::ButtonState::buttonDown );
 	}
+	else if ( k.getTextCharacter() = '9' )
+	{
+		effect1Btn.setState( juce::Button::ButtonState::buttonDown );
+	}
+	else if ( k.getTextCharacter() == '0' )
+	{
+		effect2Btn.setState( juce::Button::ButtonState::buttonDown );
+	}
 
 	return true;
 }

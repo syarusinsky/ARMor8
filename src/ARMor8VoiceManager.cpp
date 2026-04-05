@@ -245,6 +245,7 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 
 	m_Limiter.call( writeBuffer );
 
+#ifdef TARGET_BUILD
 	// // if we're using dma, offset the samples (just commenting this out now to remove the branching)
 	// if ( m_DMABufferCurrent )
 	// {
@@ -254,6 +255,14 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 			m_DMABufferCurrent[sample] = static_cast<uint16_t>( (sampleVal * 32767.0f) + 32767.0f );
 		}
 	// }
+#else
+		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+		{
+			const float sampleVal = std::clamp( writeBuffer[sample], -1.0f, 1.0f );
+			const uint16_t crushedVal = static_cast<uint16_t>( (sampleVal * 32767.0f) + 32767.0f );
+			writeBuffer[sample] = ( crushedVal - 32767.0f ) / 32767.0f;
+		}
+#endif
 }
 
 void ARMor8VoiceManager::setMonophonic (bool on)
