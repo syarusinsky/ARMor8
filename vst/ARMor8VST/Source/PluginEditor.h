@@ -27,6 +27,8 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    unsigned int getProcessorEditorId() { return processorEditorId; }
+
 private:
     void timerCallback() override;
     void sliderValueChanged (juce::Slider* slider) override;
@@ -57,6 +59,8 @@ private:
     juce::TextButton effect2Btn;
 
     juce::Image screenRep;
+
+    unsigned int processorEditorId;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ARMor8VSTAudioProcessorEditor)
 };

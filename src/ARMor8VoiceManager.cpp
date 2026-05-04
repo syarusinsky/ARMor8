@@ -30,10 +30,18 @@ ARMor8VoiceManager::ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager*
 	m_Limiter( 1.0f, 50.0f, 0.8f, 1.0f ),
 	m_DMABufferCurrent( dmaBufferCurrent )
 {
+	// bind to event system
+	this->bindToKeyEventSystem();
+	this->bindToPitchEventSystem();
+	this->bindToARMor8ParameterEventSystem();
 }
 
 ARMor8VoiceManager::~ARMor8VoiceManager()
 {
+	// unbind from event system
+	this->unbindFromKeyEventSystem();
+	this->unbindFromPitchEventSystem();
+	this->unbindFromARMor8ParameterEventSystem();
 }
 
 void ARMor8VoiceManager::setOperatorFreq (unsigned int opNum, float freq)
@@ -258,9 +266,8 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 #else
 		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 		{
-			const float sampleVal = std::clamp( writeBuffer[sample], -1.0f, 1.0f );
-			const uint16_t crushedVal = static_cast<uint16_t>( (sampleVal * 32767.0f) + 32767.0f );
-			writeBuffer[sample] = ( crushedVal - 32767.0f ) / 32767.0f;
+			const float clampedSampleVal = std::clamp( writeBuffer[sample], -1.0f, 1.0f );
+			writeBuffer[sample] = clampedSampleVal;
 		}
 #endif
 }

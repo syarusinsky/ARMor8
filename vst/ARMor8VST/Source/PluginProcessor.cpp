@@ -32,26 +32,19 @@ ARMor8VSTAudioProcessor::ARMor8VSTAudioProcessor()
                                   { std::make_unique<AudioParameterFloat> ("effect1", "Effect 1", NormalisableRange<float> (0.0f, 1.0f), 0),
                                     std::make_unique<AudioParameterFloat> ("effect2", "Effect 2", NormalisableRange<float> (0.0f, 1.0f), 0),
                                     std::make_unique<AudioParameterFloat> ("effect3", "Effect 3", NormalisableRange<float> (0.0f, 1.0f), 0),
-                                  })
+                                  }),
 #ifndef JucePlugin_PreferredChannelConfigurations
-      , AudioProcessor (BusesProperties()
+      AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
 #endif
+      processorId( IEventListener::getGlobalJuceProcessorId() )
 {
-    // connecting to event system
-    armor8VoiceManager.bindToKeyEventSystem();
-    armor8VoiceManager.bindToPitchEventSystem();
-    armor8VoiceManager.bindToARMor8ParameterEventSystem();
-    armor8UiManager.bindToARMor8PresetEventSystem();
-    armor8UiManager.bindToPotEventSystem();
-    armor8UiManager.bindToButtonEventSystem();
-
     // add font and image to ui
     armor8UiManager.setFont( &font );
     armor8UiManager.setLogo( &logo );
@@ -175,7 +168,8 @@ ARMor8VSTAudioProcessor::ARMor8VSTAudioProcessor()
     presetManager.upgradePresets( &presetUpgrader );
 
     sAudioBuffer.registerCallback( &armor8VoiceManager );
-    armor8UiManager.draw();
+
+    armor8UiManager.endLoading();
 }
 
 ARMor8VSTAudioProcessor::~ARMor8VSTAudioProcessor()
@@ -354,6 +348,8 @@ void ARMor8VSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
         midiHandler.dispatchEvents();
     }
+
+    this->dispatchEventsForIds( processorId, processorEditorId );
 }
 
 //==============================================================================
@@ -364,7 +360,11 @@ bool ARMor8VSTAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* ARMor8VSTAudioProcessor::createEditor()
 {
-    return new ARMor8VSTAudioProcessorEditor (*this);
+    ARMor8VSTAudioProcessorEditor* editor = new ARMor8VSTAudioProcessorEditor( *this );
+    processorEditorId = editor->getProcessorEditorId();
+    this->dispatchEventsForIds( processorId, processorEditorId );
+
+    return editor;
 }
 
 //==============================================================================
@@ -400,9 +400,31 @@ void ARMor8VSTAudioProcessor::setStateInformation (const void* data, int sizeInB
                 juce::MemoryBlock* voiceStateMemoryBlock = apvts.state.getProperty("voiceState").getBinaryData();
                 ARMor8VoiceState voiceState = *( reinterpret_cast<ARMor8VoiceState*>(voiceStateMemoryBlock->getData()) );
                 armor8VoiceManager.setState( voiceState );
+
+                this->dispatchEventsForIds( processorId, processorEditorId );
             }
         }
     }
+}
+
+void ARMor8VSTAudioProcessor::dispatchEventsForIds (const unsigned int processorId, const unsigned int processorEditorId)
+{
+    // The sequencing of these calls is extremely important and it's possible for other projects that the juceDispatchQueuedEvents function
+    // may need to be called more than once if the event handling of a different event listener publishes new events to an event listener that
+    // has already called it's juceDispatchQueuedEvents function. For example with this project IPotEventListener and IButtonEventListener handling
+    // publishes IARMor8ParameterEventListener and IARMor8ParameterEventListener events, so they must be called first. Likewise, the handling of
+    // IARMor8ParameterEventListener and IARMor8LCDRefreshEventListener events publishes IARMor8LCDRefreshEventListener events, so those must
+    // be called before IARMor8LCDRefreshEventListener. The onus is on the user to sequence these correctly in the most performant way possible.
+    EventDispatcher<IPotEventListener, PotEvent, &IPotEventListener::onPotEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
+    EventDispatcher<IButtonEventListener, ButtonEvent, &IButtonEventListener::onButtonEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
+    EventDispatcher<IARMor8ParameterEventListener, ARMor8ParameterEvent,
+                    &IARMor8ParameterEventListener::onARMor8ParameterEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
+    EventDispatcher<IARMor8PresetEventListener, ARMor8PresetEvent,
+                    &IARMor8PresetEventListener::onARMor8PresetChangedEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
+    EventDispatcher<IARMor8LCDRefreshEventListener, ARMor8LCDRefreshEvent,
+                    &IARMor8LCDRefreshEventListener::onARMor8LCDRefreshEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
+    EventDispatcher<IKeyEventListener, KeyEvent, &IKeyEventListener::onKeyEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
+    EventDispatcher<IPitchEventListener, PitchEvent, &IPitchEventListener::onPitchEvent>::juceDispatchQueuedEvents( processorId, processorEditorId );
 }
 
 //==============================================================================

@@ -178,9 +178,6 @@ int main(void)
 	// UI manager setup
 	Font font( Smoll_data );
 	ARMor8UiManager uiManager( SH1106_LCDWIDTH, SH1106_LCDHEIGHT, CP_FORMAT::MONOCHROME_1BIT );
-	uiManager.bindToButtonEventSystem();
-	uiManager.bindToPotEventSystem();
-	uiManager.bindToARMor8PresetEventSystem();
 	uiManager.setFont( &font );
 	uiManagerPtr = &uiManager;
 	uiManager.endLoading();

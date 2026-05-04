@@ -65,12 +65,6 @@ MainComponent::MainComponent() :
 	// connecting to event system
 	this->bindToARMor8PresetEventSystem();
 	this->bindToARMor8LCDRefreshEventSystem();
-	armor8VoiceManager.bindToKeyEventSystem();
-	armor8VoiceManager.bindToPitchEventSystem();
-	armor8VoiceManager.bindToARMor8ParameterEventSystem();
-	uiSim.bindToARMor8PresetEventSystem();
-	uiSim.bindToPotEventSystem();
-	uiSim.bindToButtonEventSystem();
 
 	// load font and logo from file
 	char* fontBytes = new char[FONT_FILE_SIZE];
@@ -360,7 +354,7 @@ bool MainComponent::keyPressed (const juce::KeyPress& k)
 		effect1Btn.setState( juce::Button::ButtonState::buttonDown );
 		effect2Btn.setState( juce::Button::ButtonState::buttonDown );
 	}
-	else if ( k.getTextCharacter() = '9' )
+	else if ( k.getTextCharacter() == '9' )
 	{
 		effect1Btn.setState( juce::Button::ButtonState::buttonDown );
 	}

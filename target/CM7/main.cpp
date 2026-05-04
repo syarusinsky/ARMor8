@@ -513,9 +513,6 @@ int main(void)
 	// prepare voice manager
 	// ARMor8VoiceManager voiceManager( midiHandlerPtr, &presetManager ); // for interrupt-based audio
 	ARMor8VoiceManager voiceManager( midiHandlerPtr, &presetManager, dmaAudioBuffer1 );
-	voiceManager.bindToKeyEventSystem();
-	voiceManager.bindToPitchEventSystem();
-	voiceManager.bindToARMor8ParameterEventSystem();
 
 	// define initialized preset values
 	ARMor8VoiceState initPreset =

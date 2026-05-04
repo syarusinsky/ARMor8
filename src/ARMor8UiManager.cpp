@@ -129,10 +129,19 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_SelectWaveformMenuSquareIndex = m_SelectWaveformModel.addEntry( "Use square" );
 	m_SelectWaveformMenuSawIndex = m_SelectWaveformModel.addEntry( "Use saw" );
 	m_SelectWaveformMenuExitMenuIndex = m_SelectWaveformModel.addEntry( "> Exit menu" );
+
+	// bind to event system
+	this->bindToButtonEventSystem();
+	this->bindToPotEventSystem();
+	this->bindToARMor8PresetEventSystem();
 }
 
 ARMor8UiManager::~ARMor8UiManager()
 {
+	// unbind from event system
+	this->unbindFromButtonEventSystem();
+	this->unbindFromPotEventSystem();
+	this->unbindFromARMor8PresetEventSystem();
 }
 
 void ARMor8UiManager::setFont (Font* font)

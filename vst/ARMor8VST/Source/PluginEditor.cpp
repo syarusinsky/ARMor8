@@ -26,7 +26,8 @@ ARMor8VSTAudioProcessorEditor::ARMor8VSTAudioProcessorEditor (ARMor8VSTAudioProc
       effect3SldrAttachment( std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.getVTS(), "effect3", effect3Sldr) ),
       effect1Btn( "Effect 1" ),
       effect2Btn( "Effect 2" ),
-      screenRep( juce::Image::RGB, 256, 128, true ) // this is actually double the size so we can actually see it
+      screenRep( juce::Image::RGB, 256, 128, true ), // this is actually double the size so we can actually see it
+      processorEditorId( IEventListener::getGlobalJuceProcessorId() )
 {
     // adding all child components
     addAndMakeVisible( effect1Sldr );
@@ -59,14 +60,6 @@ ARMor8VSTAudioProcessorEditor::ARMor8VSTAudioProcessorEditor (ARMor8VSTAudioProc
     setSize( 800, 600 );
 
     this->bindToARMor8LCDRefreshEventSystem();
-
-    // set initial values
-    float effect1SldrPercentage = (effect1Sldr.getValue() - effect1Sldr.getMinimum()) / (effect1Sldr.getMaximum() - effect1Sldr.getMinimum());
-    float effect2SldrPercentage = (effect2Sldr.getValue() - effect2Sldr.getMinimum()) / (effect2Sldr.getMaximum() - effect2Sldr.getMinimum());
-    float effect3SldrPercentage = (effect3Sldr.getValue() - effect3Sldr.getMinimum()) / (effect3Sldr.getMaximum() - effect3Sldr.getMinimum());
-    IPotEventListener::PublishEvent( PotEvent(effect1SldrPercentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT1)) );
-    IPotEventListener::PublishEvent( PotEvent(effect2SldrPercentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT2)) );
-    IPotEventListener::PublishEvent( PotEvent(effect3SldrPercentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT3)) );
 
     // draw the target ui
     audioProcessor.getARMor8UiManager().draw();
@@ -102,9 +95,6 @@ void ARMor8VSTAudioProcessorEditor::resized()
 void ARMor8VSTAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
     // using timer callback to process input instead
-
-    // TODO not a good way to test the target's ui since we should be only updating the dirty part of the screen, but for now I'm lazy
-    audioProcessor.getARMor8UiManager().draw();
 }
 
 bool ARMor8VSTAudioProcessorEditor::keyPressed (const juce::KeyPress& k)
@@ -141,49 +131,34 @@ bool ARMor8VSTAudioProcessorEditor::keyStateChanged (bool isKeyDown)
 void ARMor8VSTAudioProcessorEditor::buttonClicked (juce::Button* button)
 {
     // using timer callback to process input instead
-
-    // TODO not a good way to test the target's ui since we should be only updating the dirty part of the screen, but for now I'm lazy
-    audioProcessor.getARMor8UiManager().draw();
 }
 
 void ARMor8VSTAudioProcessorEditor::timerCallback()
 {
-    static unsigned int fakeLoadingCounter = 100;
+    ARMor8UiManager& armor8UiManager = audioProcessor.getARMor8UiManager();
+    armor8UiManager.tickForChangingBackToStatus();
+    armor8UiManager.processEffect1Btn( effect1Btn.isDown() );
 
-    if ( fakeLoadingCounter == 100 )
-    {
-        fakeLoadingCounter++;
+    // since the effect button holding logic requires the sequencing of the button events to be in order, we need to dispatch here as well
+    audioProcessor.dispatchEventsForIds( audioProcessor.getProcessorId(), processorEditorId );
 
-        // set preset to first preset
-        // audioProcessor.getARMor8VoiceManager().loadCurrentPreset();
+    armor8UiManager.processEffect2Btn( effect2Btn.isDown() );
 
-        audioProcessor.getARMor8UiManager().endLoading();
-    }
-    else if ( fakeLoadingCounter < 100 )
-    {
-        audioProcessor.getARMor8UiManager().drawLoadingLogo();
-        fakeLoadingCounter++;
-    }
-    else
-    {
-        audioProcessor.getARMor8UiManager().tickForChangingBackToStatus();
-        audioProcessor.getARMor8UiManager().processEffect1Btn( effect1Btn.isDown() );
-        audioProcessor.getARMor8UiManager().processEffect2Btn( effect2Btn.isDown() );
+    double effect1Val = effect1Sldr.getValue();
+    float effect1Percentage = ( effect1Sldr.getValue() - effect1Sldr.getMinimum() )
+                                / ( effect1Sldr.getMaximum() - effect1Sldr.getMinimum() );
+    double effect2Val = effect2Sldr.getValue();
+    float effect2Percentage = ( effect2Sldr.getValue() - effect2Sldr.getMinimum() )
+                                / ( effect2Sldr.getMaximum() - effect2Sldr.getMinimum() );
+    double effect3Val = effect3Sldr.getValue();
+    float effect3Percentage = ( effect3Sldr.getValue() - effect3Sldr.getMinimum() )
+                                / ( effect3Sldr.getMaximum() - effect3Sldr.getMinimum() );
 
-        double effect1Val = effect1Sldr.getValue();
-        float effect1Percentage = ( effect1Sldr.getValue() - effect1Sldr.getMinimum() )
-                                    / ( effect1Sldr.getMaximum() - effect1Sldr.getMinimum() );
-        double effect2Val = effect2Sldr.getValue();
-        float effect2Percentage = ( effect2Sldr.getValue() - effect2Sldr.getMinimum() )
-                                    / ( effect2Sldr.getMaximum() - effect2Sldr.getMinimum() );
-        double effect3Val = effect3Sldr.getValue();
-        float effect3Percentage = ( effect3Sldr.getValue() - effect3Sldr.getMinimum() )
-                                    / ( effect3Sldr.getMaximum() - effect3Sldr.getMinimum() );
+    IPotEventListener::PublishEvent( PotEvent(effect1Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT1)) );
+    IPotEventListener::PublishEvent( PotEvent(effect2Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT2)) );
+    IPotEventListener::PublishEvent( PotEvent(effect3Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT3)) );
 
-        IPotEventListener::PublishEvent( PotEvent(effect1Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT1)) );
-        IPotEventListener::PublishEvent( PotEvent(effect2Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT2)) );
-        IPotEventListener::PublishEvent( PotEvent(effect3Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT3)) );
-    }
+    audioProcessor.dispatchEventsForIds( audioProcessor.getProcessorId(), processorEditorId );
 }
 
 void ARMor8VSTAudioProcessorEditor::onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRefreshEvent)
