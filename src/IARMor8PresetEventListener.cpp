@@ -4,10 +4,11 @@
 EventDispatcher<IARMor8PresetEventListener, ARMor8PresetEvent,
 		&IARMor8PresetEventListener::onARMor8PresetChangedEvent> IARMor8PresetEventListener::m_EventDispatcher;
 
-ARMor8PresetEvent::ARMor8PresetEvent (const ARMor8VoiceState& preset, unsigned int presetNum, unsigned int channel) :
+ARMor8PresetEvent::ARMor8PresetEvent (const ARMor8VoiceState& preset, unsigned int presetNum, unsigned int channel, const ARMor8PresetEventTypeEnum& type) :
 	IEvent( channel ),
 	m_Preset( preset ),
-	m_PresetNum( presetNum )
+	m_PresetNum( presetNum ),
+	m_Type( type )
 {
 }
 

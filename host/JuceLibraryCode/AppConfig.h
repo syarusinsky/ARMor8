@@ -194,7 +194,7 @@
 #endif
 
 #ifndef    JUCE_INCLUDE_ZLIB_CODE
- //#define JUCE_INCLUDE_ZLIB_CODE 1
+ #define   JUCE_INCLUDE_ZLIB_CODE 1
 #endif
 
 #ifndef    JUCE_USE_CURL
@@ -278,7 +278,7 @@
 // juce_gui_extra flags:
 
 #ifndef    JUCE_WEB_BROWSER
- //#define JUCE_WEB_BROWSER 1
+ #define   JUCE_WEB_BROWSER 0
 #endif
 
 #ifndef    JUCE_USE_WIN_WEBVIEW2

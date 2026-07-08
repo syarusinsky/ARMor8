@@ -29,7 +29,12 @@ enum class ARMOR8_MENUS : unsigned int
 	ASSIGN_EFFECT_POT,
 	SELECT_OPERATOR,
 	SELECT_WAVEFORM,
-	WRITE_PRESET_CONFIRMATION
+	WRITE_PRESET_CONFIRMATION,
+	// preset sending/receiving
+	SENDER,
+	RECEIVER,
+	SENDING,
+	RECEIVING,
 };
 
 class Font;
@@ -60,6 +65,11 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 
 		void processEffect1Btn (bool pressed);
 		void processEffect2Btn (bool pressed);
+
+		void tickForEffectBtn2Hold (float microseconds);
+
+		// feed in the potentiometer parameter assignment index to get a value between 0.0f and 1.0f corresponding to the parameter value in the voice state on operator 1
+		float potAssignmentIndexToParameterVal (const ARMor8VoiceState& state, unsigned int operatorNum, unsigned int potIndex);
 
 	private:
 		Sprite* 	m_Logo;
@@ -142,6 +152,10 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		float 		m_Pot1StabilizerCachedPer; // cached percentage for switching between status submenus
 		float 		m_Pot2StabilizerCachedPer;
 		float 		m_Pot3StabilizerCachedPer;
+
+		// for preset sending/receiving
+		float 		m_TickForEffectBtn2Hold; // in microseconds
+		constexpr static float m_TickForEffectBtn2HoldMax = 1000000.0f; // need to hold effect button 2 for 1 second to get to preset sender menu
 
 		// main settings menu indices
 		unsigned int 	m_SettingsMenuAssignEffect1Index;
@@ -237,6 +251,10 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void enterSelectOperatorMenu();
 		void enterSelectWaveformMenu();
 		void enterWritePresetConfirmation();
+		void switchToSenderMenu();
+		void switchToReceiverMenu(bool receiveAllPresets);
+		void switchToSendingMenu (bool sendAllPresets);
+		void switchToReceivingMenu (bool receiveAllPresets);
 
 		void assignEffectPot();
 		void sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val, bool menuThreshBroken);

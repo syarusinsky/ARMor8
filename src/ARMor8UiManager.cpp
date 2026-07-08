@@ -9,6 +9,7 @@
 #include "IButtonEventListener.hpp"
 
 static inline float AUDIO_TAPER (float input) { return pow(input, 2); }
+static inline float INVERSE_AUDIO_TAPER (float input) { return std::sqrt(input); }
 
 constexpr unsigned int SETTINGS_NUM_VISIBLE_ENTRIES = 6;
 
@@ -77,7 +78,8 @@ ARMor8UiManager::ARMor8UiManager (unsigned int width, unsigned int height, const
 	m_Pot3StabilizerValue( 0.0f ),
 	m_Pot1StabilizerCachedPer( 0.0f ),
 	m_Pot2StabilizerCachedPer( 0.0f ),
-	m_Pot3StabilizerCachedPer( 0.0f )
+	m_Pot3StabilizerCachedPer( 0.0f ),
+	m_TickForEffectBtn2Hold( 0.0f )
 {
 	// add entries to main settings menu and store indices for comparison
 	m_SettingsMenuAssignEffect1Index = m_SettingsMainModel.addEntry( "Assign EFFECT1" );
@@ -358,221 +360,242 @@ void ARMor8UiManager::tickForChangingBackToStatus()
 
 void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent)
 {
-	this->lockAllPots();
-
-	ARMor8VoiceState voiceState = presetEvent.getPreset();
-	m_CurrentPresetNum = presetEvent.getPresetNum() + 1;
-
-	// buffer for holding parameter strings
-	const unsigned int bufferLen = 20;
-	char buffer[bufferLen];
-
-	this->updateOpNumberStr( buffer, bufferLen );
-	this->updatePrstNumberStr( buffer, bufferLen);
-
-	float amplitude     = 0.0f;
-	float frequency     = 0.0f;
-	int   detune        = 0;
-	float filtFrequency = 0.0f;
-	float attackAmount  = 0.0f;
-	float decayAmount   = 0.0f;
-	float sustainAmount = 0.0f;
-	float releaseAmount = 0.0f;
-	float attackExpo    = 0.0f;
-	float decayExpo     = 0.0f;
-	float releaseExpo   = 0.0f;
-	float op1ModAmount  = 0.0f;
-	float op2ModAmount  = 0.0f;
-	float op3ModAmount  = 0.0f;
-	float op4ModAmount  = 0.0f;
-	bool  egDestAmpl    = false;
-	bool  egDestFreq    = false;
-	bool  egDestFilt    = false;
-	bool  usingRatio    = false;
-	bool  usingGlide    = voiceState.glideRetrigger;
-	bool  usingMono     = voiceState.monophonic;
-	float amplitudeVel  = 0.0f;
-	float filterVel     = 0.0f;
-	float glideTime     = voiceState.glideTime;
-	OscillatorMode wave = OscillatorMode::SINE;
-	unsigned int pitchBendSemitones = voiceState.pitchBendSemitones;
-	float filterRes     = 0.0f;
-	m_Effect1PotAssignmentIndex = voiceState.pot1AssignmentIndex;
-	m_Effect1PotAssignmentOp = voiceState.pot1AssignmentOp;
-	m_Effect2PotAssignmentIndex = voiceState.pot2AssignmentIndex;
-	m_Effect2PotAssignmentOp = voiceState.pot2AssignmentOp;
-	m_Effect3PotAssignmentIndex = voiceState.pot3AssignmentIndex;
-	m_Effect3PotAssignmentOp = voiceState.pot3AssignmentOp;
-
-	switch ( m_OpCurrentlyBeingEdited )
+	if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::LOAD_PRESET
+			|| presetEvent.getType() == ARMor8PresetEventTypeEnum::DENY_PRESET
+			|| presetEvent.getType() == ARMor8PresetEventTypeEnum::FINISHED_SENDING_OR_RECEIVING_PRESETS )
 	{
-		case 1:
-			amplitude     = voiceState.amplitude1;
-			frequency     = voiceState.frequency1;
-			detune        = voiceState.detune1;
-			filtFrequency = voiceState.filterFreq1;
-			attackAmount  = voiceState.attack1;
-			decayAmount   = voiceState.decay1;
-			sustainAmount = voiceState.sustain1;
-			releaseAmount = voiceState.release1;
-			attackExpo    = voiceState.attackExpo1;
-			decayExpo     = voiceState.decayExpo1;
-			releaseExpo   = voiceState.releaseExpo1;
-			op1ModAmount  = voiceState.op1ModAmount1;
-			op2ModAmount  = voiceState.op2ModAmount1;
-			op3ModAmount  = voiceState.op3ModAmount1;
-			op4ModAmount  = voiceState.op4ModAmount1;
-			egDestAmpl    = voiceState.egAmplitudeMod1;
-			egDestFreq    = voiceState.egFrequencyMod1;
-			egDestFilt    = voiceState.egFilterMod1;
-			usingRatio    = voiceState.useRatio1;
-			amplitudeVel  = voiceState.ampVelSens1;
-			filterVel     = voiceState.filtVelSens1;
-			wave          = voiceState.wave1;
-			filterRes     = voiceState.filterRes1;
+		this->lockAllPots();
 
-			break;
-		case 2:
-			amplitude     = voiceState.amplitude2;
-			frequency     = voiceState.frequency2;
-			detune        = voiceState.detune2;
-			filtFrequency = voiceState.filterFreq2;
-			attackAmount  = voiceState.attack2;
-			decayAmount   = voiceState.decay2;
-			sustainAmount = voiceState.sustain2;
-			releaseAmount = voiceState.release2;
-			attackExpo    = voiceState.attackExpo2;
-			decayExpo     = voiceState.decayExpo2;
-			releaseExpo   = voiceState.releaseExpo2;
-			op1ModAmount  = voiceState.op1ModAmount2;
-			op2ModAmount  = voiceState.op2ModAmount2;
-			op3ModAmount  = voiceState.op3ModAmount2;
-			op4ModAmount  = voiceState.op4ModAmount2;
-			egDestAmpl    = voiceState.egAmplitudeMod2;
-			egDestFreq    = voiceState.egFrequencyMod2;
-			egDestFilt    = voiceState.egFilterMod2;
-			usingRatio    = voiceState.useRatio2;
-			amplitudeVel  = voiceState.ampVelSens2;
-			filterVel     = voiceState.filtVelSens2;
-			wave          = voiceState.wave2;
-			filterRes     = voiceState.filterRes2;
+		ARMor8VoiceState voiceState = presetEvent.getPreset();
+		m_CurrentPresetNum = presetEvent.getPresetNum() + 1;
 
-			break;
-		case 3:
-			amplitude     = voiceState.amplitude3;
-			frequency     = voiceState.frequency3;
-			detune        = voiceState.detune3;
-			filtFrequency = voiceState.filterFreq3;
-			attackAmount  = voiceState.attack3;
-			decayAmount   = voiceState.decay3;
-			sustainAmount = voiceState.sustain3;
-			releaseAmount = voiceState.release3;
-			attackExpo    = voiceState.attackExpo3;
-			decayExpo     = voiceState.decayExpo3;
-			releaseExpo   = voiceState.releaseExpo3;
-			op1ModAmount  = voiceState.op1ModAmount3;
-			op2ModAmount  = voiceState.op2ModAmount3;
-			op3ModAmount  = voiceState.op3ModAmount3;
-			op4ModAmount  = voiceState.op4ModAmount3;
-			egDestAmpl    = voiceState.egAmplitudeMod3;
-			egDestFreq    = voiceState.egFrequencyMod3;
-			egDestFilt    = voiceState.egFilterMod3;
-			usingRatio    = voiceState.useRatio3;
-			amplitudeVel  = voiceState.ampVelSens3;
-			filterVel     = voiceState.filtVelSens3;
-			wave          = voiceState.wave3;
-			filterRes     = voiceState.filterRes3;
+		// buffer for holding parameter strings
+		const unsigned int bufferLen = 20;
+		char buffer[bufferLen];
 
-			break;
-		case 4:
-			amplitude     = voiceState.amplitude4;
-			frequency     = voiceState.frequency4;
-			detune        = voiceState.detune4;
-			filtFrequency = voiceState.filterFreq4;
-			attackAmount  = voiceState.attack4;
-			decayAmount   = voiceState.decay4;
-			sustainAmount = voiceState.sustain4;
-			releaseAmount = voiceState.release4;
-			attackExpo    = voiceState.attackExpo4;
-			decayExpo     = voiceState.decayExpo4;
-			releaseExpo   = voiceState.releaseExpo4;
-			op1ModAmount  = voiceState.op1ModAmount4;
-			op2ModAmount  = voiceState.op2ModAmount4;
-			op3ModAmount  = voiceState.op3ModAmount4;
-			op4ModAmount  = voiceState.op4ModAmount4;
-			egDestAmpl    = voiceState.egAmplitudeMod4;
-			egDestFreq    = voiceState.egFrequencyMod4;
-			egDestFilt    = voiceState.egFilterMod4;
-			usingRatio    = voiceState.useRatio4;
-			amplitudeVel  = voiceState.ampVelSens4;
-			filterVel     = voiceState.filtVelSens4;
-			wave          = voiceState.wave4;
-			filterRes     = voiceState.filterRes4;
+		this->updateOpNumberStr( buffer, bufferLen );
+		this->updatePrstNumberStr( buffer, bufferLen);
 
-			break;
-		default:
-			break;
+		float amplitude     = 0.0f;
+		float frequency     = 0.0f;
+		int   detune        = 0;
+		float filtFrequency = 0.0f;
+		float attackAmount  = 0.0f;
+		float decayAmount   = 0.0f;
+		float sustainAmount = 0.0f;
+		float releaseAmount = 0.0f;
+		float attackExpo    = 0.0f;
+		float decayExpo     = 0.0f;
+		float releaseExpo   = 0.0f;
+		float op1ModAmount  = 0.0f;
+		float op2ModAmount  = 0.0f;
+		float op3ModAmount  = 0.0f;
+		float op4ModAmount  = 0.0f;
+		bool  egDestAmpl    = false;
+		bool  egDestFreq    = false;
+		bool  egDestFilt    = false;
+		bool  usingRatio    = false;
+		bool  usingGlide    = voiceState.glideRetrigger;
+		bool  usingMono     = voiceState.monophonic;
+		float amplitudeVel  = 0.0f;
+		float filterVel     = 0.0f;
+		float glideTime     = voiceState.glideTime;
+		OscillatorMode wave = OscillatorMode::SINE;
+		unsigned int pitchBendSemitones = voiceState.pitchBendSemitones;
+		float filterRes     = 0.0f;
+		m_Effect1PotAssignmentIndex = voiceState.pot1AssignmentIndex;
+		m_Effect1PotAssignmentOp = voiceState.pot1AssignmentOp;
+		m_Effect2PotAssignmentIndex = voiceState.pot2AssignmentIndex;
+		m_Effect2PotAssignmentOp = voiceState.pot2AssignmentOp;
+		m_Effect3PotAssignmentIndex = voiceState.pot3AssignmentIndex;
+		m_Effect3PotAssignmentOp = voiceState.pot3AssignmentOp;
+
+		switch ( m_OpCurrentlyBeingEdited )
+		{
+			case 1:
+				amplitude     = voiceState.amplitude1;
+				frequency     = voiceState.frequency1;
+				detune        = voiceState.detune1;
+				filtFrequency = voiceState.filterFreq1;
+				attackAmount  = voiceState.attack1;
+				decayAmount   = voiceState.decay1;
+				sustainAmount = voiceState.sustain1;
+				releaseAmount = voiceState.release1;
+				attackExpo    = voiceState.attackExpo1;
+				decayExpo     = voiceState.decayExpo1;
+				releaseExpo   = voiceState.releaseExpo1;
+				op1ModAmount  = voiceState.op1ModAmount1;
+				op2ModAmount  = voiceState.op2ModAmount1;
+				op3ModAmount  = voiceState.op3ModAmount1;
+				op4ModAmount  = voiceState.op4ModAmount1;
+				egDestAmpl    = voiceState.egAmplitudeMod1;
+				egDestFreq    = voiceState.egFrequencyMod1;
+				egDestFilt    = voiceState.egFilterMod1;
+				usingRatio    = voiceState.useRatio1;
+				amplitudeVel  = voiceState.ampVelSens1;
+				filterVel     = voiceState.filtVelSens1;
+				wave          = voiceState.wave1;
+				filterRes     = voiceState.filterRes1;
+
+				break;
+			case 2:
+				amplitude     = voiceState.amplitude2;
+				frequency     = voiceState.frequency2;
+				detune        = voiceState.detune2;
+				filtFrequency = voiceState.filterFreq2;
+				attackAmount  = voiceState.attack2;
+				decayAmount   = voiceState.decay2;
+				sustainAmount = voiceState.sustain2;
+				releaseAmount = voiceState.release2;
+				attackExpo    = voiceState.attackExpo2;
+				decayExpo     = voiceState.decayExpo2;
+				releaseExpo   = voiceState.releaseExpo2;
+				op1ModAmount  = voiceState.op1ModAmount2;
+				op2ModAmount  = voiceState.op2ModAmount2;
+				op3ModAmount  = voiceState.op3ModAmount2;
+				op4ModAmount  = voiceState.op4ModAmount2;
+				egDestAmpl    = voiceState.egAmplitudeMod2;
+				egDestFreq    = voiceState.egFrequencyMod2;
+				egDestFilt    = voiceState.egFilterMod2;
+				usingRatio    = voiceState.useRatio2;
+				amplitudeVel  = voiceState.ampVelSens2;
+				filterVel     = voiceState.filtVelSens2;
+				wave          = voiceState.wave2;
+				filterRes     = voiceState.filterRes2;
+
+				break;
+			case 3:
+				amplitude     = voiceState.amplitude3;
+				frequency     = voiceState.frequency3;
+				detune        = voiceState.detune3;
+				filtFrequency = voiceState.filterFreq3;
+				attackAmount  = voiceState.attack3;
+				decayAmount   = voiceState.decay3;
+				sustainAmount = voiceState.sustain3;
+				releaseAmount = voiceState.release3;
+				attackExpo    = voiceState.attackExpo3;
+				decayExpo     = voiceState.decayExpo3;
+				releaseExpo   = voiceState.releaseExpo3;
+				op1ModAmount  = voiceState.op1ModAmount3;
+				op2ModAmount  = voiceState.op2ModAmount3;
+				op3ModAmount  = voiceState.op3ModAmount3;
+				op4ModAmount  = voiceState.op4ModAmount3;
+				egDestAmpl    = voiceState.egAmplitudeMod3;
+				egDestFreq    = voiceState.egFrequencyMod3;
+				egDestFilt    = voiceState.egFilterMod3;
+				usingRatio    = voiceState.useRatio3;
+				amplitudeVel  = voiceState.ampVelSens3;
+				filterVel     = voiceState.filtVelSens3;
+				wave          = voiceState.wave3;
+				filterRes     = voiceState.filterRes3;
+
+				break;
+			case 4:
+				amplitude     = voiceState.amplitude4;
+				frequency     = voiceState.frequency4;
+				detune        = voiceState.detune4;
+				filtFrequency = voiceState.filterFreq4;
+				attackAmount  = voiceState.attack4;
+				decayAmount   = voiceState.decay4;
+				sustainAmount = voiceState.sustain4;
+				releaseAmount = voiceState.release4;
+				attackExpo    = voiceState.attackExpo4;
+				decayExpo     = voiceState.decayExpo4;
+				releaseExpo   = voiceState.releaseExpo4;
+				op1ModAmount  = voiceState.op1ModAmount4;
+				op2ModAmount  = voiceState.op2ModAmount4;
+				op3ModAmount  = voiceState.op3ModAmount4;
+				op4ModAmount  = voiceState.op4ModAmount4;
+				egDestAmpl    = voiceState.egAmplitudeMod4;
+				egDestFreq    = voiceState.egFrequencyMod4;
+				egDestFilt    = voiceState.egFilterMod4;
+				usingRatio    = voiceState.useRatio4;
+				amplitudeVel  = voiceState.ampVelSens4;
+				filterVel     = voiceState.filtVelSens4;
+				wave          = voiceState.wave4;
+				filterRes     = voiceState.filterRes4;
+
+				break;
+			default:
+				break;
+		}
+
+		if ( wave == OscillatorMode::SINE )
+		{
+			m_WaveNumCurrentlyBeingEdited = 1;
+		}
+		else if ( wave == OscillatorMode::TRIANGLE )
+		{
+			m_WaveNumCurrentlyBeingEdited = 2;
+		}
+		else if ( wave == OscillatorMode::SQUARE )
+		{
+			m_WaveNumCurrentlyBeingEdited = 3;
+		}
+		else if ( wave == OscillatorMode::SAWTOOTH )
+		{
+			m_WaveNumCurrentlyBeingEdited = 4;
+		}
+
+		m_EGDestBitmask = 0b000;
+
+		if ( egDestAmpl ) m_EGDestBitmask = m_EGDestBitmask | 0b100;
+		if ( egDestFreq ) m_EGDestBitmask = m_EGDestBitmask | 0b010;
+		if ( egDestFilt ) m_EGDestBitmask = m_EGDestBitmask | 0b001;
+
+		m_UsingRatio = usingRatio;
+		m_UsingGlideRetrigger = usingGlide;
+		m_UsingMono = usingMono;
+
+		this->updateMonoPolyStr();
+		this->updateWaveStr();
+		this->updateRatioFixedStr();
+
+		this->updateAmplitudeStr( amplitude, buffer, bufferLen );
+		this->updateFrequencyStr( frequency, buffer, bufferLen );
+		this->updateDetuneStr( detune, buffer, bufferLen );
+		this->updateFiltFreqStr( filtFrequency, buffer, bufferLen );
+
+		this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen );
+		this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen );
+		this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen );
+		this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen );
+
+		this->updateAttackStr( attackAmount, buffer, bufferLen );
+		this->updateDecayStr( decayAmount, buffer, bufferLen );
+		this->updateSustainStr( sustainAmount, buffer, bufferLen );
+		this->updateReleaseStr( releaseAmount, buffer, bufferLen );
+
+		this->updateAttackExpoStr( attackExpo, buffer, bufferLen );
+		this->updateDecayExpoStr( decayExpo, buffer, bufferLen );
+		this->updateReleaseExpoStr( releaseExpo, buffer, bufferLen );
+
+		this->updateAmplitudeVelStr( amplitudeVel, buffer, bufferLen );
+		this->updateFilterVelStr( filterVel, buffer, bufferLen );
+
+		this->updateGlideStr( glideTime, buffer, bufferLen );
+		this->updatePitchBendStr( pitchBendSemitones, buffer, bufferLen );
+
+		this->updateFiltResStr( filterRes, buffer, bufferLen );
+
+		this->returnToStatusMenu();
 	}
-
-	if ( wave == OscillatorMode::SINE )
+	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::SEND_PRESET_REQUEST )
 	{
-		m_WaveNumCurrentlyBeingEdited = 1;
+		this->switchToReceiverMenu( false );
 	}
-	else if ( wave == OscillatorMode::TRIANGLE )
+	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::SEND_ALL_PRESETS_REQUEST )
 	{
-		m_WaveNumCurrentlyBeingEdited = 2;
+		this->switchToReceiverMenu( true );
 	}
-	else if ( wave == OscillatorMode::SQUARE )
+	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::ACCEPT_PRESET )
 	{
-		m_WaveNumCurrentlyBeingEdited = 3;
+		this->switchToReceivingMenu( false );
 	}
-	else if ( wave == OscillatorMode::SAWTOOTH )
+	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::ACCEPT_ALL_PRESETS )
 	{
-		m_WaveNumCurrentlyBeingEdited = 4;
+		this->switchToReceivingMenu( true );
 	}
-
-	m_EGDestBitmask = 0b000;
-
-	if ( egDestAmpl ) m_EGDestBitmask = m_EGDestBitmask | 0b100;
-	if ( egDestFreq ) m_EGDestBitmask = m_EGDestBitmask | 0b010;
-	if ( egDestFilt ) m_EGDestBitmask = m_EGDestBitmask | 0b001;
-
-	m_UsingRatio = usingRatio;
-	m_UsingGlideRetrigger = usingGlide;
-	m_UsingMono = usingMono;
-
-	this->updateMonoPolyStr();
-	this->updateWaveStr();
-	this->updateRatioFixedStr();
-
-	this->updateAmplitudeStr( amplitude, buffer, bufferLen );
-	this->updateFrequencyStr( frequency, buffer, bufferLen );
-	this->updateDetuneStr( detune, buffer, bufferLen );
-	this->updateFiltFreqStr( filtFrequency, buffer, bufferLen );
-
-	this->updateOpModStr( 1, op1ModAmount, buffer, bufferLen );
-	this->updateOpModStr( 2, op2ModAmount, buffer, bufferLen );
-	this->updateOpModStr( 3, op3ModAmount, buffer, bufferLen );
-	this->updateOpModStr( 4, op4ModAmount, buffer, bufferLen );
-
-	this->updateAttackStr( attackAmount, buffer, bufferLen );
-	this->updateDecayStr( decayAmount, buffer, bufferLen );
-	this->updateSustainStr( sustainAmount, buffer, bufferLen );
-	this->updateReleaseStr( releaseAmount, buffer, bufferLen );
-
-	this->updateAttackExpoStr( attackExpo, buffer, bufferLen );
-	this->updateDecayExpoStr( decayExpo, buffer, bufferLen );
-	this->updateReleaseExpoStr( releaseExpo, buffer, bufferLen );
-
-	this->updateAmplitudeVelStr( amplitudeVel, buffer, bufferLen );
-	this->updateFilterVelStr( filterVel, buffer, bufferLen );
-
-	this->updateGlideStr( glideTime, buffer, bufferLen );
-	this->updatePitchBendStr( pitchBendSemitones, buffer, bufferLen );
-
-	this->updateFiltResStr( filterRes, buffer, bufferLen );
-
-	this->returnToStatusMenu();
 }
 
 void ARMor8UiManager::onPotEvent (const PotEvent& potEvent)
@@ -1852,7 +1875,6 @@ void ARMor8UiManager::sendParamEventFromEffectPot (unsigned int assignmentIndex,
 			this->enterStatusAdditionalMenu();
 		}
 	}
-
 }
 
 void ARMor8UiManager::handleEffect1SinglePress()
@@ -1941,11 +1963,25 @@ void ARMor8UiManager::handleEffect1SinglePress()
 					static_cast<unsigned int>(PARAM_CHANNEL::WRITE_PRESET)) );
 		this->returnToStatusMenu();
 	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SENDER )
+	{
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SEND_PRESET)) );
+
+		this->switchToSendingMenu( false );
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::RECEIVER )
+	{
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::ACCEPT_PRESET)) );
+	}
 }
 
 void ARMor8UiManager::handleEffect2SinglePress()
 {
-	if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
+	if ( (m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL) && m_TickForEffectBtn2Hold >= m_TickForEffectBtn2HoldMax )
+	{
+		this->switchToSenderMenu();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::STATUS_MAIN || m_CurrentMenu == ARMOR8_MENUS::STATUS_ADDITIONAL )
 	{
 		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(true, m_OpCurrentlyBeingEdited,
 					static_cast<unsigned int>(PARAM_CHANNEL::NEXT_PRESET)) );
@@ -2026,6 +2062,14 @@ void ARMor8UiManager::handleEffect2SinglePress()
 	else if ( m_CurrentMenu == ARMOR8_MENUS::WRITE_PRESET_CONFIRMATION )
 	{
 		this->returnToStatusMenu();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SENDER )
+	{
+		this->returnToStatusMenu();
+	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::RECEIVER )
+	{
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::DENY_PRESET)) );
 	}
 }
 
@@ -2219,6 +2263,12 @@ void ARMor8UiManager::handleDoubleButtonPress()
 		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(static_cast<float>(mode),
 					m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SELECT_WAVEFORM)) );
 	}
+	else if ( m_CurrentMenu == ARMOR8_MENUS::SENDER )
+	{
+		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SEND_ALL_PRESETS)) );
+
+		this->switchToSendingMenu( true );
+	}
 }
 
 bool ARMor8UiManager::shouldTickSettingsMenu (unsigned int entryIndex)
@@ -2392,4 +2442,300 @@ void ARMor8UiManager::concatDigitStr (int val, char* sourceBuffer, char* destBuf
 			decimalPlaceOffset = 1;
 		}
 	}
+}
+
+void ARMor8UiManager::switchToSenderMenu()
+{
+	m_CurrentMenu = ARMOR8_MENUS::SENDER;
+
+	m_Graphics->setColor( false );
+	m_Graphics->fill();
+	m_Graphics->setColor( true );
+
+	m_Graphics->drawText( 0.0f, 0.1f,  "effect 1 btn:", 1.0f );
+	m_Graphics->drawText( 0.0f, 0.25f, "  send this preset", 1.0f );
+	m_Graphics->drawText( 0.0f, 0.4f,  "effect 2 btn:", 1.0f );
+	m_Graphics->drawText( 0.0f, 0.55f, "  exit", 1.0f );
+	m_Graphics->drawText( 0.0f, 0.7f,  "both btns:", 1.0f );
+	m_Graphics->drawText( 0.0f, 0.85f, "  send all presets", 1.0f );
+
+	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );
+}
+
+void ARMor8UiManager::switchToReceiverMenu (bool receiveAllPresets)
+{
+	m_CurrentMenu = ARMOR8_MENUS::RECEIVER;
+
+	m_Graphics->setColor( false );
+	m_Graphics->fill();
+	m_Graphics->setColor( true );
+
+	if ( ! receiveAllPresets )
+	{
+		m_Graphics->drawText( 0.0f, 0.1f,  "receiving preset!", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.25f, "  this will over-", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.4f,  "  write the ", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.55f, "  current preset", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.7f,  "effect 1: accept", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.85f, "effect 2: deny", 1.0f );
+	}
+	else // receiving all presets
+	{
+		m_Graphics->drawText( 0.0f, 0.1f,  "receiving presets!", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.25f, "  this will over-", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.4f,  "  write all ", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.55f, "  presets", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.7f,  "effect 1: accept", 1.0f );
+		m_Graphics->drawText( 0.0f, 0.85f, "effect 2: deny", 1.0f );
+	}
+
+	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );
+}
+
+void ARMor8UiManager::switchToSendingMenu (bool sendAllPresets)
+{
+	m_CurrentMenu = ARMOR8_MENUS::SENDING;
+
+	m_Graphics->setColor( false );
+	m_Graphics->fill();
+	m_Graphics->setColor( true );
+
+	if ( ! sendAllPresets )
+	{
+		m_Graphics->drawText( 0.0f, 0.4f,  " sending preset", 1.0f );
+	}
+	else // sending all presets
+	{
+		m_Graphics->drawText( 0.0f, 0.4f,  " sending presets", 1.0f );
+	}
+
+	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );
+}
+
+void ARMor8UiManager::switchToReceivingMenu (bool receiveAllPresets)
+{
+	m_CurrentMenu = ARMOR8_MENUS::SENDING;
+
+	m_Graphics->setColor( false );
+	m_Graphics->fill();
+	m_Graphics->setColor( true );
+
+	if ( ! receiveAllPresets )
+	{
+		m_Graphics->drawText( 0.05f, 0.4f,  "receiving preset", 1.0f );
+	}
+	else // sending all presets
+	{
+		m_Graphics->drawText( 0.05f, 0.4f,  "receiving presets", 1.0f );
+	}
+
+	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );
+}
+
+void ARMor8UiManager::tickForEffectBtn2Hold (float microseconds)
+{
+	if ( m_Effect2BtnState == BUTTON_STATE::HELD )
+	{
+		m_TickForEffectBtn2Hold += microseconds;
+	}
+	else
+	{
+		m_TickForEffectBtn2Hold = 0;
+	}
+}
+
+float ARMor8UiManager::potAssignmentIndexToParameterVal (const ARMor8VoiceState& state, unsigned int operatorNum, unsigned int potIndex)
+{
+	// per operator
+	float frequency = ARMOR8_FREQUENCY_MIN;
+	int detune = ARMOR8_DETUNE_MIN;
+	float attack = ARMOR8_ATTACK_MIN;
+	float decay = ARMOR8_DECAY_MIN;
+	float sustain = ARMOR8_SUSTAIN_MIN;
+	float release = ARMOR8_RELEASE_MIN;
+	float attackExpo = ARMOR8_EXPO_MIN;
+	float decayExpo = ARMOR8_EXPO_MIN;
+	float releaseExpo = ARMOR8_EXPO_MIN;
+	float op1ModulationAmount = 0.0f;
+	float op2ModulationAmount = 0.0f;
+	float op3ModulationAmount = 0.0f;
+	float op4ModulationAmount = 0.0f;
+	float amplitude = ARMOR8_AMPLITUDE_MIN;
+	float filterFreq = ARMOR8_FILT_FREQ_MIN;
+	float filterRes = ARMOR8_FILT_RES_MIN;
+	float ampVelSens = 0.0f;
+	float filtVelSens = 0.0f;
+
+	// global
+	unsigned int pitchBendSemitones = state.pitchBendSemitones;
+	float glideTime = state.glideTime;
+
+	// set per operator vars
+	if ( state.pot1AssignmentOp == 0 )
+	{
+		frequency = state.frequency1;
+		detune = state.detune1;
+		attack = state.attack1;
+		decay = state.decay1;
+		sustain = state.sustain1;
+		release = state.release1;
+		attackExpo = state.attackExpo1;
+		decayExpo = state.decayExpo1;
+		releaseExpo = state.releaseExpo1;
+		op1ModulationAmount = state.op1ModAmount1;
+		op2ModulationAmount = state.op2ModAmount1;
+		op3ModulationAmount = state.op3ModAmount1;
+		op4ModulationAmount = state.op4ModAmount1;
+		amplitude = state.amplitude1;
+		filterFreq = state.filterFreq1;
+		filterRes = state.filterRes1;
+		ampVelSens = state.ampVelSens1;
+		filtVelSens = state.filtVelSens1;
+	}
+	else if ( state.pot1AssignmentOp == 1 )
+	{
+		frequency = state.frequency2;
+		detune = state.detune2;
+		attack = state.attack2;
+		decay = state.decay2;
+		sustain = state.sustain2;
+		release = state.release2;
+		attackExpo = state.attackExpo2;
+		decayExpo = state.decayExpo2;
+		releaseExpo = state.releaseExpo2;
+		op1ModulationAmount = state.op1ModAmount2;
+		op2ModulationAmount = state.op2ModAmount2;
+		op3ModulationAmount = state.op3ModAmount2;
+		op4ModulationAmount = state.op4ModAmount2;
+		amplitude = state.amplitude2;
+		filterFreq = state.filterFreq2;
+		filterRes = state.filterRes2;
+		ampVelSens = state.ampVelSens2;
+		filtVelSens = state.filtVelSens2;
+	}
+	else if ( state.pot1AssignmentOp == 2 )
+	{
+		frequency = state.frequency3;
+		detune = state.detune3;
+		attack = state.attack3;
+		decay = state.decay3;
+		sustain = state.sustain3;
+		release = state.release3;
+		attackExpo = state.attackExpo3;
+		decayExpo = state.decayExpo3;
+		releaseExpo = state.releaseExpo3;
+		op1ModulationAmount = state.op1ModAmount3;
+		op2ModulationAmount = state.op2ModAmount3;
+		op3ModulationAmount = state.op3ModAmount3;
+		op4ModulationAmount = state.op4ModAmount3;
+		amplitude = state.amplitude3;
+		filterFreq = state.filterFreq3;
+		filterRes = state.filterRes3;
+		ampVelSens = state.ampVelSens3;
+		filtVelSens = state.filtVelSens3;
+	}
+	else if ( state.pot1AssignmentOp == 3 )
+	{
+		frequency = state.frequency4;
+		detune = state.detune4;
+		attack = state.attack4;
+		decay = state.decay4;
+		sustain = state.sustain4;
+		release = state.release4;
+		attackExpo = state.attackExpo4;
+		decayExpo = state.decayExpo4;
+		releaseExpo = state.releaseExpo4;
+		op1ModulationAmount = state.op1ModAmount4;
+		op2ModulationAmount = state.op2ModAmount4;
+		op3ModulationAmount = state.op3ModAmount4;
+		op4ModulationAmount = state.op4ModAmount4;
+		amplitude = state.amplitude4;
+		filterFreq = state.filterFreq4;
+		filterRes = state.filterRes4;
+		ampVelSens = state.ampVelSens4;
+		filtVelSens = state.filtVelSens4;
+	}
+
+	if ( potIndex == m_AssignEffectPotMenuFreqIndex ) // frequency
+	{
+		return INVERSE_AUDIO_TAPER( frequency / ARMOR8_FREQUENCY_MAX );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuDetuneIndex ) // detune
+	{
+		return ( static_cast<float>(detune) + ARMOR8_DETUNE_MAX ) / ( ARMOR8_DETUNE_MAX * 2.0f );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuAttackIndex ) // eg attack
+	{
+		return INVERSE_AUDIO_TAPER( (attack - ARMOR8_ATTACK_MIN) / (ARMOR8_ATTACK_MAX - ARMOR8_ATTACK_MIN) );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuDecayIndex ) // eg decay
+	{
+		return INVERSE_AUDIO_TAPER( (decay - ARMOR8_DECAY_MIN) / (ARMOR8_DECAY_MAX - ARMOR8_DECAY_MIN) );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuSustainIndex ) // eg sustain
+	{
+		return sustain;
+	}
+	else if ( potIndex == m_AssignEffectPotMenuReleaseIndex ) // eg release
+	{
+		return INVERSE_AUDIO_TAPER( (release - ARMOR8_RELEASE_MIN) / (ARMOR8_RELEASE_MAX - ARMOR8_RELEASE_MIN) );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuAtkExpoIndex ) // eg attack expo
+	{
+		return ( attackExpo - ARMOR8_EXPO_MIN ) / ( ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuDecExpoIndex ) // eg decay expo
+	{
+		return ( decayExpo - ARMOR8_EXPO_MIN ) / ( ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuRelExpoIndex ) // eg release expo
+	{
+		return ( releaseExpo - ARMOR8_EXPO_MIN ) / ( ARMOR8_EXPO_MAX - ARMOR8_EXPO_MIN );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuOp1ModIndex ) // op1 modulation amount
+	{
+		return INVERSE_AUDIO_TAPER( op1ModulationAmount );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuOp2ModIndex ) // op2 modulation amount
+	{
+		return INVERSE_AUDIO_TAPER( op2ModulationAmount );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuOp3ModIndex ) // op3 modulation amount
+	{
+		return INVERSE_AUDIO_TAPER( op3ModulationAmount );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuOp4ModIndex ) // op4 modulation amount
+	{
+		return INVERSE_AUDIO_TAPER( op4ModulationAmount );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuAmplitudeIndex ) // amplitude
+	{
+		return INVERSE_AUDIO_TAPER( amplitude / ARMOR8_AMPLITUDE_MAX );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuFiltFreqIndex ) // filter frequency
+	{
+		return INVERSE_AUDIO_TAPER( (filterFreq - ARMOR8_FILT_FREQ_MIN) / (ARMOR8_FILT_FREQ_MAX - ARMOR8_FILT_FREQ_MIN) );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuFiltResIndex ) // filter resonance
+	{
+		return filterRes / ARMOR8_FILT_RES_MAX;
+	}
+	else if ( potIndex == m_AssignEffectPotMenuAmpVelSensIndex ) // amplitude velocity sensitivity
+	{
+		return ampVelSens;
+	}
+	else if ( potIndex == m_AssignEffectPotMenuFiltVelSensIndex ) // filter velocity sensitivity
+	{
+		return filtVelSens;
+	}
+	else if ( potIndex == m_AssignEffectPotMenuPBendSemiIndex ) // pitch bend semitones
+	{
+		return ( static_cast<float>(pitchBendSemitones) - ARMOR8_PITCH_BEND_MIN ) / ( ARMOR8_PITCH_BEND_MAX - ARMOR8_PITCH_BEND_MIN );
+	}
+	else if ( potIndex == m_AssignEffectPotMenuGlideTimeIndex ) // glide time
+	{
+		return glideTime / ARMOR8_GLIDE_TIME_MAX;
+	}
+
+	return 0.0f;
 }

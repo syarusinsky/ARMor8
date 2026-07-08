@@ -3,6 +3,10 @@
 <JUCERPROJECT id="DcIhSg" name="FMSynth" projectType="guiapp" jucerFormatVersion="1">
   <MAINGROUP id="Nwhz3w" name="FMSynth">
     <GROUP id="{98D80E54-6CF9-BEAB-7DA1-8D820991FECF}" name="Source">
+      <FILE id="qcvaPb" name="ISalSysexEventListener.cpp" compile="1" resource="0"
+            file="../lib/SAL/src/ISalSysexEventListener.cpp"/>
+      <FILE id="zOcu6H" name="ISalSysexEventListener.hpp" compile="0" resource="0"
+            file="../lib/SAL/include/ISalSysexEventListener.hpp"/>
       <FILE id="xQwHnk" name="IAllocator.cpp" compile="1" resource="0" file="../lib/DevLib/src/IAllocator.cpp"/>
       <FILE id="WgkXIn" name="IAllocator.hpp" compile="0" resource="0" file="../lib/DevLib/include/IAllocator.hpp"/>
       <FILE id="KE7wRv" name="AntiAliasingFilter.hpp" compile="0" resource="0"
@@ -194,5 +198,5 @@
   <LIVE_SETTINGS>
     <LINUX/>
   </LIVE_SETTINGS>
-  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_WEB_BROWSER="0" JUCE_INCLUDE_ZLIB_CODE="1"/>
 </JUCERPROJECT>

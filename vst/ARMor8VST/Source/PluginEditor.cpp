@@ -60,6 +60,7 @@ ARMor8VSTAudioProcessorEditor::ARMor8VSTAudioProcessorEditor (ARMor8VSTAudioProc
     setSize( 800, 600 );
 
     this->bindToARMor8LCDRefreshEventSystem();
+    this->bindToARMor8PresetEventSystem();
 
     // draw the target ui
     audioProcessor.getARMor8UiManager().draw();
@@ -70,6 +71,8 @@ ARMor8VSTAudioProcessorEditor::ARMor8VSTAudioProcessorEditor (ARMor8VSTAudioProc
 
 ARMor8VSTAudioProcessorEditor::~ARMor8VSTAudioProcessorEditor()
 {
+    this->unbindFromARMor8LCDRefreshEventSystem();
+    this->unbindFromARMor8PresetEventSystem();
 }
 
 //==============================================================================
@@ -137,6 +140,7 @@ void ARMor8VSTAudioProcessorEditor::timerCallback()
 {
     ARMor8UiManager& armor8UiManager = audioProcessor.getARMor8UiManager();
     armor8UiManager.tickForChangingBackToStatus();
+    armor8UiManager.tickForEffectBtn2Hold( 33000.0f );
     armor8UiManager.processEffect1Btn( effect1Btn.isDown() );
 
     // since the effect button holding logic requires the sequencing of the button events to be in order, we need to dispatch here as well
@@ -166,6 +170,19 @@ void ARMor8VSTAudioProcessorEditor::onARMor8LCDRefreshEvent (const ARMor8LCDRefr
     this->copyFrameBufferToImage( lcdRefreshEvent.getXStart(), lcdRefreshEvent.getYStart(),
                                   lcdRefreshEvent.getXEnd(), lcdRefreshEvent.getYEnd() );
     this->repaint();
+}
+
+void ARMor8VSTAudioProcessorEditor::onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent)
+{
+    if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::LOAD_PRESET || presetEvent.getType() == ARMor8PresetEventTypeEnum::FINISHED_SENDING_OR_RECEIVING_PRESETS )
+    {
+        ARMor8VoiceState state = presetEvent.getPreset();
+        ARMor8UiManager& armor8UiManager = audioProcessor.getARMor8UiManager();
+
+        effect1Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot1AssignmentOp, state.pot1AssignmentIndex) );
+        effect2Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot2AssignmentOp, state.pot2AssignmentIndex) );
+        effect3Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot3AssignmentOp, state.pot3AssignmentIndex) );
+    }
 }
 
 void ARMor8VSTAudioProcessorEditor::copyFrameBufferToImage (unsigned int xStart, unsigned int yStart, unsigned int xEnd, unsigned int yEnd)

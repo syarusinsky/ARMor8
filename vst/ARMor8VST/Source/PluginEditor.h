@@ -17,7 +17,7 @@
 /**
 */
 class ARMor8VSTAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Slider::Listener, private juce::Button::Listener,
-                                         private IARMor8LCDRefreshEventListener, private juce::Timer
+                                         private IARMor8LCDRefreshEventListener, private juce::Timer, private IARMor8PresetEventListener
 {
 public:
     ARMor8VSTAudioProcessorEditor (ARMor8VSTAudioProcessor&);
@@ -36,6 +36,7 @@ private:
     bool keyStateChanged (bool isKeyDown) override;
     void buttonClicked (juce::Button* button) override;
     void onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRefreshEvent) override;
+    void onARMor8PresetChangedEvent (const ARMor8PresetEvent& presetEvent) override;
 
     void copyFrameBufferToImage (unsigned int xStart, unsigned int yStart, unsigned int xEnd, unsigned int yEnd);
 

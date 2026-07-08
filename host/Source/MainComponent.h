@@ -61,7 +61,9 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		void onARMor8LCDRefreshEvent (const ARMor8LCDRefreshEvent& lcdRefreshEvent) override;
 
 		void setMidiInput (int index);
+		void setMidiOutput (int index);
 		void handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message) override;
+		void handleOutgoingMidiMessages();
 
 	private:
 		//==============================================================================
@@ -69,6 +71,8 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 		PresetManager presetManager;
 		MidiHandler midiHandler;
 		int lastInputIndex;
+		int lastOutputIndex;
+		std::unique_ptr<juce::MidiOutput> activeMidiOutput;
 		::AudioBuffer<float> sAudioBuffer;
 		ARMor8VoiceManager armor8VoiceManager;
 		bool keyButtonRelease;
@@ -91,6 +95,8 @@ class MainComponent   : public juce::AudioAppComponent, public juce::Slider::Lis
 
 		juce::ComboBox midiInputList;
 		juce::Label midiInputListLbl;
+		juce::ComboBox midiOutputList;
+		juce::Label midiOutputListLbl;
 
 		AudioSettingsComponent audioSettingsComponent;
 

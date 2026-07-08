@@ -655,6 +655,8 @@ int main(void)
 
 	while ( true )
 	{
+		midiHandler.dispatchEvents();
+
 		paramEventBridge.processQueuedParameterEvents();
 
 		LLPD::adc_perform_conversion_sequence( EFFECT_ADC_NUM );
@@ -686,6 +688,19 @@ int main(void)
 
 			prevSpiDmaBuffer = newSpiDmaBuffer;
 		}
+
+		// midi output
+		MidiEvent* outputMessage = midiHandler.nextOutputMidiMessage();
+
+		while ( outputMessage != nullptr )
+		{
+			for ( unsigned int byteNum = 0; byteNum < outputMessage->getNumBytes(); byteNum++ )
+			{
+				LLPD::usart_transmit( MIDI_USART_NUM, outputMessage->getRawData()[byteNum] );
+			}
+
+			outputMessage = midiHandler.nextOutputMidiMessage();
+		}
 	}
 }
 
@@ -713,7 +728,26 @@ extern "C" void USART2_IRQHandler (void) // logging usart
 extern "C" void USART6_IRQHandler (void) // midi usart
 {
 	uint16_t data = LLPD::usart_receive( MIDI_USART_NUM );
-	LLPD::usart_transmit( MIDI_USART_NUM, data );
+
+	static bool receivingSysexMessage = false;
+	if ( data == 0b11110000 )
+	{
+		receivingSysexMessage = true;
+	}
+	else if ( data == 0b11110111 )
+	{
+		receivingSysexMessage = false;
+	}
+
+	// we don't want to forward sysex data for preset exchange, since it creates a loop
+	if ( ! receivingSysexMessage )
+	{
+		// TODO this is really not the way to do this since it could inject an midi byte into the
+		// main loop's midi output and vice versa, in the future we should just queue up output messages
+		// for the main loop's code
+		LLPD::usart_transmit( MIDI_USART_NUM, data );
+	}
+
 	if ( midiHandlerPtr )
 	{
 		midiHandlerPtr->processByte( data );

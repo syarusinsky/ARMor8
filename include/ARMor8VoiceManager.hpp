@@ -10,6 +10,7 @@
 #include "ARMor8Voice.hpp"
 #include "ARMor8Constants.hpp"
 #include "IARMor8ParameterEventListener.hpp"
+#include "ISalSysexEventListener.hpp"
 #include "Limiter.hpp"
 #include <cstdint>
 
@@ -19,7 +20,7 @@ class PresetManager;
 constexpr unsigned int MAX_VOICES = 6;
 
 class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListener, public IPitchEventListener,
-				public IARMor8ParameterEventListener
+				public IARMor8ParameterEventListener, public ISalSysexEventListener
 {
 	public:
 		ARMor8VoiceManager (MidiHandler* midiHandler, PresetManager* presetManager, uint16_t* dmaBufferCurrent = nullptr);
@@ -65,7 +66,11 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 
 		void onARMor8ParameterEvent (const ARMor8ParameterEvent& paramEvent) override;
 
+		void onSalSysexEvent (const SalSysexEvent& salSysexEvent) override;
+
 		void setCurrentDmaBuffer (uint16_t* dmaBuffer);
+
+		uint8_t getDevId() { return m_DevId; }
 
 	private:
 		MidiHandler*   m_MidiHandler;
@@ -95,6 +100,17 @@ class ARMor8VoiceManager : public IBufferCallback<float>, public IKeyEventListen
 		Limiter<float>          m_Limiter;
 
 		uint16_t* 		m_DMABufferCurrent;
+
+		ARMor8VoiceState 		m_PresetToSendOrReceive;
+		unsigned int 			m_PresetToSendOrReceiveNum;
+		uint8_t 			m_DevId;
+		uint8_t 			m_SenderId; // the other unit's id in the preset exchange
+		uint8_t 			m_RequestedPresetNum;
+		bool 				m_SendingOrReceivingAllPresets = false;
+		unsigned int 			m_NibbleIndex = 0;
+
+		uint8_t generateRandomDevId();
+		uint16_t getNumNibblesInPreset();
 };
 
 #endif // ARMOR8VOICEMANAGER_HPP

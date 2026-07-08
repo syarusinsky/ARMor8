@@ -28,7 +28,7 @@ add_subdirectory(${JUCE_DIRECTORY} ./juce)                    # If you've put JU
 # If you are building a VST2 or AAX plugin, CMake needs to be told where to find these SDKs on your
 # system. This setup should be done before calling `juce_add_plugin`.
 
-# juce_set_vst2_sdk_path(...)
+juce_set_vst2_sdk_path(/usr/src/vst2sdk/)
 # juce_set_aax_sdk_path(...)
 
 # `juce_add_plugin` adds a static library target with the name passed as the first argument
@@ -44,14 +44,14 @@ juce_add_plugin(ARMor8VST
     # COMPANY_NAME ...                          # Specify the name of the plugin's author
     IS_SYNTH TRUE                       # Is this a synth or an effect?
     NEEDS_MIDI_INPUT TRUE               # Does the plugin need midi input?
-    NEEDS_MIDI_OUTPUT FALSE              # Does the plugin need midi output?
+    NEEDS_MIDI_OUTPUT TRUE              # Does the plugin need midi output?
     IS_MIDI_EFFECT FALSE                 # Is this plugin a MIDI effect?
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE    # Does the editor need keyboard focus?
     COPY_PLUGIN_AFTER_BUILD FALSE        # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE RMDC               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE Arm8                            # A unique four-character plugin id with exactly one upper-case character
                                                 # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
-    FORMATS VST3                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    FORMATS VST3 VST                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     VST3_AUTO_MANIFEST FALSE
     PRODUCT_NAME "ARMor8")        # The name of the final executable, which can differ from the target name
 
@@ -98,6 +98,7 @@ target_sources(ARMor8VST
         ../../../../lib/SAL/src/IKeyEventListener.cpp
         ../../../../lib/SAL/src/IMidiEventListener.cpp
         ../../../../lib/SAL/src/IPitchEventListener.cpp
+	../../../../lib/SAL/src/ISalSysexEventListener.cpp
         ../../../../lib/SAL/src/KeyEventServer.cpp
         ../../../../lib/SAL/src/OnePoleFilter.cpp
         ../../../../lib/DevLib/src/CPPFile.cpp
@@ -161,6 +162,7 @@ target_compile_definitions(ARMor8VST
 set(MINGW_STATIC_FLAGS "-static -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
 set_target_properties(ARMor8VST PROPERTIES LINK_FLAGS "${MINGW_STATIC_FLAGS}")
 set_target_properties(ARMor8VST_VST3 PROPERTIES LINK_FLAGS "${MINGW_STATIC_FLAGS}")
+set_target_properties(ARMor8VST_VST PROPERTIES LINK_FLAGS "${MINGW_STATIC_FLAGS}")
 
 # set standard
 set(CMAKE_CXX_STANDARD 17)

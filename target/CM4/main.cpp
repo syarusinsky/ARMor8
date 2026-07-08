@@ -215,5 +215,7 @@ int main(void)
 		uint16_t effect3Val = LLPD::adc_get_channel_value( EFFECT_ADC_NUM, EFFECT3_ADC_CHANNEL );
 		float effect3Percentage = static_cast<float>( effect3Val ) * ( 1.0f / 4095.0f );
 		IPotEventListener::PublishEvent( PotEvent(effect3Percentage, static_cast<unsigned int>(POT_CHANNEL::EFFECT3)) );
+
+		uiManager.tickForEffectBtn2Hold( LLPD::tim6_get_elapsed_microseconds() );
 	}
 }
