@@ -23,6 +23,8 @@ ARMor8Operator::ARMor8Operator (PolyBLEPOsc& wave, ADSREnvelopeGenerator<EG_RESP
 	m_UseFiltFreqMod( false ),
 	m_Amplitude( amplitude ),
 	m_AmplitudeCached( amplitude ),
+	m_CurrentAmplitude( amplitude ),
+	m_AmplitudeIncr( 0.0f ),
 	m_Frequency( frequency ),
 	m_FrequencyCached( frequency ),
 	m_Detune( 0 ),
@@ -57,6 +59,8 @@ void ARMor8Operator::cachePerBlockValues()
 	{
 		m_AmplitudeCached *= egValue;
 	}
+
+	m_AmplitudeIncr = ( m_AmplitudeCached - m_CurrentAmplitude ) / static_cast<float>( ABUFFER_SIZE );
 
 	if ( (m_GlideIncr >= 0.0f && m_GlideFrequency < m_RatioFrequency) || (m_GlideIncr <  0.0f && m_GlideFrequency > m_RatioFrequency) )
 	{
@@ -101,7 +105,10 @@ float ARMor8Operator::nextSample()
 	frequency += m_ModOperator4.currentValue() * m_ModOperatorAmplitudes[3];
 
 	m_Osc.setFrequency( frequency );
-	m_CurrentValue = ( m_Osc.nextSample() ) * m_AmplitudeCached;
+
+	m_CurrentAmplitude += m_AmplitudeIncr;
+
+	m_CurrentValue = ( m_Osc.nextSample() ) * m_CurrentAmplitude;
 
 	m_CurrentValue = m_Filter.processSample( m_CurrentValue );
 

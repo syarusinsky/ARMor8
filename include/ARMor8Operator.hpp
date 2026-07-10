@@ -100,8 +100,10 @@ class ARMor8Operator : public IKeyEventListener, public IPitchEventListener, pub
 		bool 					m_UseAmplitudeMod;
 		bool 					m_UseFrequencyMod;
 		bool 					m_UseFiltFreqMod;
-		float         m_Amplitude;
+		float         m_Amplitude; // this is the operator's amplitude setting
 		float         m_AmplitudeCached;
+		float         m_CurrentAmplitude; // this is the eg affected amplitude
+		float         m_AmplitudeIncr; // to smooth amplitudecached on each call to nextsample
 		float         m_Frequency;
 		float         m_FrequencyCached;
 		int           m_Detune;
