@@ -253,8 +253,8 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 		void enterWritePresetConfirmation();
 		void switchToSenderMenu();
 		void switchToReceiverMenu(bool receiveAllPresets);
-		void switchToSendingMenu (bool sendAllPresets);
-		void switchToReceivingMenu (bool receiveAllPresets);
+		void switchToSendingMenu (bool sendAllPresets, unsigned int currentPresetNum);
+		void switchToReceivingMenu (bool receiveAllPresets, unsigned int currentPresetNum);
 
 		void assignEffectPot();
 		void sendParamEventFromEffectPot (unsigned int assignmentIndex, unsigned int assignmentOp, float val, bool menuThreshBroken);

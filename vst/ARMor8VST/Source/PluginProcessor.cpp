@@ -17,6 +17,7 @@
 #include "theroomdisconnectlogo.h"
 
 
+
 //==============================================================================
 ARMor8VSTAudioProcessor::ARMor8VSTAudioProcessor()
     : sAudioBuffer(),
@@ -341,7 +342,7 @@ void ARMor8VSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // TODO remove after testing
     if ( midiMessages.getNumEvents() > 0 )
     {
-        std::cout << "STARTING MIDI IN PROCESSING ----------------" << std::endl;
+        std::cout << "STARTING MIDI IN PROCESSING : NUM EVENTS = " << std::to_string(midiMessages.getNumEvents()) << " ----------------" << std::endl;
     }
     for ( const auto& messageMetaData : midiMessages )
     {
@@ -350,6 +351,8 @@ void ARMor8VSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
         if ( message.getRawData()[0] == 0xF0 && message.getRawData()[2] == armor8VoiceManager.getDevId() ) // a looped back sysex message
         {
+            std::cout << "   LOOPED BACK! MIDI IN: " <<  message.getDescription() << std::endl;
+
             continue;
         }
         else
@@ -420,7 +423,11 @@ void ARMor8VSTAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     state.setProperty("voiceState", voiceStateMemoryBlock, nullptr);
 
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
-    copyXmlToBinary (*xml, destData);
+
+    if (xml != nullptr)
+    {
+        copyXmlToBinary (*xml, destData);
+    }
 }
 
 void ARMor8VSTAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -432,7 +439,11 @@ void ARMor8VSTAudioProcessor::setStateInformation (const void* data, int sizeInB
     {
         if (xmlState->hasTagName (apvts.state.getType()))
         {
-            apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
+            auto newTree = juce::ValueTree::fromXml (*xmlState);
+            if (newTree.isValid())
+            {
+                apvts.replaceState (newTree);
+            }
 
             if (apvts.state.hasProperty("voiceState"))
             {

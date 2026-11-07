@@ -18,7 +18,9 @@ enum class ARMor8PresetEventTypeEnum
 	ACCEPT_PRESET,
 	ACCEPT_ALL_PRESETS,
 	DENY_PRESET,
-	FINISHED_SENDING_OR_RECEIVING_PRESETS,
+	SENT_PRESET,
+	SENT_PRESETS, // sent when a single preset is sent during the sending all process
+	FINISHED_SENDING_OR_RECEIVING_PRESETS, // sent when the entire process is completed
 };
 
 class ARMor8PresetEvent : public IEvent

@@ -590,11 +590,19 @@ void ARMor8UiManager::onARMor8PresetChangedEvent (const ARMor8PresetEvent& prese
 	}
 	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::ACCEPT_PRESET )
 	{
-		this->switchToReceivingMenu( false );
+		this->switchToReceivingMenu( false, presetEvent.getPresetNum() + 1 );
 	}
 	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::ACCEPT_ALL_PRESETS )
 	{
-		this->switchToReceivingMenu( true );
+		this->switchToReceivingMenu( true, presetEvent.getPresetNum() + 1 );
+	}
+	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::SENT_PRESET )
+	{
+		this->switchToSendingMenu( false, presetEvent.getPresetNum() + 1 );
+	}
+	else if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::SENT_PRESETS )
+	{
+		this->switchToSendingMenu( true, presetEvent.getPresetNum() + 1 );
 	}
 }
 
@@ -1967,7 +1975,7 @@ void ARMor8UiManager::handleEffect1SinglePress()
 	{
 		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SEND_PRESET)) );
 
-		this->switchToSendingMenu( false );
+		this->switchToSendingMenu( false, m_CurrentPresetNum );
 	}
 	else if ( m_CurrentMenu == ARMOR8_MENUS::RECEIVER )
 	{
@@ -2267,7 +2275,7 @@ void ARMor8UiManager::handleDoubleButtonPress()
 	{
 		IARMor8ParameterEventListener::PublishEvent( ARMor8ParameterEvent(0.0f, m_OpCurrentlyBeingEdited, static_cast<unsigned int>(PARAM_CHANNEL::SEND_ALL_PRESETS)) );
 
-		this->switchToSendingMenu( true );
+		this->switchToSendingMenu( true, 1 );
 	}
 }
 
@@ -2492,7 +2500,7 @@ void ARMor8UiManager::switchToReceiverMenu (bool receiveAllPresets)
 	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );
 }
 
-void ARMor8UiManager::switchToSendingMenu (bool sendAllPresets)
+void ARMor8UiManager::switchToSendingMenu (bool sendAllPresets, unsigned int currentPresetNum)
 {
 	m_CurrentMenu = ARMOR8_MENUS::SENDING;
 
@@ -2503,16 +2511,18 @@ void ARMor8UiManager::switchToSendingMenu (bool sendAllPresets)
 	if ( ! sendAllPresets )
 	{
 		m_Graphics->drawText( 0.0f, 0.4f,  " sending preset", 1.0f );
+		m_Graphics->drawText( 0.45f, 0.6f,  std::to_string(currentPresetNum).c_str(), 1.0f );
 	}
 	else // sending all presets
 	{
 		m_Graphics->drawText( 0.0f, 0.4f,  " sending presets", 1.0f );
+		m_Graphics->drawText( 0.45f, 0.6f,  std::to_string(currentPresetNum).c_str(), 1.0f );
 	}
 
 	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );
 }
 
-void ARMor8UiManager::switchToReceivingMenu (bool receiveAllPresets)
+void ARMor8UiManager::switchToReceivingMenu (bool receiveAllPresets, unsigned int currentPresetNum)
 {
 	m_CurrentMenu = ARMOR8_MENUS::SENDING;
 
@@ -2523,10 +2533,12 @@ void ARMor8UiManager::switchToReceivingMenu (bool receiveAllPresets)
 	if ( ! receiveAllPresets )
 	{
 		m_Graphics->drawText( 0.05f, 0.4f,  "receiving preset", 1.0f );
+		m_Graphics->drawText( 0.45f, 0.6f,  std::to_string(currentPresetNum).c_str(), 1.0f );
 	}
 	else // sending all presets
 	{
 		m_Graphics->drawText( 0.05f, 0.4f,  "receiving presets", 1.0f );
+		m_Graphics->drawText( 0.45f, 0.6f,  std::to_string(currentPresetNum).c_str(), 1.0f );
 	}
 
 	IARMor8LCDRefreshEventListener::PublishEvent( ARMor8LCDRefreshEvent(0, 0, m_FrameBuffer->getWidth(), m_FrameBuffer->getHeight(), 0) );

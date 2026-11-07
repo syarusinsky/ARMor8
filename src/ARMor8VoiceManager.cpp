@@ -238,38 +238,37 @@ void ARMor8VoiceManager::setPitchBendSemitones (const unsigned int pitchBendSemi
 
 void ARMor8VoiceManager::call (float* writeBuffer)
 {
-	// TODO need to remove clicking sound (test on host to make sure it sounds good there first)
-	// then need to remove crackling sounds by optimizing code
-
-	// zero memory (this isn't done by default when using dma)
-	std::memset( writeBuffer, 0, ABUFFER_SIZE * sizeof(float) );
-
-	if ( ! m_Monophonic ) // if polyphonic, we sum the voices
+	if ( ! m_SendingOrReceivingAllPresets ) // optimize preset transfer speeds
 	{
-		m_Voice1.call( writeBuffer );
-		m_Voice2.call( writeBuffer );
-		m_Voice3.call( writeBuffer );
-		m_Voice4.call( writeBuffer );
-		m_Voice5.call( writeBuffer );
-		m_Voice6.call( writeBuffer );
-	}
-	else // if monophonic, we only output the first voice
-	{
-		m_Voice1.call( writeBuffer );
-	}
+		// zero memory (this isn't done by default when using dma)
+		std::memset( writeBuffer, 0, ABUFFER_SIZE * sizeof(float) );
 
-	m_Limiter.call( writeBuffer );
+		if ( ! m_Monophonic ) // if polyphonic, we sum the voices
+		{
+			m_Voice1.call( writeBuffer );
+			m_Voice2.call( writeBuffer );
+			m_Voice3.call( writeBuffer );
+			m_Voice4.call( writeBuffer );
+			m_Voice5.call( writeBuffer );
+			m_Voice6.call( writeBuffer );
+		}
+		else // if monophonic, we only output the first voice
+		{
+			m_Voice1.call( writeBuffer );
+		}
+
+		m_Limiter.call( writeBuffer );
 
 #ifdef TARGET_BUILD
-	// // if we're using dma, offset the samples (just commenting this out now to remove the branching)
-	// if ( m_DMABufferCurrent )
-	// {
-		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
-		{
-			const float sampleVal = std::clamp( writeBuffer[sample], -1.0f, 1.0f );
-			m_DMABufferCurrent[sample] = static_cast<uint16_t>( (sampleVal * 32767.0f) + 32767.0f );
-		}
-	// }
+		// // if we're using dma, offset the samples (just commenting this out now to remove the branching)
+		// if ( m_DMABufferCurrent )
+		// {
+			for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
+			{
+				const float sampleVal = std::clamp( writeBuffer[sample], -1.0f, 1.0f );
+				m_DMABufferCurrent[sample] = static_cast<uint16_t>( (sampleVal * 32767.0f) + 32767.0f );
+			}
+		// }
 #else
 		for ( unsigned int sample = 0; sample < ABUFFER_SIZE; sample++ )
 		{
@@ -277,6 +276,7 @@ void ARMor8VoiceManager::call (float* writeBuffer)
 			writeBuffer[sample] = clampedSampleVal;
 		}
 #endif
+	}
 }
 
 void ARMor8VoiceManager::setMonophonic (bool on)
@@ -866,24 +866,10 @@ void ARMor8VoiceManager::onSalSysexEvent (const SalSysexEvent& salSysexEvent)
 	}
 	else if ( m_DevId == salSysexEvent.getRecId() && (m_SenderId == 0 || m_SenderId == salSysexEvent.getDevId()) ) // if preset exchange is in progress and ids match
 	{
-		if ( salSysexEvent.getType() == SalSysexTypeEnum::ACCEPT_PRESET_OR_PRESETS )
+		if ( salSysexEvent.getType() == SalSysexTypeEnum::ACCEPT_PRESET_OR_PRESETS && m_NibbleIndex != 0 )
 		{
-			// send the requested preset
-			// note that since sal has a limited midi message size, multiple preset chunks are usually necessary for a single preset
-			if ( m_SenderId == 0 )
-			{
-				m_SenderId = salSysexEvent.getDevId();
-			}
 			const uint16_t numNibblesInPreset = this->getNumNibblesInPreset();
 			const uint8_t requestedPresetNum = salSysexEvent.getPresetNum();
-			if ( m_SendingOrReceivingAllPresets )
-			{
-				m_PresetToSendOrReceive = m_PresetManager->retrievePreset<ARMor8VoiceState>( requestedPresetNum );
-			}
-			else
-			{
-				m_PresetToSendOrReceive = this->getState();
-			}
 			SalSysexEvent sendPresetDataChunkEvent
 				= SalSysexEvent::buildSendPresetDataChunkEvent( m_DevId, ARMOR8_MODEL_ID, m_SenderId, requestedPresetNum, numNibblesInPreset );
 
@@ -911,6 +897,20 @@ void ARMor8VoiceManager::onSalSysexEvent (const SalSysexEvent& salSysexEvent)
 				{
 					// successful write
 					m_NibbleIndex++;
+				}
+			}
+
+			if ( m_NibbleIndex == numNibblesInPreset )
+			{
+				if ( m_SendingOrReceivingAllPresets )
+				{
+					IARMor8PresetEventListener::PublishEvent(
+							ARMor8PresetEvent(this->getState(), requestedPresetNum, 0, ARMor8PresetEventTypeEnum::SENT_PRESETS) );
+				}
+				else
+				{
+					IARMor8PresetEventListener::PublishEvent(
+							ARMor8PresetEvent(this->getState(), requestedPresetNum, 0, ARMor8PresetEventTypeEnum::SENT_PRESET) );
 				}
 			}
 
@@ -958,7 +958,11 @@ void ARMor8VoiceManager::onSalSysexEvent (const SalSysexEvent& salSysexEvent)
 
 			if ( m_NibbleIndex == numNibblesInPreset )
 			{
-				// we have the full preset, send the received preset message
+				// we have the full preset, update ui and send the received preset message
+				IARMor8PresetEventListener::PublishEvent(
+					ARMor8PresetEvent( this->getState(), salSysexEvent.getPresetNum(), 0,
+						m_SendingOrReceivingAllPresets ? ARMor8PresetEventTypeEnum::ACCEPT_ALL_PRESETS : ARMor8PresetEventTypeEnum::ACCEPT_PRESET )
+				);
 				m_NibbleIndex = 0; // reset since next preset we need to start at the first nibble
 				SalSysexEvent receivedPresetEvent
 					= SalSysexEvent::buildReceivedPresetEvent( m_DevId, ARMOR8_MODEL_ID, m_SenderId, requestedPresetNum, numNibblesInPreset );
@@ -992,10 +996,16 @@ void ARMor8VoiceManager::onSalSysexEvent (const SalSysexEvent& salSysexEvent)
 				m_MidiHandler->processSalSysexEvent( acceptPresetOrPresetsEvent );
 			}
 		}
-		else if ( salSysexEvent.getType() == SalSysexTypeEnum::RECEIVED_PRESET )
+		else if ( (salSysexEvent.getType() == SalSysexTypeEnum::ACCEPT_PRESET_OR_PRESETS && m_NibbleIndex == 0)
+				|| salSysexEvent.getType() == SalSysexTypeEnum::RECEIVED_PRESET )
 		{
-			// send the next requested preset
+			// send either the first preset, or the next requested preset in the send all presets mode
 			// note that since sal has a limited midi message size, multiple preset chunks are usually necessary for a single preset
+			if ( m_SenderId == 0 )
+			{
+				m_SenderId = salSysexEvent.getDevId();
+			}
+
 			const uint16_t numNibblesInPreset = this->getNumNibblesInPreset();
 			const uint8_t requestedPresetNum = ( m_SendingOrReceivingAllPresets ) ? salSysexEvent.getPresetNum() + 1 : m_PresetManager->getMaxNumPresets();
 

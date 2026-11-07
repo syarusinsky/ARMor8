@@ -176,12 +176,12 @@ void ARMor8VSTAudioProcessorEditor::onARMor8PresetChangedEvent (const ARMor8Pres
 {
     if ( presetEvent.getType() == ARMor8PresetEventTypeEnum::LOAD_PRESET || presetEvent.getType() == ARMor8PresetEventTypeEnum::FINISHED_SENDING_OR_RECEIVING_PRESETS )
     {
-        ARMor8VoiceState state = presetEvent.getPreset();
-        ARMor8UiManager& armor8UiManager = audioProcessor.getARMor8UiManager();
+        // ARMor8VoiceState state = presetEvent.getPreset();
+        // ARMor8UiManager& armor8UiManager = audioProcessor.getARMor8UiManager();
 
-        effect1Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot1AssignmentOp, state.pot1AssignmentIndex) );
-        effect2Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot2AssignmentOp, state.pot2AssignmentIndex) );
-        effect3Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot3AssignmentOp, state.pot3AssignmentIndex) );
+        // effect1Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot1AssignmentOp, state.pot1AssignmentIndex) );
+        // effect2Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot2AssignmentOp, state.pot2AssignmentIndex) );
+        // effect3Sldr.setValue( armor8UiManager.potAssignmentIndexToParameterVal(state, state.pot3AssignmentOp, state.pot3AssignmentIndex) );
     }
 }
 
