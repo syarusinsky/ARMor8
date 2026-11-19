@@ -2552,7 +2552,7 @@ void ARMor8UiManager::tickForEffectBtn2Hold (float microseconds)
 	}
 	else
 	{
-		m_TickForEffectBtn2Hold = 0;
+		m_TickForEffectBtn2Hold = 0.0f;
 	}
 }
 

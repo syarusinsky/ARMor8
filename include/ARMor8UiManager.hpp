@@ -155,7 +155,7 @@ class ARMor8UiManager : public Surface, public IARMor8PresetEventListener, publi
 
 		// for preset sending/receiving
 		float 		m_TickForEffectBtn2Hold; // in microseconds
-		constexpr static float m_TickForEffectBtn2HoldMax = 1000000.0f; // need to hold effect button 2 for 1 second to get to preset sender menu
+		constexpr static float m_TickForEffectBtn2HoldMax = 500000.0f; // need to hold effect button 2 for 1 second to get to preset sender menu
 
 		// main settings menu indices
 		unsigned int 	m_SettingsMenuAssignEffect1Index;

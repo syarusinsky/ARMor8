@@ -984,6 +984,7 @@ void ARMor8VoiceManager::onSalSysexEvent (const SalSysexEvent& salSysexEvent)
 
 					m_DevId = 0;
 					m_SenderId = 0;
+					m_SendingOrReceivingAllPresets = false;
 				}
 
 				m_MidiHandler->processSalSysexEvent( receivedPresetEvent );
@@ -1007,7 +1008,8 @@ void ARMor8VoiceManager::onSalSysexEvent (const SalSysexEvent& salSysexEvent)
 			}
 
 			const uint16_t numNibblesInPreset = this->getNumNibblesInPreset();
-			const uint8_t requestedPresetNum = ( m_SendingOrReceivingAllPresets ) ? salSysexEvent.getPresetNum() + 1 : m_PresetManager->getMaxNumPresets();
+			const uint8_t requestedPresetNum = ( salSysexEvent.getType() != SalSysexTypeEnum::RECEIVED_PRESET ) ? salSysexEvent.getPresetNum() :
+								( m_SendingOrReceivingAllPresets ) ? salSysexEvent.getPresetNum() + 1 : m_PresetManager->getMaxNumPresets();
 
 			m_NibbleIndex = 0; // reset since next preset we need to start at the first nibble
 
